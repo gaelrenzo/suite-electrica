@@ -5,7 +5,7 @@ Suite libre (MIT) para ingeniería eléctrica de distribución en Perú.
 | Módulo | Alcance | Estado |
 |---|---|---|
 | **TopoCraft** | Topografía: limpieza de puntos, TIN, curvas de nivel, perfil longitudinal | Fase 1 — MVP |
-| **LineCraft** | Líneas primarias MT: postes, cálculo mecánico, distancias CNE | Fase 2 — pendiente |
+| **LineCraft** | Líneas primarias MT: postes, cálculo mecánico, despejes, cargas y retenidas | Fase 2 — MVP |
 | **GridCraft** | Redes primarias/secundarias: cargas, caída de tensión | Fase 3 — pendiente |
 | GUI | PySide6, lanzador común, abrir DXF en CADCraft | Fase 4 — pendiente |
 
@@ -49,6 +49,23 @@ python -m suite_electrica.topocraft perfil examples/colina_gaussiana.csv --eje e
 ```
 
 Fórmulas y fuentes: [`docs/topocraft.md`](docs/topocraft.md).
+
+## LineCraft
+
+Proyecto en JSON (ver `examples/linecraft/proyecto.json`): perfil (puntos + eje, o
+Excel de TopoCraft), conductor del catálogo, hipótesis, condición inicial (EDS),
+límites y fuentes de cada valor normativo.
+
+```bash
+linecraft calcular proyecto.json --out salidas/
+python -m suite_electrica.linecraft calcular examples/linecraft/proyecto.json --out examples/salidas/linecraft
+```
+
+Salidas: `perfil_linea.dxf` (capas PERFIL, POSTES, CONDUCTOR, DESPEJE, TEXTO_LC),
+`planilla_estructuras.xlsx` (Estructuras, Vanos, Mecanico, Cargas, Avisos) y
+`memoria_calculo.pdf`. Código de salida 3 si el diseño no cumple.
+
+Fórmulas y fuentes: [`docs/linecraft.md`](docs/linecraft.md).
 
 ## Estructura
 

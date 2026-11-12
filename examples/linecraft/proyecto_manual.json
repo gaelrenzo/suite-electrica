@@ -1,0 +1,59 @@
+{
+  "nombre": "Ejemplo LineCraft - colina gaussiana (manual)",
+  "perfil": {
+    "puntos": "../colina_gaussiana.csv",
+    "eje": "../eje.dxf",
+    "paso": 5
+  },
+  "conductor": {
+    "catalogo": "../../data/conductores_PENDIENTE_REVISION.csv",
+    "nombre": "AAAC 35"
+  },
+  "n_conductores": 3,
+  "modelo": "catenaria",
+  "hipotesis": [
+    {
+      "nombre": "I_VIENTO_MAX",
+      "temperatura_C": 10,
+      "presion_viento_Pa": 231.68
+    },
+    {
+      "nombre": "II_HIELO",
+      "temperatura_C": -5,
+      "presion_viento_Pa": 57.92,
+      "espesor_hielo_mm": 6,
+      "densidad_hielo_kg_m3": 900
+    },
+    {
+      "nombre": "III_TEMP_MIN",
+      "temperatura_C": -15
+    },
+    {
+      "nombre": "IV_TEMP_MAX",
+      "temperatura_C": 35
+    },
+    {
+      "nombre": "V_EDS",
+      "temperatura_C": 15
+    }
+  ],
+  "condicion_inicial": {
+    "hipotesis": "V_EDS",
+    "tiro_pct_rotura": 18
+  },
+  "hipotesis_flecha_maxima": "IV_TEMP_MAX",
+  "tiro_maximo_pct_rotura": 40,
+  "distancia_minima_terreno_m": 6.5,
+  "altura_amarre_m": 10.6,
+  "vano_maximo_m": 120,
+  "vano_minimo_m": 30,
+  "angulo_retenida_deg": 45,
+  "fuentes": {
+    "conductor": "PENDIENTE_REVISION: ficha AAAC 35 del proyecto Capachica",
+    "hipotesis": "EJEMPLO: hipótesis I-V del proyecto Capachica (CNE Suministro 2011, verificar zona)",
+    "tiro_inicial_pct_rotura": "EJEMPLO: 18 % EDS según proyecto Capachica (verificar norma DGE)",
+    "tiro_maximo_pct_rotura": "EJEMPLO: 40 % según proyecto Capachica (verificar norma DGE)",
+    "distancia_minima_terreno_m": "EJEMPLO: 6.5 m según proyecto Capachica (verificar CNE Regla 232)"
+  },
+  "estructuras": "estructuras_manual.csv"
+}

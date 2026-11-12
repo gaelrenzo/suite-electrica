@@ -1,0 +1,12 @@
+# Ubicación manual de estructuras (usada por proyecto_manual.json). tipo y altura vacíos = automáticos.
+# Deben incluirse el inicio, el fin y todos los vértices del eje (aquí 325.27 y 486.51 m).
+# Este ejemplo NO cumple a propósito: el vano E-03 - E-04 queda con 6.38 m de despeje (< 6.50 m).
+progresiva_m,tipo,altura_amarre_m
+0,FIN,
+110,,
+230,,
+325.27,,
+420,ANCLAJE,
+486.51,,
+580,,
+652.04,FIN,
