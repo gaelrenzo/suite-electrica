@@ -1,0 +1,4 @@
+# Catálogo de conductores. PENDIENTE_REVISION: verificar cada fila contra la ficha técnica del fabricante.
+# AAAC 35: valores del proyecto académico Capachica (memoria_calculo_mecanico.md, sección 1), que cita NTP 370.258 / ASTM B399.
+nombre,seccion_mm2,diametro_mm,masa_kg_m,carga_rotura_kN,modulo_elasticidad_MPa,coef_dilatacion_1_C,fuente
+AAAC 35,34.36,7.50,0.0945,10.199,58860,23.0e-6,PENDIENTE_REVISION: proyecto Capachica (NTP 370.258 / ASTM B399)

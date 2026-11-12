@@ -33,6 +33,9 @@ linecraft = "suite_electrica.linecraft.cli:main"
 [tool.setuptools.packages.find]
 include = ["suite_electrica*"]
 
+[tool.setuptools.package-data]
+"suite_electrica.plantillas" = ["*.json", "*.csv"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]

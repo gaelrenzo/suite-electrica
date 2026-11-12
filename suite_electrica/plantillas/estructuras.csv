@@ -1,0 +1,3 @@
+# Opcional: ubicación manual. Para usarla, en proyecto.json poner "estructuras": "estructuras.csv".
+# Incluir 0, la longitud total y todos los vértices del eje. tipo: FIN, ANCLAJE, ANGULO, SUSPENSION (vacío = automático).
+progresiva_m,tipo,altura_amarre_m

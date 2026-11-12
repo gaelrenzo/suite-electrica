@@ -135,3 +135,18 @@ def test_manual_sin_vertice_es_error(tmp_path):
     with pytest.raises(ValueError, match="vértice"):
         calcular(proyecto.cargar(escribir_proyecto(tmp_path, st.plano_inclinado(0, 0), EJE_L,
                                                    estructuras="est.csv")))
+
+
+def test_nuevo_proyecto_desde_plantilla(tmp_path):
+    destino = tmp_path / "linea"
+    assert main(["nuevo", str(destino)]) == 0
+    assert {p.name for p in destino.iterdir()} == {"proyecto.json", "conductores.csv", "estructuras.csv"}
+    # Con puntos y eje propios, la plantilla se calcula sin editar nada más
+    st.malla(st.colina_gaussiana(), 10).to_csv(destino / "puntos.csv", index=False)
+    doc = ezdxf.new()
+    doc.modelspace().add_lwpolyline(st.eje_ejemplo().tolist())
+    doc.saveas(destino / "eje.dxf")
+    r = calcular(proyecto.cargar(destino / "proyecto.json"))
+    assert len(r.estructuras) >= 2
+    assert sum("PENDIENTE_REVISION" in a for a in r.avisos) == len(proyecto.PARAMETROS_NORMATIVOS)
+    assert main(["nuevo", str(destino)]) == 0  # no sobrescribe

@@ -1,12 +1,15 @@
 """CLI de LineCraft.
 
-    linecraft calcular proyecto.json --out salidas/
+    linecraft nuevo mi_linea/
+    linecraft calcular mi_linea/proyecto.json --out mi_linea/salidas
 """
 
 from __future__ import annotations
 
 import argparse
+import shutil
 import sys
+from importlib.resources import files
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -33,6 +36,23 @@ def cmd_calcular(args: argparse.Namespace) -> int:
     return 0 if r.cumple else 3
 
 
+def cmd_nuevo(args: argparse.Namespace) -> int:
+    destino = Path(args.carpeta)
+    destino.mkdir(parents=True, exist_ok=True)
+    plantillas = files("suite_electrica.plantillas")
+    for nombre in ("proyecto.json", "conductores.csv", "estructuras.csv"):
+        ruta = destino / nombre
+        if ruta.exists():
+            print(f"Ya existe, no se sobrescribe: {ruta}")
+            continue
+        with plantillas.joinpath(nombre).open("rb") as src, open(ruta, "wb") as dst:
+            shutil.copyfileobj(src, dst)
+        print(f"Creado: {ruta}")
+    print("Siguiente: copie puntos.csv y eje.dxf a la carpeta, edite proyecto.json (valores y fuentes)\n"
+          f"y ejecute: linecraft calcular {destino / 'proyecto.json'} --out {destino / 'salidas'}")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Punto de entrada de la CLI. Código 3 si el diseño no cumple."""
     ap = argparse.ArgumentParser(prog="linecraft", description="LineCraft: líneas primarias MT")
@@ -42,6 +62,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     c.add_argument("--out", default="salidas", help="carpeta de salida")
     c.add_argument("--exageracion", type=float, default=10.0, help="exageración vertical del DXF")
     c.set_defaults(func=cmd_calcular)
+    n = sub.add_parser("nuevo", help="crear carpeta de proyecto con plantillas")
+    n.add_argument("carpeta")
+    n.set_defaults(func=cmd_nuevo)
     args = ap.parse_args(argv)
     try:
         return args.func(args)

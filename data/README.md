@@ -10,4 +10,6 @@ Reglas:
    y el código debe emitir un aviso al usarlo.
 3. No se copian tablas de software comercial.
 
-Estado: vacío (fase 1 TopoCraft no requiere valores normativos).
+Estado: `conductores_PENDIENTE_REVISION.csv` (AAAC 35 del proyecto Capachica).
+Copia usada por `linecraft nuevo`: `suite_electrica/plantillas/conductores.csv`
+(mantener ambas iguales).

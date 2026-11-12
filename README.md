@@ -14,14 +14,11 @@ No se inventan valores normativos (ver `data/README.md`).
 
 ## Instalación
 
-Requiere Python 3.12+.
+* **Windows 11**: instalar Python 3.12+ (con "Add to PATH") y ejecutar `instalar.bat`.
+* **Linux**: `python3 -m pip install -e ".[dev]"`.
 
-```bash
-python -m pip install -e ".[dev]"     # añadir ,gui para PySide6
-python -m pytest -q
-```
-
-Sin instalar: `python -m suite_electrica.topocraft ...` desde la raíz del repositorio.
+Paso a paso y flujo de trabajo: [`docs/GUIA_RAPIDA.md`](docs/GUIA_RAPIDA.md).
+Pruebas: `python -m pytest -q`.
 
 ## TopoCraft
 
@@ -57,7 +54,8 @@ Excel de TopoCraft), conductor del catálogo, hipótesis, condición inicial (ED
 límites y fuentes de cada valor normativo.
 
 ```bash
-linecraft calcular proyecto.json --out salidas/
+linecraft nuevo mi_linea                      # plantilla de proyecto
+linecraft calcular mi_linea/proyecto.json --out mi_linea/salidas
 python -m suite_electrica.linecraft calcular examples/linecraft/proyecto.json --out examples/salidas/linecraft
 ```
 
