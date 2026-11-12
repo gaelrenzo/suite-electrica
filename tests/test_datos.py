@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from topocraft import datos
-from topocraft import sinteticos as st
+from suite_electrica.topocraft import datos
+from suite_electrica.topocraft import sinteticos as st
 
 
 def test_csv_con_encabezado_y_acentos(tmp_path):

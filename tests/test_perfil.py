@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from conftest import tin_de
-from core.geo.perfil import ESTACION, QUIEBRE, VERTICE, perfil_longitudinal, progresivas_eje
-from topocraft import sinteticos as st
+from suite_electrica.core.geo.perfil import ESTACION, QUIEBRE, VERTICE, perfil_longitudinal, progresivas_eje
+from suite_electrica.topocraft import sinteticos as st
 
 
 def cota_manual(tin, x, y):
@@ -55,7 +55,7 @@ def test_perfil_lineal_entre_quiebres(colina):
     _, tin = tin_de(colina, paso=20)
     pf = perfil_longitudinal(tin, st.eje_ejemplo(), paso=50)
     sm = (pf.progresiva[1:] + pf.progresiva[:-1]) / 2
-    from core.geo.perfil import punto_en_progresiva
+    from suite_electrica.core.geo.perfil import punto_en_progresiva
     xy = punto_en_progresiva(st.eje_ejemplo(), sm)
     assert np.max(np.abs(tin.cota(xy[:, 0], xy[:, 1]) - pf.cota_en(sm))) < 1e-6
 

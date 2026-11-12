@@ -21,7 +21,7 @@ python -m pip install -e ".[dev]"     # añadir ,gui para PySide6
 python -m pytest -q
 ```
 
-Sin instalar: `python -m topocraft ...` desde la raíz del repositorio.
+Sin instalar: `python -m suite_electrica.topocraft ...` desde la raíz del repositorio.
 
 ## TopoCraft
 
@@ -44,8 +44,8 @@ Unidades del dibujo: metros.
 
 ```bash
 python examples/generar_ejemplos.py
-python -m topocraft curvas examples/colina_gaussiana.csv --eq 1 --eje examples/eje.dxf --out examples/salidas/plano.dxf
-python -m topocraft perfil examples/colina_gaussiana.csv --eje examples/eje.dxf --out examples/salidas/perfil.pdf examples/salidas/perfil.xlsx
+python -m suite_electrica.topocraft curvas examples/colina_gaussiana.csv --eq 1 --eje examples/eje.dxf --out examples/salidas/plano.dxf
+python -m suite_electrica.topocraft perfil examples/colina_gaussiana.csv --eje examples/eje.dxf --out examples/salidas/perfil.pdf examples/salidas/perfil.xlsx
 ```
 
 Fórmulas y fuentes: [`docs/topocraft.md`](docs/topocraft.md).
@@ -53,8 +53,9 @@ Fórmulas y fuentes: [`docs/topocraft.md`](docs/topocraft.md).
 ## Estructura
 
 ```
-core/      motor compartido (geo: UTM, TIN, perfil; dxf; norms; units)
-topocraft/ linecraft/ gridcraft/ gui/
+suite_electrica/
+  core/      motor compartido (geo: UTM, TIN, perfil; dxf; norms; units)
+  topocraft/ linecraft/ gridcraft/ gui/
 data/      catálogos CSV     examples/  datos sintéticos
 tests/     pytest            docs/      fundamentos de cálculo
 ```

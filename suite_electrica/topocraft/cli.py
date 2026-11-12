@@ -17,10 +17,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from core.dxf.lectura import leer_polilinea
-from core.geo.perfil import perfil_longitudinal
-from core.geo.tin import TIN, niveles
-from topocraft import datos, salidas
+from suite_electrica.core.dxf.lectura import leer_polilinea
+from suite_electrica.core.geo.perfil import perfil_longitudinal
+from suite_electrica.core.geo.tin import TIN, niveles
+from suite_electrica.topocraft import datos, salidas
 
 
 def _cargar(args: argparse.Namespace) -> tuple[pd.DataFrame, TIN]:

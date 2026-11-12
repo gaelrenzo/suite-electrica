@@ -1,6 +1,6 @@
 import pytest
 
-from core.geo.utm import epsg_utm, geograficas_a_utm, utm_a_geograficas, zona_desde_longitud
+from suite_electrica.core.geo.utm import epsg_utm, geograficas_a_utm, utm_a_geograficas, zona_desde_longitud
 
 
 def test_zonas():

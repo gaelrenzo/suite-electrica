@@ -4,13 +4,13 @@ import pandas as pd
 import pytest
 
 from conftest import tin_de
-from core.dxf.lectura import leer_polilinea, leer_puntos
-from core.geo.perfil import perfil_longitudinal
-from core.geo.tin import niveles
-from core.units import formato_progresiva
-from topocraft import salidas
-from topocraft import sinteticos as st
-from topocraft.cli import main
+from suite_electrica.core.dxf.lectura import leer_polilinea, leer_puntos
+from suite_electrica.core.geo.perfil import perfil_longitudinal
+from suite_electrica.core.geo.tin import niveles
+from suite_electrica.core.units import formato_progresiva
+from suite_electrica.topocraft import salidas
+from suite_electrica.topocraft import sinteticos as st
+from suite_electrica.topocraft.cli import main
 
 
 def _audit(ruta):

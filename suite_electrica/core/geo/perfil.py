@@ -12,7 +12,7 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
-from core.geo.tin import TIN
+from suite_electrica.core.geo.tin import TIN
 
 VERTICE = "V"
 """Vértice del eje."""

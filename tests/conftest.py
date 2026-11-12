@@ -2,8 +2,8 @@
 
 import pytest
 
-from core.geo.tin import TIN
-from topocraft import sinteticos as st
+from suite_electrica.core.geo.tin import TIN
+from suite_electrica.topocraft import sinteticos as st
 
 
 @pytest.fixture(params=["plano", "cono", "colina"])

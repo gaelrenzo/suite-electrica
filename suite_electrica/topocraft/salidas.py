@@ -10,10 +10,10 @@ import pandas as pd
 from matplotlib.figure import Figure
 from numpy.typing import NDArray
 
-from core.dxf.escritura import asegurar_capa, guardar, nuevo_documento
-from core.geo.perfil import Perfil
-from core.geo.tin import TIN, Curva, es_mayor
-from core.units import formato_progresiva
+from suite_electrica.core.dxf.escritura import asegurar_capa, guardar, nuevo_documento
+from suite_electrica.core.geo.perfil import Perfil
+from suite_electrica.core.geo.tin import TIN, Curva, es_mayor
+from suite_electrica.core.units import formato_progresiva
 
 CAPAS: dict[str, int] = {
     "PUNTOS": 7, "TIN": 8, "CURVAS_MAYORES": 30, "CURVAS_MENORES": 33, "EJE": 1, "PERFIL": 3,

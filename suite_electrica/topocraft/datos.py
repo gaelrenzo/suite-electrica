@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
 
-from core.dxf.lectura import leer_puntos
+from suite_electrica.core.dxf.lectura import leer_puntos
 
 COLUMNAS = ["punto", "este", "norte", "cota", "descripcion"]
 _ALIAS = {

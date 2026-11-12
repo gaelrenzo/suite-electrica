@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from conftest import tin_de
-from core.geo.tin import TIN, es_mayor, niveles
-from topocraft import sinteticos as st
+from suite_electrica.core.geo.tin import TIN, es_mayor, niveles
+from suite_electrica.topocraft import sinteticos as st
 
 
 def test_triangulo_calculado_a_mano():

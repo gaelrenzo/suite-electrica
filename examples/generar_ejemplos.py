@@ -8,8 +8,8 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from core.dxf.escritura import asegurar_capa, guardar, nuevo_documento  # noqa: E402
-from topocraft import datos, sinteticos as st  # noqa: E402
+from suite_electrica.core.dxf.escritura import asegurar_capa, guardar, nuevo_documento  # noqa: E402
+from suite_electrica.topocraft import datos, sinteticos as st  # noqa: E402
 
 AQUI = Path(__file__).parent
 

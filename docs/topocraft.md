@@ -10,7 +10,7 @@ WGS84 / UTM hemisferio sur, zonas 17S (EPSG:32717), 18S (EPSG:32718) y
 
 Fuente: NGA, *DMA Technical Manual 8358.2, The Universal Grids: UTM and UPS* (1989).
 
-## 2. Validación de puntos (`topocraft/datos.py`)
+## 2. Validación de puntos (`suite_electrica/topocraft/datos.py`)
 
 * **Inválidos**: filas con este, norte o cota no numéricos → se eliminan.
 * **Duplicados**: misma posición (tolerancia `tol_xy` = 1 mm). Si la cota
@@ -27,7 +27,7 @@ Fuente: NGA, *DMA Technical Manual 8358.2, The Universal Grids: UTM and UPS* (19
   solo se **informa**; `--quitar-atipicos` los elimina.
   `tol_abs` = 0,5 m es un parámetro de limpieza de datos, no un valor normativo.
 
-## 3. TIN (`core/geo/tin.py`)
+## 3. TIN (`suite_electrica/core/geo/tin.py`)
 
 Triangulación de Delaunay (Qhull vía `scipy.spatial.Delaunay`) en coordenadas
 trasladadas al centroide para conservar precisión. Opcional: descartar triángulos
@@ -59,7 +59,7 @@ se encadenan por arista compartida → polilíneas continuas, abiertas (terminan
 borde del TIN) o cerradas. En DXF se escriben como LWPOLYLINE con
 `elevation = L`.
 
-## 5. Perfil longitudinal (`core/geo/perfil.py`)
+## 5. Perfil longitudinal (`suite_electrica/core/geo/perfil.py`)
 
 Progresiva acumulada a lo largo del eje: `s_i = Σ |V_j V_{j+1}|`. Puntos del perfil:
 
@@ -86,7 +86,7 @@ Si no se indica, `esc_H` es la menor escala normalizada (1:500 … 1:100 000) co
 ancho ≤ 900 mm y `esc_V = esc_H / 10` (exageración vertical 10×). En el DXF del
 perfil: `x = s`, `y = (z − z_ref)·exageración`.
 
-## Terrenos de prueba (`topocraft/sinteticos.py`)
+## Terrenos de prueba (`suite_electrica/topocraft/sinteticos.py`)
 
 | Superficie | Fórmula |
 |---|---|
