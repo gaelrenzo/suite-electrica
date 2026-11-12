@@ -8,17 +8,38 @@
    marque **"Add python.exe to PATH"**.
 2. Descargue el repositorio (`git clone git@github.com:gaelrenzo/suite-electrica.git`
    o *Code → Download ZIP*).
-3. Haga doble clic en **`instalar.bat`**. Crea `.venv`, instala todo, ejecuta las
-   pruebas y agrega `bin\` al PATH del usuario.
-4. Abra una **nueva** terminal (PowerShell o CMD) y pruebe `topocraft --help`.
+3. Haga doble clic en **`instalar.bat`**. Crea `.venv`, instala todo (incluida la
+   interfaz gráfica), ejecuta las pruebas, agrega `bin\` al PATH y crea el acceso
+   directo **Suite Electrica** en el Escritorio y el menú Inicio.
+4. Abra la app desde el acceso directo. Los comandos `topocraft`/`linecraft`
+   funcionan en una **nueva** terminal.
 
 **Linux / Termux-Ubuntu**
 
 ```bash
 cd suite-electrica
-python3 -m pip install -e ".[dev]"   # en Debian/Ubuntu del sistema: añadir --break-system-packages
+python3 -m pip install -e ".[dev,gui]"   # en Debian/Ubuntu del sistema: añadir --break-system-packages
+suite-electrica                          # app (requiere pantalla: escritorio, X11 o VNC)
 topocraft --help
 ```
+
+## 1b. La app (Suite Eléctrica)
+
+Pestañas por módulo, como un programa de escritorio:
+
+* **TopoCraft**: elija puntos y eje → **Procesar** (F5) → vea *Plano*, *Perfil*,
+  *Tabla perfil* y *Registro* (validación) → **Exportar** a una carpeta → **Abrir
+  plano en visor DXF**.
+* **LineCraft**: **Nuevo proyecto** (Ctrl+N) crea las plantillas; edite el JSON en la
+  pestaña *Proyecto* → **Calcular** (F6; guarda antes) → vea *Perfil* (postes,
+  conductor y despeje), *Estructuras*, *Vanos*, *Mecánico*, *Cargas*, *Avisos* y el
+  indicador CUMPLE / NO CUMPLE → **Exportar** → abrir DXF o memoria PDF.
+* **Herramientas → Configurar visor DXF (CADCraft)**: elija el ejecutable; los
+  botones «Abrir … en visor DXF» lo usarán. Sin configurar, se usa el programa
+  asociado a .dxf (p. ej. AutoCAD).
+* **Archivo → Recientes**: últimos proyectos abiertos.
+
+Los gráficos tienen zoom y desplazamiento (barra superior) y se pueden guardar como imagen.
 
 ## 2. Topografía (TopoCraft)
 

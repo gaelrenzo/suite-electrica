@@ -1,1 +1,1 @@
-"""Interfaz gráfica PySide6 con lanzador común (fase 4, pendiente)."""
+"""Interfaz gráfica PySide6: lanzador común TopoCraft / LineCraft."""

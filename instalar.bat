@@ -26,7 +26,7 @@ if not exist .venv (
 )
 echo Instalando dependencias, puede tardar unos minutos ...
 .venv\Scripts\python -m pip install --upgrade pip
-.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m pip install -e ".[dev,gui]"
 if errorlevel 1 goto :error
 
 echo Ejecutando pruebas ...
@@ -35,8 +35,11 @@ if errorlevel 1 echo ADVERTENCIA: algunas pruebas fallaron; revise el mensaje an
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "$d = (Resolve-Path 'bin').Path; $p = [Environment]::GetEnvironmentVariable('Path', 'User'); if (-not $p) { $p = '' }; if (($p -split ';') -notcontains $d) { [Environment]::SetEnvironmentVariable('Path', (($p.TrimEnd(';') + ';' + $d).TrimStart(';')), 'User'); Write-Host 'Carpeta bin agregada al PATH del usuario.' } else { Write-Host 'bin ya estaba en el PATH.' }"
 
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$exe = (Resolve-Path '.venv\Scripts\suite-electrica.exe').Path; $sh = New-Object -ComObject WScript.Shell; foreach ($dir in @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs'))) { $l = $sh.CreateShortcut((Join-Path $dir 'Suite Electrica.lnk')); $l.TargetPath = $exe; $l.WorkingDirectory = (Get-Location).Path; $l.Description = 'TopoCraft y LineCraft'; $l.Save() }; Write-Host 'Accesos directos creados en el Escritorio y el menu Inicio.'"
+
 echo.
-echo Listo. Abra una NUEVA terminal y pruebe:
+echo Listo. Abra "Suite Electrica" desde el Escritorio o el menu Inicio.
+echo Comandos (en una NUEVA terminal):
 echo    topocraft --help
 echo    linecraft --help
 echo Guia: docs\GUIA_RAPIDA.md

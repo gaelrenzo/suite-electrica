@@ -9,8 +9,8 @@ from __future__ import annotations
 import argparse
 import shutil
 import sys
-from importlib.resources import files
 from collections.abc import Sequence
+from importlib.resources import files
 from pathlib import Path
 
 from suite_electrica.linecraft import proyecto, salidas
@@ -36,18 +36,34 @@ def cmd_calcular(args: argparse.Namespace) -> int:
     return 0 if r.cumple else 3
 
 
-def cmd_nuevo(args: argparse.Namespace) -> int:
-    destino = Path(args.carpeta)
+def crear_proyecto(carpeta: str | Path) -> tuple[list[Path], list[Path]]:
+    """Copia las plantillas a ``carpeta`` sin sobrescribir.
+
+    Returns:
+        (creados, existentes)
+    """
+    destino = Path(carpeta)
     destino.mkdir(parents=True, exist_ok=True)
     plantillas = files("suite_electrica.plantillas")
+    creados, existentes = [], []
     for nombre in ("proyecto.json", "conductores.csv", "estructuras.csv"):
         ruta = destino / nombre
         if ruta.exists():
-            print(f"Ya existe, no se sobrescribe: {ruta}")
+            existentes.append(ruta)
             continue
         with plantillas.joinpath(nombre).open("rb") as src, open(ruta, "wb") as dst:
             shutil.copyfileobj(src, dst)
-        print(f"Creado: {ruta}")
+        creados.append(ruta)
+    return creados, existentes
+
+
+def cmd_nuevo(args: argparse.Namespace) -> int:
+    destino = Path(args.carpeta)
+    creados, existentes = crear_proyecto(destino)
+    for r in existentes:
+        print(f"Ya existe, no se sobrescribe: {r}")
+    for r in creados:
+        print(f"Creado: {r}")
     print("Siguiente: copie puntos.csv y eje.dxf a la carpeta, edite proyecto.json (valores y fuentes)\n"
           f"y ejecute: linecraft calcular {destino / 'proyecto.json'} --out {destino / 'salidas'}")
     return 0

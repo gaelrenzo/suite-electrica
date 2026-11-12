@@ -116,17 +116,26 @@ def planilla_excel(ruta: str | Path, r: Resultado) -> Path:
     return ruta
 
 
-def figura_perfil(r: Resultado, ancho_in: float = 10.0, alto_in: float = 3.5) -> Figure:
-    """Figura del perfil con postes y conductor (para la memoria)."""
+def figura_perfil(r: Resultado, ancho_in: float = 10.0, alto_in: float = 3.5,
+                  fig: Figure | None = None) -> Figure:
+    """Figura del perfil con postes y conductor (memoria y GUI).
+
+    Si se pasa ``fig`` se limpia y se dibuja sobre ella.
+    """
     p = r.proyecto
-    fig = Figure(figsize=(ancho_in, alto_in))
+    if fig is None:
+        fig = Figure(figsize=(ancho_in, alto_in))
+    else:
+        fig.clear()
     ax = fig.add_subplot()
     for t in _tramos_validos(p.perfil.progresiva, p.perfil.cota):
         ax.fill_between(t[:, 0], np.nanmin(p.perfil.cota) - 5, t[:, 1], color="#d9c7a3", lw=0)
         ax.plot(t[:, 0], t[:, 1], color="#5a3e1b", lw=0.8)
-    for (s, z), (_, zd) in zip(_curvas_vanos(r), _curvas_vanos(r, p.distancia_minima_terreno)):
-        ax.plot(s, z, color="#c0392b", lw=0.8)
-        ax.plot(s, zd, color="#8e44ad", lw=0.5, ls="--")
+    for k, ((s, z), (_, zd)) in enumerate(zip(_curvas_vanos(r),
+                                             _curvas_vanos(r, p.distancia_minima_terreno))):
+        ax.plot(s, z, color="#c0392b", lw=0.8, label=f"Conductor ({p.hip_flecha_maxima})" if k == 0 else None)
+        ax.plot(s, zd, color="#8e44ad", lw=0.5, ls="--",
+                label=f"Despeje mínimo {p.distancia_minima_terreno:.2f} m" if k == 0 else None)
     for e in r.estructuras:
         ax.plot([e.progresiva] * 2, [e.cota_terreno, e.cota_amarre], color="k", lw=1.2)
         ax.annotate(e.codigo, (e.progresiva, e.cota_amarre), fontsize=6, ha="center",
@@ -136,6 +145,7 @@ def figura_perfil(r: Resultado, ancho_in: float = 10.0, alto_in: float = 3.5) ->
     ax.tick_params(labelsize=6)
     ax.grid(True, lw=0.3, color="0.85")
     ax.set_xlim(0, p.perfil.longitud)
+    ax.legend(fontsize=6, loc="best")
     fig.tight_layout()
     return fig
 

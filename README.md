@@ -7,15 +7,16 @@ Suite libre (MIT) para ingeniería eléctrica de distribución en Perú.
 | **TopoCraft** | Topografía: limpieza de puntos, TIN, curvas de nivel, perfil longitudinal | Fase 1 — MVP |
 | **LineCraft** | Líneas primarias MT: postes, cálculo mecánico, despejes, cargas y retenidas | Fase 2 — MVP |
 | **GridCraft** | Redes primarias/secundarias: cargas, caída de tensión | Fase 3 — pendiente |
-| GUI | PySide6, lanzador común, abrir DXF en CADCraft | Fase 4 — pendiente |
+| **App** | PySide6: lanzador común, gráficos, tablas, abrir DXF en CADCraft | Fase 4 — MVP |
 
 Normativa base: Código Nacional de Electricidad (Suministro 2011), normas DGE/MINEM.
 No se inventan valores normativos (ver `data/README.md`).
 
 ## Instalación
 
-* **Windows 11**: instalar Python 3.12+ (con "Add to PATH") y ejecutar `instalar.bat`.
-* **Linux**: `python3 -m pip install -e ".[dev]"`.
+* **Windows 11**: instalar Python 3.12+ (con "Add to PATH") y ejecutar `instalar.bat`;
+  crea el acceso directo **Suite Electrica** (app) y los comandos.
+* **Linux**: `python3 -m pip install -e ".[dev,gui]"` y abrir con `suite-electrica`.
 
 Paso a paso y flujo de trabajo: [`docs/GUIA_RAPIDA.md`](docs/GUIA_RAPIDA.md).
 Pruebas: `python -m pytest -q`.
