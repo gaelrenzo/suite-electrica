@@ -35,8 +35,7 @@ def _cargar(args: argparse.Namespace) -> tuple[pd.DataFrame, TIN]:
 def _leer_eje(ruta: str) -> np.ndarray:
     if Path(ruta).suffix.lower() == ".dxf":
         return leer_polilinea(ruta)
-    e = datos.leer_csv(ruta)
-    return e[["este", "norte"]].to_numpy()
+    return datos.leer_eje_csv(ruta)
 
 
 def cmd_validar(args: argparse.Namespace) -> int:

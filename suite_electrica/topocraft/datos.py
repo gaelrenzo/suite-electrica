@@ -37,10 +37,12 @@ def _a_float(serie: pd.Series) -> pd.Series:
     return pd.to_numeric(serie, errors="coerce")
 
 
-def leer_csv(ruta: str | Path) -> pd.DataFrame:
+def leer_csv(ruta: str | Path, requeridas: tuple[str, ...] = ("este", "norte", "cota")) -> pd.DataFrame:
     """Lee un CSV de puntos (con o sin encabezado; separador ``,``, ``;`` o tabulador).
 
-    Sin encabezado se asume el orden PENZD: punto, este, norte, cota, descripción.
+    Sin encabezado se asume el orden PENZD: punto, este, norte, cota, descripción
+    (o ``este, norte`` con 2 columnas).
+    Columnas no requeridas ausentes quedan vacías (NaN).
     """
     with open(ruta, encoding="utf-8-sig") as fh:
         linea = fh.readline()
@@ -48,12 +50,16 @@ def leer_csv(ruta: str | Path) -> pd.DataFrame:
     crudo = pd.read_csv(ruta, sep=sep, dtype=str, header=None, skipinitialspace=True,
                         encoding="utf-8-sig", keep_default_na=False)
     primera = [_normalizar(v) for v in crudo.iloc[0].tolist()]
-    if sum(v in _ALIAS for v in primera) >= 3:
+    if sum(v in _ALIAS for v in primera) >= min(3, len(requeridas)):
         crudo.columns = [_ALIAS.get(v, v) for v in primera]
         crudo = crudo.iloc[1:].reset_index(drop=True)
+    elif crudo.shape[1] == 2:
+        crudo.columns = ["este", "norte"]
+    elif crudo.shape[1] == 3 and "cota" not in requeridas:
+        crudo.columns = ["punto", "este", "norte"]
     else:
         crudo.columns = COLUMNAS[: crudo.shape[1]] + [f"extra{i}" for i in range(crudo.shape[1] - 5)]
-    faltan = {"este", "norte", "cota"} - set(crudo.columns)
+    faltan = set(requeridas) - set(crudo.columns)
     if faltan:
         raise ValueError(f"Faltan columnas en {ruta}: {sorted(faltan)}")
     df = pd.DataFrame({
@@ -61,11 +67,16 @@ def leer_csv(ruta: str | Path) -> pd.DataFrame:
         else [str(i + 1) for i in range(len(crudo))],
         "este": _a_float(crudo["este"]),
         "norte": _a_float(crudo["norte"]),
-        "cota": _a_float(crudo["cota"]),
+        "cota": _a_float(crudo["cota"]) if "cota" in crudo else np.nan,
         "descripcion": crudo["descripcion"].fillna("").astype(str).str.strip()
         if "descripcion" in crudo else "",
     })
     return df.reset_index(drop=True)
+
+
+def leer_eje_csv(ruta: str | Path) -> np.ndarray:
+    """Lee un eje (n, 2) desde CSV con columnas este, norte (encabezado opcional)."""
+    return leer_csv(ruta, ("este", "norte"))[["este", "norte"]].to_numpy()
 
 
 def leer_dxf(ruta: str | Path, capa: str | None = None) -> pd.DataFrame:

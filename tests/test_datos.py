@@ -69,3 +69,10 @@ def test_csv_ida_y_vuelta(tmp_path):
     datos.guardar_csv(df, tmp_path / "x.csv")
     df2 = datos.leer(tmp_path / "x.csv")
     assert np.allclose(df.cota, df2.cota, atol=5e-4)
+
+
+def test_eje_csv_con_y_sin_encabezado(tmp_path):
+    (tmp_path / "a.csv").write_text("este,norte\n1,2\n3,4\n")
+    (tmp_path / "b.csv").write_text("1;2\n3;4\n")
+    for f in ("a.csv", "b.csv"):
+        assert datos.leer_eje_csv(tmp_path / f).tolist() == [[1, 2], [3, 4]]

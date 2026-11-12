@@ -201,6 +201,20 @@ def perfil_pdf(
     return esc_h, esc_v
 
 
+def leer_perfil_excel(ruta: str | Path) -> tuple[Perfil, NDArray[np.float64]]:
+    """Lee un perfil exportado por :func:`perfil_excel`.
+
+    Returns:
+        (perfil, eje) — el eje se reconstruye con los puntos de tipo ``V``.
+    """
+    t = pd.read_excel(ruta, sheet_name="Perfil")
+    tipo = t["Tipo"].astype(str).to_numpy()
+    perfil = Perfil(t["Distancia (m)"].to_numpy(float), t["Este (m)"].to_numpy(float),
+                    t["Norte (m)"].to_numpy(float), t["Cota terreno (m)"].to_numpy(float), tipo)
+    eje = np.column_stack([perfil.este[tipo == "V"], perfil.norte[tipo == "V"]])
+    return perfil, eje
+
+
 def perfil_excel(ruta: str | Path, perfil: Perfil, datos: dict[str, object] | None = None) -> Path:
     """Tabla de progresivas en Excel (hojas ``Perfil`` y ``Datos``)."""
     tabla = pd.DataFrame({
