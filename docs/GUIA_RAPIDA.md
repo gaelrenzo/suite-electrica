@@ -56,7 +56,7 @@ Otros: *Herramientas → Configurar visor DXF (CADCraft)*; *Archivo → Importar
 LineCraft (.json)*; *Archivo → Recientes*. Por línea de comandos:
 `linecraft calcular proyecto.sel --out salidas`.
 
-**Catálogos**: vienen con los códigos del proyecto Capachica (CAC 12/300, PS-1, PA-1, PR-1,
+**Catálogos**: vienen con los postes del proyecto Capachica (CAC 12/300…) y los armados trifásicos de la Norma DGE RD 024-2003 (PS1-3, PA1-3, PA2-3, PA3-3, PR3-3, PTV-3,
 retenida 3/8") marcados PENDIENTE. Complete empotramiento y distancia punta–amarre para que
 la altura de amarre se calcule desde el poste, y los materiales por armado para un metrado
 completo.

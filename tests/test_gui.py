@@ -64,8 +64,8 @@ def test_linea_calcular_y_planilla(con_datos, tmp_path):
     assert lp.modelo_planilla.rowCount() == n
     # editar armado desde la planilla
     col = lp.modelo_planilla.df.columns.get_loc("Armado")
-    lp.modelo_planilla.setData(lp.modelo_planilla.index(1, col), "PA-1", Qt.ItemDataRole.EditRole)
-    assert v.doc.estructuras.at[1, "armado"] == "PA-1"
+    lp.modelo_planilla.setData(lp.modelo_planilla.index(1, col), "PA1-3", Qt.ItemDataRole.EditRole)
+    assert v.doc.estructuras.at[1, "armado"] == "PA1-3"
     # mover desde la planilla
     col = lp.modelo_planilla.df.columns.get_loc("Progresiva (m)")
     lp.modelo_planilla.setData(lp.modelo_planilla.index(1, col), "100", Qt.ItemDataRole.EditRole)

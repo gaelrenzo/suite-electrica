@@ -21,9 +21,11 @@ def doc():
     return d
 
 
-def test_sin_limites_no_hay_alertas(doc):
+def test_sin_limites_solo_arrancamiento(doc):
+    # sin límites configurados solo queda S↑: el ejemplo tiene vano peso negativo en
+    # suspensiones con aislador pin (PS1-3, rígido según la lámina DGE) -> problema real
     r = doc.calcular()
-    assert r.alertas.empty and r.cumple
+    assert set(r.alertas["Código"]) == {"S↑"} and not r.cumple
 
 
 def test_pendiente_salida_parabola():
@@ -52,7 +54,7 @@ def test_fs_poste_codigo_t_o_l(doc):
 def test_separacion_y_aislador_rigido(doc):
     arm = doc.catalogos.armados
     arm["separacion_fases_m"] = 0.2
-    arm.loc[arm["codigo"] == "PS-1", "aislador"] = "RIGIDO"
+    arm.loc[arm["codigo"] == "PS1-3", "aislador"] = "RIGIDO"
     doc.linea.tension_kV = 22.9
     doc.linea.sep_k_tension = 0.01
     doc.linea.angulo_salida_min, doc.linea.angulo_salida_max = -20, 5

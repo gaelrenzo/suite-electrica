@@ -50,6 +50,9 @@ def test_metrado_desde_linecraft():
     r = d.calcular()
     m = metrado_linecraft(r.metrado)
     assert set(m["rubro"]) == {"LP"}
-    assert {"PS-1", "PR-1", "AAAC 35"} <= set(m["uc"])
+    assert {"PS1-3", "PTV-3", "AAAC 35"} <= set(m["uc"])
     km = m.loc[m["uc"] == "AAAC 35", "cantidad"].iloc[0]
-    assert km == pytest.approx(r.metrado.query("Unidad == 'm'")["Cantidad"].iloc[0] / 1000)
+    cond = r.metrado[(r.metrado["Ítem"] == "Conductor") & (r.metrado["Unidad"] == "m")]
+    assert km == pytest.approx(cond["Cantidad"].iloc[0] / 1000)
+    ca = m.loc[m["uc"].str.startswith("ca "), "cantidad"]  # alambre de amarre: sigue en m
+    assert len(ca) and (ca > 1).all()

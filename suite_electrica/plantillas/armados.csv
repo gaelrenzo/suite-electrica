@@ -1,12 +1,19 @@
-# Catálogo de armados. funcion: tipos de estructura separados por | (FIN, ANCLAJE, ANGULO, SUSPENSION).
-# angulo_max_deg: deflexión máxima admitida (vacío = sin límite declarado).
-# distancia_punta_amarre_m: de la punta del poste al amarre del conductor más bajo (vacío = usar altura de amarre por defecto).
-# PENDIENTE_REVISION: códigos usados en el proyecto Capachica; verificar láminas DGE.
-# separacion_fases_m: separación horizontal mínima entre fases del armado (alerta H).
-# aislador: RIGIDO (pin/line post: alertas I y S↑), ANCLAJE o SUSPENSION. aisladores_por_fase: 1 o 2.
-# alturas_fases_m: distancia de cada fase bajo la punta del poste (a;b;c) para el momento de vuelco.
-# retenida_toma: todo | angulo | longitudinal (vacío: ANCLAJE=todo, ANGULO=angulo, FIN=longitudinal).
+# Catálogo de armados MT trifásicos sin neutro (22,9 kV), transcrito de la Norma DGE "Especificaciones Técnicas
+# de Soportes Normalizados para Líneas y Redes Primarias para Electrificación Rural" (RD 024-2003-EM/DGE, MINEM).
+# funcion: tipos de estructura separados por | (FIN, ANCLAJE, ANGULO, SUSPENSION); se elige el primero (en orden)
+#   cuya función incluye el tipo y cuyo angulo_max_deg admite la deflexión.
+# distancia_punta_amarre_m: de la punta del poste al conductor más bajo.
+# alturas_fases_m: distancia de cada fase bajo la punta (a;b;c); 0 = fase en la cabeza del poste (espiga b1).
+# separacion_fases_m: menor separación horizontal entre fases (vacío en disposición vertical: no aplica la alerta H).
+# aislador: RIGIDO (pin), SUSPENSION (cadena en ángulo) o ANCLAJE. retenida_toma: todo | angulo | longitudinal.
+# Variantes "L": cruceta a 1,00 m (PS1/PA1) o 1,20 m (PR3) de la punta. Variantes con neutro (N): ver láminas.
 codigo,descripcion,funcion,angulo_max_deg,distancia_punta_amarre_m,separacion_fases_m,aislador,aisladores_por_fase,alturas_fases_m,retenida_toma,fuente
-PS-1,Suspensión,SUSPENSION,,,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)
-PA-1,Ángulo,ANGULO,,,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)
-PR-1,Anclaje / terminal,FIN|ANCLAJE,,,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)
+PS1-3,Suspensión 0°-5° trifásico,SUSPENSION|ANGULO,5,0.45,1.10,RIGIDO,1,0;0.45;0.45,angulo,Norma DGE RD 024-2003 lámina 004
+PS1-3L,Suspensión 0°-5° trifásico (cruceta a 1 m),SUSPENSION|ANGULO,5,1.00,1.10,RIGIDO,1,0;1.00;1.00,angulo,Norma DGE RD 024-2003 lámina 004
+PA1-3,Ángulo 5°-30° trifásico,ANGULO,30,0.45,1.10,RIGIDO,2,0;0.45;0.45,angulo,Norma DGE RD 024-2003 lámina 008
+PA1-3L,Ángulo 5°-30° trifásico (cruceta a 1 m),ANGULO,30,1.00,1.10,RIGIDO,2,0;1.00;1.00,angulo,Norma DGE RD 024-2003 lámina 008
+PA2-3,Ángulo 30°-60° trifásico (vertical),ANGULO,60,2.625,,SUSPENSION,1,0.225;1.425;2.625,angulo,Norma DGE RD 024-2003 lámina 012
+PA3-3,Ángulo 60°-90° trifásico (vertical),ANGULO,90,2.625,,ANCLAJE,1,0.225;1.425;2.625,todo,Norma DGE RD 024-2003 lámina 016
+PR3-3,Retención o anclaje trifásico,ANCLAJE|ANGULO,,0.60,1.05,ANCLAJE,1,0.60;0.60;0.60,todo,Norma DGE RD 024-2003 lámina 020
+PR3-3L,Retención o anclaje trifásico (cruceta a 1.20 m),ANCLAJE,,1.20,1.05,ANCLAJE,1,1.20;1.20;1.20,todo,Norma DGE RD 024-2003 lámina 020
+PTV-3,Terminal vertical trifásico,FIN,,2.625,,ANCLAJE,1,0.225;1.425;2.625,longitudinal,Norma DGE RD 024-2003 lámina 024

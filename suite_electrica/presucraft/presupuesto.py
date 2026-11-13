@@ -148,10 +148,12 @@ def calcular(p: Presupuesto) -> ResultadoPresupuesto:
 def metrado_linecraft(metrado: pd.DataFrame, rubro: str = "LP") -> pd.DataFrame:
     """Convierte el metrado de LineCraft (columna ``Código``) a ``rubro, uc, cantidad``.
 
-    El conductor pasa de m a km (UC = nombre del conductor, cantidad en km).
+    Solo el conductor pasa de m a km (UC = nombre del conductor, cantidad en km); los
+    materiales de los armados conservan su unidad.
     """
-    m = metrado[(metrado["Código"] != "") & ~((metrado["Ítem"] == "Conductor") & (metrado["Unidad"] != "m"))]
-    cant = np.where(m["Unidad"] == "m", m["Cantidad"] / 1000, m["Cantidad"])
+    cond = metrado["Ítem"] == "Conductor"
+    m = metrado[(metrado["Código"] != "") & ~(cond & (metrado["Unidad"] != "m"))]
+    cant = np.where((m["Ítem"] == "Conductor") & (m["Unidad"] == "m"), m["Cantidad"] / 1000, m["Cantidad"])
     return pd.DataFrame({"rubro": rubro, "uc": m["Código"].to_numpy(), "cantidad": cant})
 
 
