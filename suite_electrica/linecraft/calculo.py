@@ -15,6 +15,7 @@ import math
 from dataclasses import dataclass, field
 
 import numpy as np
+import pandas as pd
 
 from suite_electrica.linecraft.conductor import carga_unitaria
 from suite_electrica.linecraft.estructuras import (
@@ -95,15 +96,21 @@ class Resultado:
     vanos: list[Vano]
     cargas: list[Cargas]
     avisos: list[str]
+    verificacion: pd.DataFrame | None = None
+    """Verificación de postes y retenidas (si hay catálogos)."""
+    metrado: pd.DataFrame | None = None
 
     def tramo_de_vano(self, i: int) -> Tramo:
         return self.tramos[self.vanos[i].tramo]
 
     @property
     def cumple(self) -> bool:
-        """True si todos los vanos y tramos cumplen."""
-        return all(v.cumple for v in self.vanos) and all(
+        """True si vanos, tramos y (si existe) la verificación de estructuras cumplen."""
+        ok = all(v.cumple for v in self.vanos) and all(
             e.cumple for t in self.tramos for e in t.estados.values())
+        if self.verificacion is not None and len(self.verificacion):
+            ok = ok and bool((self.verificacion["Cumple"] != "NO").all())
+        return ok
 
 
 def _estados_tramo(p: Proyecto, a_r: float) -> dict[str, tuple[float, object]]:
@@ -137,7 +144,12 @@ def calcular(p: Proyecto) -> Resultado:
                    if "altura_amarre_m" in m else p.altura_amarre)
         tipos = ([t.strip().upper() if isinstance(t, str) and t.strip() else None for t in m["tipo"]]
                  if "tipo" in m else None)
-        est = crear_estructuras(p.perfil, p.eje, m["progresiva_m"].astype(float).tolist(), alturas, tipos)
+        def texto(col: str) -> list[str] | None:
+            if col not in m:
+                return None
+            return [v.strip() if isinstance(v, str) else "" for v in m[col]]
+        est = crear_estructuras(p.perfil, p.eje, m["progresiva_m"].astype(float).tolist(), alturas, tipos,
+                                texto("armado"), texto("poste"))
     else:
         a_r = 0.8 * p.vano_maximo
         hf = p.hip(p.hip_flecha_maxima)

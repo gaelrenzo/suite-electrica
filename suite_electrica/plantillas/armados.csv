@@ -1,0 +1,8 @@
+# Catálogo de armados. funcion: tipos de estructura separados por | (FIN, ANCLAJE, ANGULO, SUSPENSION).
+# angulo_max_deg: deflexión máxima admitida (vacío = sin límite declarado).
+# distancia_punta_amarre_m: de la punta del poste al amarre del conductor más bajo (vacío = usar altura de amarre por defecto).
+# PENDIENTE_REVISION: códigos usados en el proyecto Capachica; verificar láminas DGE.
+codigo,descripcion,funcion,angulo_max_deg,distancia_punta_amarre_m,fuente
+PS-1,Suspensión,SUSPENSION,,,PENDIENTE: láminas DGE (proyecto Capachica)
+PA-1,Ángulo,ANGULO,,,PENDIENTE: láminas DGE (proyecto Capachica)
+PR-1,Anclaje / terminal,FIN|ANCLAJE,,,PENDIENTE: láminas DGE (proyecto Capachica)

@@ -1,0 +1,3 @@
+# Materiales por armado para el metrado (cantidad por unidad de armado).
+# Llenar según las láminas de armados DGE del proyecto; vacío = el metrado lista solo armados, postes, retenidas y conductor.
+armado,material,unidad,cantidad,fuente

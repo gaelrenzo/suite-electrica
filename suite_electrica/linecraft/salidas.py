@@ -74,7 +74,7 @@ def tablas(r: Resultado) -> dict[str, pd.DataFrame]:
         "Distancia (m)": round(e.progresiva, 2), "Este (m)": round(e.este, 3),
         "Norte (m)": round(e.norte, 3), "Cota terreno (m)": round(e.cota_terreno, 2),
         "Altura amarre (m)": round(e.altura_amarre, 2), "Cota amarre (m)": round(e.cota_amarre, 2),
-        "Deflexión (°)": round(e.angulo, 2),
+        "Deflexión (°)": round(e.angulo, 2), "Armado": e.armado, "Poste": e.poste,
         "Vano atrás (m)": round(r.vanos[i - 1].longitud, 2) if i > 0 else None,
         "Vano adelante (m)": round(r.vanos[i].longitud, 2) if i < len(r.vanos) else None,
     } for i, e in enumerate(r.estructuras)])
@@ -103,7 +103,13 @@ def tablas(r: Resultado) -> dict[str, pd.DataFrame]:
         "Momento base (N·m)": round(c.momento_base, 1), "Tiro retenida (N)": round(c.tiro_retenida, 1),
     } for c in r.cargas])
     avisos = pd.DataFrame({"Aviso": r.avisos or ["Sin avisos"]})
-    return {"Estructuras": est, "Vanos": vanos, "Mecanico": mec, "Cargas": cargas, "Avisos": avisos}
+    res = {"Estructuras": est, "Vanos": vanos, "Mecanico": mec, "Cargas": cargas}
+    if r.verificacion is not None:
+        res["Verificacion"] = r.verificacion
+    if r.metrado is not None:
+        res["Metrado"] = r.metrado
+    res["Avisos"] = avisos
+    return res
 
 
 def planilla_excel(ruta: str | Path, r: Resultado) -> Path:
@@ -232,9 +238,12 @@ def memoria_pdf(ruta: str | Path, r: Resultado) -> Path:
     figura_perfil(r).savefig(buf, format="png", dpi=150)
     buf.seek(0)
     story.append(Image(buf, width=ancho, height=ancho * 0.35))
-    for titulo, clave in (("5. Estructuras", "Estructuras"), ("6. Cálculo mecánico por tramo", "Mecanico"),
-                          ("7. Vanos, flechas y distancias de seguridad", "Vanos"),
-                          ("8. Cargas en estructuras", "Cargas"), ("9. Avisos", "Avisos")):
-        story += [Paragraph(titulo, H), tabla(tb[clave])]
+    titulos = {"Estructuras": "Estructuras", "Mecanico": "Cálculo mecánico por tramo",
+               "Vanos": "Vanos, flechas y distancias de seguridad", "Cargas": "Cargas en estructuras",
+               "Verificacion": "Verificación de postes y retenidas", "Metrado": "Metrado",
+               "Avisos": "Avisos"}
+    orden = ["Estructuras", "Mecanico", "Vanos", "Cargas", "Verificacion", "Metrado", "Avisos"]
+    for k, clave in enumerate([c for c in orden if c in tb], start=5):
+        story += [Paragraph(f"{k}. {titulos[clave]}", H), tabla(tb[clave])]
     doc.build(story)
     return ruta

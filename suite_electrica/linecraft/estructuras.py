@@ -39,6 +39,10 @@ class Estructura:
     tipo: str
     angulo: float = 0.0
     """Ángulo de deflexión del eje (grados, + a la izquierda)."""
+    armado: str = ""
+    """Código de armado (catálogo)."""
+    poste: str = ""
+    """Código de poste (catálogo)."""
 
     @property
     def cota_amarre(self) -> float:
@@ -65,6 +69,8 @@ def crear_estructuras(
     progresivas: list[float],
     altura_amarre: float | list[float],
     tipos: list[str | None] | None = None,
+    armados: list[str] | None = None,
+    postes: list[str] | None = None,
 ) -> list[Estructura]:
     """Crea estructuras en las progresivas dadas, asignando ángulo y tipo.
 
@@ -95,7 +101,8 @@ def crear_estructuras(
         if tipo not in TIPOS:
             raise ValueError(f"Tipo de estructura desconocido: {tipo}")
         res.append(Estructura(i + 1, float(si), float(xy[i, 0]), float(xy[i, 1]), float(z[i]),
-                              float(alturas[i]), tipo, ang))
+                              float(alturas[i]), tipo, ang,
+                              armados[i] if armados else "", postes[i] if postes else ""))
     return res
 
 
