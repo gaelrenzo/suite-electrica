@@ -169,7 +169,70 @@ def comparar_cargas(ruta_planilla: str, ruta_cme: str, ruta_suministros: str, ru
     return pd.DataFrame(filas)
 
 
+def comparar_postes(ruta_planilla: str, ruta_cme: str, ruta_suministros: str) -> pd.DataFrame:
+    """Momento de vuelco y FS de postes de madera con ``momentos_poste``/``factor_seguridad_poste``.
+
+    Cargas por fase del reporte (Fv, FT, FL) y presión de viento deducida de la hipótesis; la suma
+    de alturas de fases Σh se toma del propio reporte (MTD/FL o MVC/Fv). Poste: hoja *Soporte*
+    (circunferencias en punta y a 1,8 m, MOR) con empotramiento RUS 0,1·L + 0,6 m.
+    """
+    from suite_electrica.linecraft.calculo import Cargas
+    from suite_electrica.linecraft.catalogos import factor_seguridad_poste, momentos_poste
+    from suite_electrica.linecraft.conductor import G
+    sop = pd.read_excel(ruta_suministros, "Soporte", header=None).iloc[4:]
+    postes = {}
+    for r in sop.itertuples(index=False):
+        if str(r[5]) == "POSTE-MADERA":
+            L = float(r[4])
+            postes[str(r[1])] = pd.Series({"longitud_m": L, "empotramiento_m": 0.1 * L + 0.6,
+                                           "diam_punta_m": float(r[16]) / math.pi,
+                                           "diam_tierra_m": float(r[17]) / math.pi, "mor_MPa": float(r[18]),
+                                           "carga_nominal_daN": math.nan, "dist_aplicacion_m": math.nan})
+    pl = pd.read_excel(ruta_planilla, header=None).iloc[2:].reset_index(drop=True)
+    cme = pd.read_excel(ruta_cme, header=None).iloc[4:].reset_index(drop=True)
+    num = lambda s: pd.to_numeric(s, errors="coerce")  # noqa: E731
+    filas = []
+    for i in range(min(len(pl), len(cme))):
+        p = postes.get(str(pl.iat[i, 22]))
+        ret = (num(pl.iat[i, 28]) or 0) + (num(pl.iat[i, 29]) or 0) > 0
+        if p is None or num(pl.iat[i, 21]) != 1:
+            continue
+        fv = (num(cme.iat[i, 9]) + num(cme.iat[i, 10])) * G
+        ft, fl = num(cme.iat[i, 41]) * G, num(cme.iat[i, 49]) * G
+        mvc, mtd, mve_r = num(cme.iat[i, 57]), num(cme.iat[i, 67]), num(cme.iat[i, 58])
+        sh = mtd / fl if fl > 1 else (mvc / fv if fv > 1 else math.nan)
+        libre = p["longitud_m"] - p["empotramiento_m"]
+        pres = mve_r * 6 / (libre**2 * (2 * p["diam_punta_m"] + p["diam_tierra_m"]))  # sólo para el rango
+        pres = 0.613 * (70 / 3.6) ** 2 if abs(pres - 231.8) < abs(pres - 266.1) else 0.613 * (75 / 3.6) ** 2
+        if math.isnan(sh):
+            continue
+        c = Cargas(0, "ME", 0, 0, 3 * (ft + fv), 3 * fl, 0, 0, 0, 0, 3 * fv, pres)
+        arm = str(cme.iat[i, 5])
+        toma = None if not ret else ("todo" if arm.startswith("PR") else
+                                     "longitudinal" if arm.startswith(("TS", "PTV")) else "angulo")
+        m = momentos_poste(c, [sh / 3] * 3, p, toma)
+        fs, _ = factor_seguridad_poste(p, m["MRN"])
+        filas.append({"retenida": ret, "armado": arm, "MVE_R": mve_r, "MVE_LC": m["MVE"], "MRN_R": num(cme.iat[i, 59]),
+                      "MRN_LC": m["MRN"], "FS_R": num(cme.iat[i, 64]), "FS_LC": fs})
+    return pd.DataFrame(filas)
+
+
 if __name__ == "__main__":
+    if len(sys.argv) == 5 and sys.argv[4] == "--postes":  # planilla cme suministros --postes
+        f = comparar_postes(*sys.argv[1:4])
+        f["grupo"] = [a[:2] if r else "sin" for a, r in zip(f.armado, f.retenida)]
+        e = 100 * (f.MRN_LC / f.MRN_R - 1)
+        print("MRN por grupo de armado (PR retención, PA/PS ángulo, TS terminal):")
+        print(e.abs().groupby(f.grupo).agg(lambda x: f"n={len(x)} mediana {x.median():.3f} %  "
+                                                     f"p90 {x.quantile(.9):.2f} %").to_string())
+        for k in ("MVE", "MRN", "FS"):
+            for ret in (False, True):
+                m = f[f.retenida == ret][[k + "_R", k + "_LC"]].dropna()
+                m = m[m.iloc[:, 0] > 0]
+                e = 100 * (m.iloc[:, 1] / m.iloc[:, 0] - 1)
+                print(f"{k:3s} {'con' if ret else 'sin'} retenida n={len(m):3d}  |error| mediana "
+                      f"{e.abs().median():.3f} %  p90 {e.abs().quantile(.9):.3f} %")
+        sys.exit()
     if len(sys.argv) == 6 and sys.argv[5] == "--cargas":  # planilla cme suministros configuracion --cargas
         f = comparar_cargas(*sys.argv[1:5])
         for k in ("FT", "FL", "Fv"):

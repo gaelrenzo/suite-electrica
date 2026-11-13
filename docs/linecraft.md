@@ -141,6 +141,8 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
 | Fuerza longitudinal en estructuras (con los tiros de REDLIN) | 263 | mediana 0,000 %, p95 0,000 % |
 | Fuerza transversal por ángulo | 59 | mediana 0,005 %, p95 0,3 % |
 | Viento sobre el conductor (vano adelante) | 252 | mediana 0,07 %; 10 casos cerca de 2000 msnm usan otro rango de hipótesis |
+| Momento de vuelco MRN, postes sin retenida | 59 | mediana 0,026 %; FS (madera) 0,008 % |
+| MRN con retenida de ángulo (PA) / de retención (PR) | 21 / 129 | mediana 0,022 % / 0,10 % |
 | C en *Máximo Esfuerzo*, estado final con creep (tramos de un vano) | 152 | mediana 0,48 % (lineal sin creep: 10 %) |
 | Ídem, tramos de varios vanos, `estado_final_vanos = "por vano"` | 104 | mediana 2,7 %, p90 6,2 % (con "tramo": 6,3 %) |
 
@@ -172,7 +174,24 @@ Script reproducible (requiere exportar la planilla desde REDLIN; no se
 distribuyen sus datos): `examples/validacion/comparar_redlin.py PlanillaEstTotal.xls` y
 `... TablaFlechado.XLS Suministros.XLS --flechado` y
 `... PlanillaEstTotal.xls TablaFlechado.XLS Suministros.XLS Configuracion.XLS --final` y
-`... PlanillaEstTotal.xls CalculoMecanicoEst.xls Suministros.XLS Configuracion.XLS --cargas`.
+`... PlanillaEstTotal.xls CalculoMecanicoEst.xls Suministros.XLS Configuracion.XLS --cargas` y
+`... PlanillaEstTotal.xls CalculoMecanicoEst.xls Suministros.XLS --postes`.
+
+### Momento de vuelco del poste (`catalogos.momentos_poste`)
+
+Con geometría del poste en el catálogo (`empotramiento_m`, `diam_punta_m`, `diam_tierra_m` y
+`mor_MPa` para madera o `carga_nominal_daN` + `dist_aplicacion_m` para troncocónicos) y alturas
+de fases del armado (`alturas_fases_m`, bajo la punta), por hipótesis:
+
+* MVC = viento sobre conductores · Σh/n; MTB = tiro por ángulo · Σh/n; MTD = desbalance · Σh/n
+* MVE = p·h_libre²·(2 d_punta + d_tierra)/6 (viento sobre el poste)
+* sin retenida: MRN = √((MVC + MTB)² + MTD²) + MVE
+* retenida `todo` (retención): MVE; `angulo` (bisectriz): √(MVC² + MTD²) + MVE;
+  `longitudinal` (fin de línea): MVC + MTB + MVE
+* madera: FS = MOR / (MRN / (π d³/32)); troncocónico: FS = carga nominal / (MRN / brazo)
+
+No modelado: terminal/seccionamiento en medio de la línea con una sola retenida a un lado
+(REDLIN descuenta solo el tiro de ese lado).
 
 ## 9. Derivaciones (`derivaciones.py`)
 

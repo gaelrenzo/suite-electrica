@@ -86,6 +86,10 @@ class Cargas:
     """Momento a nivel del terreno (N·m) con la carga horizontal en el amarre."""
     tiro_retenida: float
     """Tiro en la retenida (N); 0 si la estructura no la lleva."""
+    viento_conductor: float = 0.0
+    """Parte de ``transversal`` debida al viento sobre los conductores (N)."""
+    presion_viento: float = 0.0
+    """Presión de viento de la hipótesis (Pa)."""
 
 
 @dataclass
@@ -259,13 +263,14 @@ def calcular(p: Proyecto) -> Resultado:
                     Hb, ap = H, ap + (v.longitud - xm)
                 else:
                     Ha, ap = H, ap + xm
-            trans = n * ((Hb + Ha) * math.sin(mitad) + cu.viento * av * math.cos(mitad))
+            viento = n * cu.viento * av * math.cos(mitad)
+            trans = n * (Hb + Ha) * math.sin(mitad) + viento
             longi = n * abs(Ha - Hb) * math.cos(mitad)
             vert = n * cu.vertical * ap
             fh = math.hypot(trans, longi)
             ret = fh / math.cos(phi) if _necesita_retenida(e) else 0.0
             cargas.append(Cargas(e.numero, nombre, av, ap, trans, longi, vert, fh,
-                                 fh * e.altura_amarre, ret))
+                                 fh * e.altura_amarre, ret, viento, cu.presion))
             if ap < 0:
                 arranque.append(f"{nombre} ({ap:.1f} m)")
         if arranque:

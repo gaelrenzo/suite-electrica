@@ -4,7 +4,9 @@
 # PENDIENTE_REVISION: códigos usados en el proyecto Capachica; verificar láminas DGE.
 # separacion_fases_m: separación horizontal mínima entre fases del armado (alerta H).
 # aislador: RIGIDO (pin/line post: alertas I y S↑), ANCLAJE o SUSPENSION. aisladores_por_fase: 1 o 2.
-codigo,descripcion,funcion,angulo_max_deg,distancia_punta_amarre_m,separacion_fases_m,aislador,aisladores_por_fase,fuente
-PS-1,Suspensión,SUSPENSION,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)
-PA-1,Ángulo,ANGULO,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)
-PR-1,Anclaje / terminal,FIN|ANCLAJE,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)
+# alturas_fases_m: distancia de cada fase bajo la punta del poste (a;b;c) para el momento de vuelco.
+# retenida_toma: todo | angulo | longitudinal (vacío: ANCLAJE=todo, ANGULO=angulo, FIN=longitudinal).
+codigo,descripcion,funcion,angulo_max_deg,distancia_punta_amarre_m,separacion_fases_m,aislador,aisladores_por_fase,alturas_fases_m,retenida_toma,fuente
+PS-1,Suspensión,SUSPENSION,,,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)
+PA-1,Ángulo,ANGULO,,,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)
+PR-1,Anclaje / terminal,FIN|ANCLAJE,,,,,,,,PENDIENTE: láminas DGE (proyecto Capachica)

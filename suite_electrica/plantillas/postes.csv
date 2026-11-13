@@ -1,7 +1,10 @@
 # Catálogo de postes. PENDIENTE_REVISION: completar empotramiento y verificar con ficha del fabricante / norma DGE.
 # longitud_m y carga_nominal_daN provienen del propio código comercial (p. ej. CAC 12/300 = 12 m, 300 daN).
 # carga_vertical_max_daN: compresión vertical admisible (alerta S↓); vacío = no verifica.
-codigo,material,longitud_m,carga_nominal_daN,empotramiento_m,carga_vertical_max_daN,fuente
-CAC 12/300,Concreto armado centrifugado,12,300,,,PENDIENTE: ficha del fabricante (proyecto Capachica)
-CAC 12/400,Concreto armado centrifugado,12,400,,,PENDIENTE: ficha del fabricante (proyecto Capachica)
-CAC 13/400,Concreto armado centrifugado,13,400,,,PENDIENTE: ficha del fabricante (proyecto Capachica)
+# diam_punta_m, diam_tierra_m: diámetros exteriores en la punta y en la línea de tierra (viento sobre el poste, módulo resistente).
+# mor_MPa: esfuerzo de rotura a flexión (postes de madera; FS = MOR/esfuerzo). dist_aplicacion_m: punto de aplicación
+# de la carga nominal bajo la punta (troncocónicos; Feq = MRN/(h_libre − dist)). Vacíos = verificación simplificada.
+codigo,material,longitud_m,carga_nominal_daN,empotramiento_m,carga_vertical_max_daN,diam_punta_m,diam_tierra_m,mor_MPa,dist_aplicacion_m,fuente
+CAC 12/300,Concreto armado centrifugado,12,300,,,,,,,PENDIENTE: ficha del fabricante (proyecto Capachica)
+CAC 12/400,Concreto armado centrifugado,12,400,,,,,,,PENDIENTE: ficha del fabricante (proyecto Capachica)
+CAC 13/400,Concreto armado centrifugado,13,400,,,,,,,PENDIENTE: ficha del fabricante (proyecto Capachica)

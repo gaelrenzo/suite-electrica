@@ -94,6 +94,8 @@ class CargaUnitaria:
 
     vertical: float
     viento: float
+    presion: float = 0.0
+    """Presión de viento de la hipótesis (Pa), para el viento sobre el poste."""
 
     @property
     def resultante(self) -> float:
@@ -111,4 +113,4 @@ def carga_unitaria(c: Conductor, h: Hipotesis) -> CargaUnitaria:
     if e > 0 and h.densidad_hielo <= 0:
         raise ValueError(f"Hipótesis {h.nombre}: falta densidad del hielo")
     hielo = h.densidad_hielo * G * math.pi * e * (c.diametro + e) if e > 0 else 0.0
-    return CargaUnitaria(c.peso + hielo, h.presion_viento * (c.diametro + 2 * e))
+    return CargaUnitaria(c.peso + hielo, h.presion_viento * (c.diametro + 2 * e), h.presion_viento)
