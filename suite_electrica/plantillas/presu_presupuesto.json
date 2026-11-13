@@ -1,0 +1,18 @@
+{
+  "nombre": "Presupuesto - ejemplo",
+  "suministros": "suministros.csv",
+  "unidades": "unidades.csv",
+  "montaje": "montaje.csv",
+  "metrado": "metrado.csv",
+  "moneda": "S/",
+  "flete_por_kg": 0.3,
+  "gastos_generales_pct": 10,
+  "utilidad_pct": 8,
+  "igv_pct": 18,
+  "fuentes": {
+    "flete_por_kg": "EJEMPLO: cotizar flete a la zona del proyecto",
+    "gastos_generales_pct": "EJEMPLO",
+    "utilidad_pct": "EJEMPLO",
+    "igv_pct": "Ley del IGV (Perú): 16 % IGV + 2 % IPM = 18 %"
+  }
+}

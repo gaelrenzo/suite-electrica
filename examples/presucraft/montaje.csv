@@ -1,0 +1,8 @@
+# Partidas de montaje por UC (precio por unidad de UC). EJEMPLO: precios ficticios.
+uc,descripcion,unidad,precio,fuente
+CAC 12/300,Izaje y cimentación de poste,und,450,EJEMPLO
+PS-1,Montaje de armado de suspensión,und,120,EJEMPLO
+PA-1,Montaje de armado de ángulo,und,150,EJEMPLO
+PR-1,Montaje de armado de anclaje,und,180,EJEMPLO
+RET 3/8,Instalación de retenida,und,200,EJEMPLO
+AAAC 35,Tendido y puesta en flecha de conductor (por km de fase),km,1800,EJEMPLO

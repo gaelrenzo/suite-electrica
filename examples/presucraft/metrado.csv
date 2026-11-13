@@ -1,0 +1,9 @@
+# Metrado por rubro (LP línea primaria, RP red primaria, RS red secundaria...). Generable con:
+#   presucraft metrado proyecto.sel --rubro LP --out metrado.csv
+rubro,uc,cantidad
+LP,CAC 12/300,8
+LP,PS-1,4
+LP,PA-1,2
+LP,PR-1,2
+LP,RET 3/8,4
+LP,AAAC 35,2.4

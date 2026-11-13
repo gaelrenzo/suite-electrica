@@ -1,0 +1,9 @@
+# Suministros: precio por unidad (moneda del presupuesto) y peso unitario (kg) para el flete.
+# EJEMPLO: precios y pesos ficticios para probar; reemplazar por estudio de mercado / cotizaciones con su fuente.
+codigo,descripcion,unidad,precio,peso_kg,fuente
+P12-300,Poste de concreto armado centrifugado 12 m / 300 daN,und,1000,1100,EJEMPLO
+CRU-1,Cruceta,und,150,8,EJEMPLO
+AIS-PIN,Aislador tipo pin con espiga,und,60,4,EJEMPLO
+AIS-SUS,Cadena de aisladores de suspensión,jgo,120,9,EJEMPLO
+RET-KIT,Kit de retenida (cable 3/8 pulg y accesorios),jgo,250,35,EJEMPLO
+AAAC-35,Conductor AAAC 35 mm²,km,2500,95,EJEMPLO

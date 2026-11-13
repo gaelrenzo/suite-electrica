@@ -7,6 +7,7 @@ Suite libre (MIT) para ingeniería eléctrica de distribución en Perú.
 | **TopoCraft** | Topografía: limpieza de puntos, TIN, curvas de nivel, perfil longitudinal | Fase 1 — MVP |
 | **LineCraft** | Líneas primarias MT: postes, cálculo mecánico, despejes, cargas y retenidas | Fase 2 — MVP |
 | **GridCraft** | Redes primarias/secundarias: demandas, caída de tensión, pérdidas, transformador | Fase 3 — MVP |
+| **PresuCraft** | Presupuesto por unidades constructivas: suministro, montaje, transporte, GG, utilidad, IGV | MVP |
 | **App** | PySide6: proyecto `.sel`, perfil interactivo, formularios, catálogos, metrado, CADCraft | Fase 4 — MVP |
 
 Normativa base: Código Nacional de Electricidad (Suministro 2011), normas DGE/MINEM.
@@ -83,12 +84,34 @@ Salidas: `caida_tension.xlsx` (Resumen, CaidaTension, Alertas, Avisos) y
 `plano_red.dxf` (capas RED, NODOS, TEXTO_RED, ALERTAS_RED). Código 3 si no cumple.
 Fórmulas: [`docs/gridcraft.md`](docs/gridcraft.md).
 
+## PresuCraft
+
+```bash
+presucraft nuevo mi_presupuesto
+presucraft metrado mi_linea.sel --rubro LP --out mi_presupuesto/metrado.csv
+presucraft calcular mi_presupuesto/presupuesto.json --out mi_presupuesto/salidas
+```
+
+Fórmulas: [`docs/presucraft.md`](docs/presucraft.md).
+
+## Equivalencias con software comercial
+
+| Comercial | Suite Eléctrica |
+|---|---|
+| TOPOMAGIC | TopoCraft |
+| REDLIN | LineCraft |
+| REDCAD | GridCraft |
+| PRESIO | PresuCraft |
+
+Implementación propia a partir de la normativa pública y la documentación de
+usuario; no se copian datos ni código de esos programas.
+
 ## Estructura
 
 ```
 suite_electrica/
   core/      motor compartido (geo: UTM, TIN, perfil; dxf; norms; units)
-  topocraft/ linecraft/ gridcraft/ gui/
+  topocraft/ linecraft/ gridcraft/ presucraft/ gui/
 data/      catálogos CSV     examples/  datos sintéticos
 tests/     pytest            docs/      fundamentos de cálculo
 ```

@@ -1,0 +1,12 @@
+# Composición de cada unidad constructiva (UC): cantidad de cada suministro por unidad de UC.
+# Los códigos de UC coinciden con los de LineCraft (postes, armados, retenidas, conductor en km).
+uc,suministro,cantidad
+CAC 12/300,P12-300,1
+PS-1,CRU-1,1
+PS-1,AIS-PIN,3
+PA-1,CRU-1,1
+PA-1,AIS-PIN,6
+PR-1,CRU-1,1
+PR-1,AIS-SUS,3
+RET 3/8,RET-KIT,1
+AAAC 35,AAAC-35,1.025

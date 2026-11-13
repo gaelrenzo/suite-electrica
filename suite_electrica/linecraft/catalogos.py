@@ -217,27 +217,27 @@ def metrado(r: Resultado, cat: Catalogos, desperdicio_pct: float = 0.0,
     p = r.proyecto
     filas: list[dict[str, object]] = []
 
-    def agregar(item: str, desc: str, und: str, cant: float) -> None:
-        filas.append({"Ítem": item, "Descripción": desc, "Unidad": und, "Cantidad": cant})
+    def agregar(item: str, desc: str, und: str, cant: float, codigo: str = "") -> None:
+        filas.append({"Ítem": item, "Código": codigo, "Descripción": desc, "Unidad": und, "Cantidad": cant})
 
     for cod, n in pd.Series([e.poste for e in r.estructuras if e.poste]).value_counts().sort_index().items():
         pp = cat.poste(cod)
-        agregar("Poste", f"{cod}" + (f" — {pp['material']}" if pp is not None else ""), "und", int(n))
+        agregar("Poste", f"{cod}" + (f" — {pp['material']}" if pp is not None else ""), "und", int(n), cod)
     conteo_arm = pd.Series([e.armado for e in r.estructuras if e.armado]).value_counts().sort_index()
     for cod, n in conteo_arm.items():
         a = cat.armado(cod)
-        agregar("Armado", f"{cod}" + (f" — {a['descripcion']}" if a is not None else ""), "und", int(n))
+        agregar("Armado", f"{cod}" + (f" — {a['descripcion']}" if a is not None else ""), "und", int(n), cod)
     n_ret = sum((n_retenidas or {}).get(e.numero, 1) or 1 for e in r.estructuras if lleva_retenida(e))
     if n_ret:
         cod = retenida or (cat.retenidas["codigo"].iloc[0] if len(cat.retenidas) else "Retenida")
-        agregar("Retenida", str(cod), "und", n_ret)
+        agregar("Retenida", str(cod), "und", n_ret, str(cod))
     mats: dict[tuple[str, str], float] = {}
     for cod, n in conteo_arm.items():
         for m in cat.materiales[cat.materiales["armado"] == cod].itertuples(index=False):
             if not pd.isna(m.cantidad):
                 mats[(m.material, m.unidad)] = mats.get((m.material, m.unidad), 0.0) + m.cantidad * n
     for (mat, und), cant in sorted(mats.items()):
-        agregar("Material", mat, und, round(cant, 2))
+        agregar("Material", mat, und, round(cant, 2), mat)
     ini = p.hip_inicial
     largo = 0.0
     for k, v in enumerate(r.vanos):
@@ -245,6 +245,6 @@ def metrado(r: Resultado, cat: Catalogos, desperdicio_pct: float = 0.0,
         largo += Catenaria(v.longitud, v.desnivel, e.H, e.w_resultante).longitud
     total = largo * p.n_conductores * (1 + desperdicio_pct / 100)
     agregar("Conductor", f"{p.conductor.nombre} ({p.n_conductores} × {largo:.1f} m, "
-                         f"desperdicio {desperdicio_pct:g} %)", "m", round(total, 1))
+                         f"desperdicio {desperdicio_pct:g} %)", "m", round(total, 1), p.conductor.nombre)
     agregar("Conductor", f"{p.conductor.nombre} — masa", "kg", round(total * p.conductor.peso / G, 1))
     return pd.DataFrame(filas)
