@@ -1,0 +1,13 @@
+[package]
+name = "suite_motor"
+version = "0.1.0"
+edition = "2021"
+description = "Núcleo de cálculo de Suite Eléctrica (mecánica de conductores) en Rust"
+license = "MIT"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[dev-dependencies]
