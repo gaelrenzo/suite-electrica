@@ -117,8 +117,8 @@ class Resultado:
         return ok and (self.alertas is None or self.alertas.empty)
 
 
-def _estados_tramo(p: Proyecto, a_r: float) -> dict[str, tuple[float, object]]:
-    """H (N) y carga unitaria por hipótesis para un vano regulador."""
+def _estados_tramo(p: Proyecto, a_r: float, desnivel: float = 0.0) -> dict[str, tuple[float, object]]:
+    """H (N) y carga unitaria por hipótesis para un vano regulador (desnivel: tramo de un vano)."""
     c = p.conductor
     h1 = p.hip(p.hip_inicial)
     w1 = carga_unitaria(c, h1).resultante
@@ -127,7 +127,7 @@ def _estados_tramo(p: Proyecto, a_r: float) -> dict[str, tuple[float, object]]:
     for h in p.hipotesis:
         cu = carga_unitaria(c, h)
         s2 = sigma1 if h.nombre == p.hip_inicial else cambio_estado(
-            sigma1, w1, h1.temperatura, cu.resultante, h.temperatura, a_r, c)
+            sigma1, w1, h1.temperatura, cu.resultante, h.temperatura, a_r, c, desnivel)
         res[h.nombre] = (s2 * c.seccion, cu)
     return res
 
@@ -180,7 +180,9 @@ def calcular(p: Proyecto) -> Resultado:
         i0, i1 = cortes[k], cortes[k + 1]
         longitudes = [est[i + 1].progresiva - est[i].progresiva for i in range(i0, i1)]
         a_r = vano_regulador(longitudes)
-        hs = _estados_tramo(p, a_r)
+        # tramo de un solo vano: cambio de estado exacto con su desnivel de amarres
+        h_unico = est[i1].cota_amarre - est[i0].cota_amarre if i1 - i0 == 1 else 0.0
+        hs = _estados_tramo(p, a_r, h_unico)
         t = Tramo(i0, i1, a_r)
         for nombre, (H, cu) in hs.items():
             tmax = max(curva(p.modelo, est[i + 1].progresiva - est[i].progresiva,

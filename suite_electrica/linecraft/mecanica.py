@@ -20,7 +20,8 @@ Modelo = Literal["catenaria", "parabola"]
 
 
 def cambio_estado(
-    sigma1: float, w1: float, t1: float, w2: float, t2: float, vano: float, c: Conductor
+    sigma1: float, w1: float, t1: float, w2: float, t2: float, vano: float, c: Conductor,
+    desnivel: float = 0.0,
 ) -> float:
     """Esfuerzo horizontal final ``σ2`` (Pa) por la ecuación de cambio de estado.
 
@@ -29,9 +30,16 @@ def cambio_estado(
     Resulta de igualar la variación de longitud parabólica del conductor
     ``a³ w² / (24 H²)`` con la dilatación térmica y la deformación elástica.
     La cúbica tiene una única raíz real positiva.
+
+    Con ``desnivel ≠ 0`` (vano único inclinado) se usa la forma exacta: longitud de
+    catenaria ``L = sqrt(h² + (2C sinh(a/2C))²)`` y longitud sin tensión
+    ``L0 = L / (1 + T_m / EA)`` con ``T_m = H sqrt(1 + (h/a)²)``; se resuelve
+    ``L0(σ2) = L0(σ1) (1 + α Δt)``. Validado contra REDLIN (ver docs/linecraft.md).
     """
     if sigma1 <= 0 or vano <= 0:
         raise ValueError("σ1 y el vano deben ser positivos")
+    if desnivel:
+        return _cambio_estado_inclinado(sigma1, w1, t1, w2, t2, vano, desnivel, c)
     a, A, E = vano, c.seccion, c.modulo_elasticidad
     k = a * a * w1 * w1 * E / (24 * A * A * sigma1 * sigma1) - sigma1 + c.coef_dilatacion * E * (t2 - t1)
     m = a * a * w2 * w2 * E / (24 * A * A)
@@ -40,6 +48,23 @@ def cambio_estado(
     if len(reales) == 0:
         raise ArithmeticError("Sin solución positiva en la ecuación de cambio de estado")
     return float(reales.max())
+
+
+def _cambio_estado_inclinado(sigma1: float, w1: float, t1: float, w2: float, t2: float,
+                             a: float, h: float, c: Conductor) -> float:
+    from scipy.optimize import brentq
+
+    A, EA = c.seccion, c.modulo_elasticidad * c.seccion
+    k = math.hypot(1.0, h / a)
+
+    def l0(H: float, w: float) -> float:
+        C = H / w
+        return math.hypot(h, 2 * C * math.sinh(a / (2 * C))) / (1 + H * k / EA)
+
+    H1 = sigma1 * A
+    objetivo = l0(H1, w1) * (1 + c.coef_dilatacion * (t2 - t1))
+    # ponytail: cota inferior C = a/40 (evita overflow de sinh); por debajo el vano es un "colgajo".
+    return brentq(lambda H: l0(H, w2) - objetivo, w2 * a / 40, 100 * H1 + 1e5, xtol=1e-6) / A
 
 
 def vano_regulador(vanos: Sequence[float]) -> float:

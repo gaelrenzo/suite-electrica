@@ -137,17 +137,26 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
 | Flecha a medio vano | 256 | < 0,1 mm |
 | Vano peso | 245 | 1 cm |
 | Vano viento | 264 | 0 (ver nota) |
+| Tiro H vs temperatura (15–35 °C, *Tabla de Flechado*) | 1280 puntos / 256 tramos | mediana 0,001 %; p95 0,43 % en vanos ≥ 20 m |
 
 * REDLIN reporta la **flecha a medio vano**; LineCraft reporta además la flecha
   máxima (paralela a la cuerda), que en vanos inclinados es algo mayor. Ambas van
   en la hoja *Vanos*.
 * En el primer vano de una derivación REDLIN no suma el vano de enlace al vano
   viento (6 estructuras); LineCraft aún no modela derivaciones.
+* Cambio de estado: en tramos de **un vano con desnivel** se usa la forma exacta
+  (longitud de catenaria y longitud sin tensión); con la cúbica de vano a nivel el
+  error llegaba a 39 % en vanos cortos muy inclinados. Los únicos desvíos > 3 % son
+  vanos flojos < 20 m (EDS 2–7 %).
+* Pendiente de comparar: hipótesis con viento/hielo y estado final con fluencia
+  (REDLIN usa curvas esfuerzo-deformación polinómicas inicial/final; LineCraft,
+  módulo E lineal).
 * La longitud de catenaria coincide por construcción (de ella se despeja el
   desnivel de amarres, que depende de la altura de cada armado).
 
 Script reproducible (requiere exportar la planilla desde REDLIN; no se
-distribuyen sus datos): `examples/validacion/comparar_redlin.py`.
+distribuyen sus datos): `examples/validacion/comparar_redlin.py PlanillaEstTotal.xls` y
+`... TablaFlechado.XLS Suministros.XLS --flechado`.
 
 ## 9. Limitaciones conocidas
 

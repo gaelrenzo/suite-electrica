@@ -103,3 +103,18 @@ def test_flecha_medio_vano_y_maxima():
     c = Catenaria(300.0, 60.0, 1200.0, 1.0)
     f_medio = 30.0 - float(c.y(150.0))
     assert c.flecha > f_medio and c.flecha == pytest.approx(f_medio, rel=0.03)
+
+
+def test_cambio_estado_inclinado():
+    from suite_electrica.linecraft.conductor import Conductor
+    from suite_electrica.linecraft.mecanica import cambio_estado
+    c = Conductor("AAAC 35", 34.36e-6, 7.5e-3, 0.094 * 9.80665, 1056.12 * 9.80665, 6206.12 * 9.80665e6, 2.3e-5)
+    s1 = 0.18 * c.carga_rotura / c.seccion
+    # sin cambio de estado devuelve σ1
+    assert cambio_estado(s1, c.peso, 25, c.peso, 25, 120, c, desnivel=30) == pytest.approx(s1, rel=1e-6)
+    # desnivel → 0 converge a la cúbica de vano a nivel
+    nivel = cambio_estado(s1, c.peso, 25, c.peso, 40, 300, c)
+    assert cambio_estado(s1, c.peso, 25, c.peso, 40, 300, c, desnivel=1e-3) == pytest.approx(nivel, rel=2e-3)
+    # vano inclinado: al calentar el tiro cae más que en vano a nivel (mismo sentido que REDLIN)
+    incl = cambio_estado(s1, c.peso, 25, c.peso, 40, 300, c, desnivel=150)
+    assert incl < nivel
