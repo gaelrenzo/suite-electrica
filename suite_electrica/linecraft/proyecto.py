@@ -52,6 +52,8 @@ class Proyecto:
     eje: np.ndarray
     estructuras_manual: pd.DataFrame | None = None
     fuentes: dict[str, str] = field(default_factory=dict)
+    alertas: dict[str, float] = field(default_factory=dict)
+    """Límites de ``linecraft.alertas.ConfigAlertas`` (0 o ausente = no verificar)."""
 
     def hip(self, nombre: str) -> Hipotesis:
         """Busca una hipótesis por nombre."""
@@ -123,6 +125,7 @@ def cargar(ruta: str | Path) -> Proyecto:
         eje=eje,
         estructuras_manual=manual,
         fuentes={k: str(v) for k, v in cfg.get("fuentes", {}).items()},
+        alertas={k: float(v) for k, v in (cfg.get("alertas") or {}).items()},
     )
     p.hip(p.hip_inicial)
     p.hip(p.hip_flecha_maxima)

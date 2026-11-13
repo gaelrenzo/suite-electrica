@@ -253,6 +253,14 @@ CAMPOS_LINEA: list[tuple[str, str, tuple]] = [
     ("fs_retenida", "Factor de seguridad de retenidas", (1, 10, 2, "")),
     ("retenida", "Retenida (catálogo)", ("ret",)),
     ("desperdicio_pct", "Desperdicio de conductor (metrado)", (0, 20, 1, " %")),
+    # Alertas (0 = no verificar)
+    ("tension_kV", "Tensión nominal (alerta H)", (0, 500, 1, " kV")),
+    ("sep_k_tension", "Sep. fases: coef. de U (D = kU·U + kf·√f)", (0, 1, 5, " m/kV")),
+    ("sep_k_flecha", "Sep. fases: coef. de √flecha", (0, 5, 3, "")),
+    ("angulo_salida_min", "Aislador rígido: ángulo de salida mín.", (-90, 0, 1, " °")),
+    ("angulo_salida_max", "Aislador rígido: ángulo de salida máx.", (0, 90, 1, " °")),
+    ("tiro_max_espiga", "Carga máxima por espiga", (0, 100000, 1, " N")),
+    ("eds_max_pct", "EDS máximo (vibraciones eólicas)", (0, 60, 2, " %")),
 ]
 CAMPOS_CONDUCTOR = [("nombre", "Nombre", None), ("seccion_mm2", "Sección (mm²)", 4),
                     ("diametro_mm", "Diámetro (mm)", 3), ("masa_kg_m", "Masa (kg/m)", 5),
@@ -269,7 +277,7 @@ _CAMPO_DOC = {"Tipo": "tipo", "Armado": "armado", "Poste": "poste", "Altura amar
 class PanelLinea(QWidget):
     """LineCraft: datos en formularios, perfil interactivo, planilla y resultados."""
 
-    TABLAS = ("Vanos", "Mecanico", "Cargas", "Verificacion", "Metrado", "Avisos")
+    TABLAS = ("Vanos", "Mecanico", "Cargas", "Verificacion", "Alertas", "Metrado", "Avisos")
 
     def __init__(self, ventana: VentanaPrincipal) -> None:
         super().__init__()

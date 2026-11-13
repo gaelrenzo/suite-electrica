@@ -20,13 +20,16 @@ from suite_electrica.linecraft.estructuras import ANCLAJE, FIN, Estructura
 from suite_electrica.linecraft.mecanica import Catenaria
 
 COLUMNAS: dict[str, list[str]] = {
-    "postes": ["codigo", "material", "longitud_m", "carga_nominal_daN", "empotramiento_m", "fuente"],
-    "armados": ["codigo", "descripcion", "funcion", "angulo_max_deg", "distancia_punta_amarre_m", "fuente"],
+    "postes": ["codigo", "material", "longitud_m", "carga_nominal_daN", "empotramiento_m",
+               "carga_vertical_max_daN", "fuente"],
+    "armados": ["codigo", "descripcion", "funcion", "angulo_max_deg", "distancia_punta_amarre_m",
+                "separacion_fases_m", "aislador", "aisladores_por_fase", "fuente"],
     "retenidas": ["codigo", "descripcion", "carga_rotura_kN", "fuente"],
     "materiales": ["armado", "material", "unidad", "cantidad", "fuente"],
 }
 NUMERICAS = {"longitud_m", "carga_nominal_daN", "empotramiento_m", "angulo_max_deg",
-             "distancia_punta_amarre_m", "carga_rotura_kN", "cantidad"}
+             "distancia_punta_amarre_m", "carga_rotura_kN", "cantidad", "carga_vertical_max_daN",
+             "separacion_fases_m", "aisladores_por_fase"}
 
 
 def normalizar(nombre: str, df: pd.DataFrame) -> pd.DataFrame:

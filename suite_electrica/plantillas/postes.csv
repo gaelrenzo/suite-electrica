@@ -1,6 +1,7 @@
 # Catálogo de postes. PENDIENTE_REVISION: completar empotramiento y verificar con ficha del fabricante / norma DGE.
 # longitud_m y carga_nominal_daN provienen del propio código comercial (p. ej. CAC 12/300 = 12 m, 300 daN).
-codigo,material,longitud_m,carga_nominal_daN,empotramiento_m,fuente
-CAC 12/300,Concreto armado centrifugado,12,300,,PENDIENTE: ficha del fabricante (proyecto Capachica)
-CAC 12/400,Concreto armado centrifugado,12,400,,PENDIENTE: ficha del fabricante (proyecto Capachica)
-CAC 13/400,Concreto armado centrifugado,13,400,,PENDIENTE: ficha del fabricante (proyecto Capachica)
+# carga_vertical_max_daN: compresión vertical admisible (alerta S↓); vacío = no verifica.
+codigo,material,longitud_m,carga_nominal_daN,empotramiento_m,carga_vertical_max_daN,fuente
+CAC 12/300,Concreto armado centrifugado,12,300,,,PENDIENTE: ficha del fabricante (proyecto Capachica)
+CAC 12/400,Concreto armado centrifugado,12,400,,,PENDIENTE: ficha del fabricante (proyecto Capachica)
+CAC 13/400,Concreto armado centrifugado,13,400,,,PENDIENTE: ficha del fabricante (proyecto Capachica)

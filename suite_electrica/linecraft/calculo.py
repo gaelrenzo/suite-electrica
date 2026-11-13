@@ -99,6 +99,8 @@ class Resultado:
     verificacion: pd.DataFrame | None = None
     """Verificación de postes y retenidas (si hay catálogos)."""
     metrado: pd.DataFrame | None = None
+    alertas: pd.DataFrame | None = None
+    """Alertas con exceso sobre el permisible (``linecraft.alertas``)."""
 
     def tramo_de_vano(self, i: int) -> Tramo:
         return self.tramos[self.vanos[i].tramo]
@@ -110,7 +112,7 @@ class Resultado:
             e.cumple for t in self.tramos for e in t.estados.values())
         if self.verificacion is not None and len(self.verificacion):
             ok = ok and bool((self.verificacion["Cumple"] != "NO").all())
-        return ok
+        return ok and (self.alertas is None or self.alertas.empty)
 
 
 def _estados_tramo(p: Proyecto, a_r: float) -> dict[str, tuple[float, object]]:

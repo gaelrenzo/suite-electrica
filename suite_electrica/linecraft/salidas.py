@@ -108,6 +108,9 @@ def tablas(r: Resultado) -> dict[str, pd.DataFrame]:
         res["Verificacion"] = r.verificacion
     if r.metrado is not None:
         res["Metrado"] = r.metrado
+    if r.alertas is not None:
+        res["Alertas"] = (r.alertas.assign(**{"Crítica": r.alertas["Crítica"].map({True: "SÍ", False: ""})})
+                          if len(r.alertas) else pd.DataFrame({"Alerta": ["Sin alertas"]}))
     res["Avisos"] = avisos
     return res
 
@@ -241,8 +244,8 @@ def memoria_pdf(ruta: str | Path, r: Resultado) -> Path:
     titulos = {"Estructuras": "Estructuras", "Mecanico": "Cálculo mecánico por tramo",
                "Vanos": "Vanos, flechas y distancias de seguridad", "Cargas": "Cargas en estructuras",
                "Verificacion": "Verificación de postes y retenidas", "Metrado": "Metrado",
-               "Avisos": "Avisos"}
-    orden = ["Estructuras", "Mecanico", "Vanos", "Cargas", "Verificacion", "Metrado", "Avisos"]
+               "Alertas": "Alertas de diseño (exceso sobre el permisible)", "Avisos": "Avisos"}
+    orden = ["Estructuras", "Mecanico", "Vanos", "Cargas", "Verificacion", "Alertas", "Metrado", "Avisos"]
     for k, clave in enumerate([c for c in orden if c in tb], start=5):
         story += [Paragraph(f"{k}. {titulos[clave]}", H), tabla(tb[clave])]
     doc.build(story)

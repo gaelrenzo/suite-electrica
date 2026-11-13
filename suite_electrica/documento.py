@@ -20,6 +20,7 @@ from suite_electrica.core.dxf.lectura import leer_polilinea
 from suite_electrica.core.geo.perfil import Perfil, perfil_longitudinal, progresivas_eje
 from suite_electrica.core.geo.tin import TIN, Curva, niveles
 from suite_electrica.linecraft import catalogos as cat_mod
+from suite_electrica.linecraft.alertas import ConfigAlertas, alertas
 from suite_electrica.linecraft.calculo import Resultado, calcular
 from suite_electrica.linecraft.catalogos import Catalogos
 from suite_electrica.linecraft.conductor import G, Conductor, Hipotesis, leer_catalogo
@@ -34,6 +35,9 @@ EXTENSION = ".sel"
 COLS_EST = ["progresiva_m", "tipo", "altura_amarre_m", "armado", "poste", "retenidas"]
 COLS_HIP = ["nombre", "temperatura_C", "presion_viento_Pa", "espesor_hielo_mm", "densidad_hielo_kg_m3"]
 FUENTES_EXTRA = ("factor_seguridad_poste", "factor_seguridad_retenida")
+FUENTES_ALERTAS = ("sep_k_tension", "sep_k_flecha", "angulo_salida_min", "angulo_salida_max",
+                   "tiro_max_espiga", "eds_max_pct")
+"""Parámetros de alertas que, si se usan (≠ 0), deben citar su fuente en ``fuentes``."""
 SEPARACION_MIN = 1.0
 """Separación mínima entre estructuras al editar (m)."""
 
@@ -68,6 +72,14 @@ class ParamLinea:
     fs_retenida: float = 2.0
     retenida: str = ""
     desperdicio_pct: float = 0.0
+    # Alertas tipo REDLIN; 0 = no verificar (ver linecraft.alertas).
+    tension_kV: float = 0.0
+    sep_k_tension: float = 0.0
+    sep_k_flecha: float = 0.0
+    angulo_salida_min: float = 0.0
+    angulo_salida_max: float = 0.0
+    tiro_max_espiga: float = 0.0
+    eds_max_pct: float = 0.0
 
 
 @dataclass
@@ -254,6 +266,12 @@ class Documento:
         for v in r.verificacion.itertuples(index=False):
             if v.Cumple == "NO":
                 r.avisos.append(f"{v.Estructura}: {v.Observación}")
+        cfg = ConfigAlertas(**{f.name: getattr(L, f.name) for f in fields(ConfigAlertas)})
+        r.alertas = alertas(r, self.catalogos, cfg)
+        for k in FUENTES_ALERTAS:
+            f = self.fuentes.get(k, "").strip()
+            if getattr(L, k) and (not f or "PENDIENTE" in f.upper() or "EJEMPLO" in f.upper()):
+                r.avisos.append(f"PENDIENTE_REVISION: '{k}' -> {f or 'sin fuente'}")
         return r
 
     def calcular(self) -> Resultado:

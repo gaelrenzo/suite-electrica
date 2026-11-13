@@ -93,7 +93,40 @@ Para n conductores, deflexión θ, tiros H atrás/adelante:
 No incluye viento sobre poste ni armado, ni selección de poste/retenida (requiere
 catálogos con fuente en `data/`).
 
-## 7. Limitaciones conocidas
+## 7. Alertas de diseño (`alertas.py`)
+
+Mismo criterio que las alertas de REDLIN: exceso relativo sobre el valor
+permisible `E = (P* − P) / P` (P* evaluado, P máximo con su factor de
+seguridad). Solo se reporta si `E > 0`; por elemento se marca *crítica* la de
+mayor E. Hoja **Alertas** de la planilla y sección de la memoria PDF.
+
+| Código | Verificación | P* | P |
+|---|---|---|---|
+| DMS | Despeje al terreno (vano) | DMS exigida | despeje real (`E = DMS/d − 1`) |
+| C | Tiro del conductor (tramo, cada hipótesis) | % rotura | tiro máximo % |
+| H | Separación horizontal a medio vano | `D = k_U·U + k_f·√f` | menor `separacion_fases_m` de los armados |
+| V | Vibraciones eólicas | tiro horizontal EDS % | `eds_max_pct` |
+| T / L | Poste sin retenida (T si predomina la transversal) | FS exigido | FS real |
+| R | Retenida | FS exigido | FS real |
+| S↓ | Compresión: `V + T_ret·sen φ` | — | `carga_vertical_max_daN` del poste |
+| S↑ | Vano peso negativo, armado con `aislador=RIGIDO` | — | (∞) |
+| I↑ / I↓ | Ángulo de salida del conductor en aislador rígido | ángulo | `angulo_salida_max/min` |
+| I→ | Fuerza por fase en la espiga | `F_h / n` | `tiro_max_espiga × aisladores_por_fase` |
+
+El ángulo de salida es la pendiente del conductor (curva con carga vertical)
+al salir del soporte hacia cada vano, positiva hacia arriba, en todas las
+hipótesis.
+
+Todos los límites valen 0 por defecto = **no se verifica** (no se asumen
+valores normativos). Al activarlos se exige su fuente en `fuentes`
+(`sep_k_tension`, `sep_k_flecha`, `angulo_salida_min/max`, `tiro_max_espiga`,
+`eds_max_pct`). En `proyecto.json` van en un bloque opcional
+`"alertas": {"eds_max_pct": ..., ...}` con los nombres de `ConfigAlertas`.
+
+No implementado aún: crucetas, coordinación de flechas entre conductores,
+número de amortiguadores.
+
+## 8. Limitaciones conocidas
 
 * Ubicación automática voraz: puede dejar vanos cortos antes de un vértice; no
   optimiza costo.

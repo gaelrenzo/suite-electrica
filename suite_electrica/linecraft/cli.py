@@ -26,8 +26,10 @@ def cmd_calcular(args: argparse.Namespace) -> int:
         if doc.modificado:  # se ubicaron estructuras automáticamente
             doc.guardar()
     else:
+        from suite_electrica.linecraft.alertas import ConfigAlertas, alertas
         p = proyecto.cargar(args.proyecto)
         r = calcular(p)
+        r.alertas = alertas(r, None, ConfigAlertas(**p.alertas))
     out = Path(args.out)
     print(f"{p.nombre}: {len(r.estructuras)} estructuras, {len(r.vanos)} vanos, {len(r.tramos)} tramo(s)")
     for t in r.tramos:
@@ -36,6 +38,8 @@ def cmd_calcular(args: argparse.Namespace) -> int:
     print(f"  Despeje mínimo: {min(v.despeje for v in r.vanos):.2f} m "
           f"(exigido {p.distancia_minima_terreno:.2f} m)")
     print(f"  Resultado: {'CUMPLE' if r.cumple else 'NO CUMPLE'}")
+    for a in r.alertas.itertuples(index=False):
+        print(f"  ALERTA {a[1]} {a[0]}: {a[2]} % — {a[3]}")
     for a in r.avisos:
         print(f"  AVISO: {a}")
     print(salidas.perfil_dxf(out / "perfil_linea.dxf", r, args.exageracion))
