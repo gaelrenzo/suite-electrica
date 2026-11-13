@@ -7,7 +7,7 @@ Suite libre (MIT) para ingeniería eléctrica de distribución en Perú.
 | **TopoCraft** | Topografía: limpieza de puntos, TIN, curvas de nivel, perfil longitudinal | Fase 1 — MVP |
 | **LineCraft** | Líneas primarias MT: postes, cálculo mecánico, despejes, cargas y retenidas | Fase 2 — MVP |
 | **GridCraft** | Redes primarias/secundarias: cargas, caída de tensión | Fase 3 — pendiente |
-| **App** | PySide6: lanzador común, gráficos, tablas, abrir DXF en CADCraft | Fase 4 — MVP |
+| **App** | PySide6: proyecto `.sel`, perfil interactivo, formularios, catálogos, metrado, CADCraft | Fase 4 — MVP |
 
 Normativa base: Código Nacional de Electricidad (Suministro 2011), normas DGE/MINEM.
 No se inventan valores normativos (ver `data/README.md`).

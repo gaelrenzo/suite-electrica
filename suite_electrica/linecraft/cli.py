@@ -18,8 +18,16 @@ from suite_electrica.linecraft.calculo import calcular
 
 
 def cmd_calcular(args: argparse.Namespace) -> int:
-    p = proyecto.cargar(args.proyecto)
-    r = calcular(p)
+    if str(args.proyecto).lower().endswith(".sel"):
+        from suite_electrica.documento import Documento
+        doc = Documento.abrir(args.proyecto)
+        r = doc.calcular()
+        p = r.proyecto
+        if doc.modificado:  # se ubicaron estructuras automáticamente
+            doc.guardar()
+    else:
+        p = proyecto.cargar(args.proyecto)
+        r = calcular(p)
     out = Path(args.out)
     print(f"{p.nombre}: {len(r.estructuras)} estructuras, {len(r.vanos)} vanos, {len(r.tramos)} tramo(s)")
     for t in r.tramos:
@@ -74,7 +82,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="linecraft", description="LineCraft: líneas primarias MT")
     sub = ap.add_subparsers(dest="comando", required=True)
     c = sub.add_parser("calcular", help="ubicar estructuras y calcular la línea")
-    c.add_argument("proyecto", help="archivo JSON del proyecto")
+    c.add_argument("proyecto", help="proyecto .sel (app) o .json (LineCraft)")
     c.add_argument("--out", default="salidas", help="carpeta de salida")
     c.add_argument("--exageracion", type=float, default=10.0, help="exageración vertical del DXF")
     c.set_defaults(func=cmd_calcular)

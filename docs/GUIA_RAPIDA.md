@@ -25,21 +25,41 @@ topocraft --help
 
 ## 1b. La app (Suite Eléctrica)
 
-Pestañas por módulo, como un programa de escritorio:
+Todo el trabajo se guarda en **un solo archivo `.sel`** (Archivo → Guardar, Ctrl+S):
+puntos, eje, parámetros, conductor, hipótesis, fuentes, estructuras y catálogos.
 
-* **TopoCraft**: elija puntos y eje → **Procesar** (F5) → vea *Plano*, *Perfil*,
-  *Tabla perfil* y *Registro* (validación) → **Exportar** a una carpeta → **Abrir
-  plano en visor DXF**.
-* **LineCraft**: **Nuevo proyecto** (Ctrl+N) crea las plantillas; edite el JSON en la
-  pestaña *Proyecto* → **Calcular** (F6; guarda antes) → vea *Perfil* (postes,
-  conductor y despeje), *Estructuras*, *Vanos*, *Mecánico*, *Cargas*, *Avisos* y el
-  indicador CUMPLE / NO CUMPLE → **Exportar** → abrir DXF o memoria PDF.
-* **Herramientas → Configurar visor DXF (CADCraft)**: elija el ejecutable; los
-  botones «Abrir … en visor DXF» lo usarán. Sin configurar, se usa el programa
-  asociado a .dxf (p. ej. AutoCAD).
-* **Archivo → Recientes**: últimos proyectos abiertos.
+**Flujo de trabajo**
 
-Los gráficos tienen zoom y desplazamiento (barra superior) y se pueden guardar como imagen.
+1. **TopoCraft** → *Importar puntos* y *Importar eje* → **Procesar** (F5): plano con
+   curvas, perfil, tabla y registro de validación. Exportar plano/perfil si se requiere.
+2. **LineCraft** → revise las pestañas de datos:
+   * *Datos*: parámetros de diseño (EDS, tiro máximo, distancia mínima, vanos, FS…).
+   * *Conductor*: ficha del conductor (o *Cargar desde catálogo CSV*).
+   * *Hipótesis*: tabla editable (+ Fila / − Fila).
+   * *Fuentes*: cite la norma de cada valor; lo que diga PENDIENTE aparece como aviso.
+   * *Catálogos*: postes, armados, retenidas y materiales (editar, importar/exportar CSV).
+3. **Calcular** (F6). La primera vez ubica las estructuras automáticamente y asigna
+   armados y postes.
+4. **Perfil interactivo**:
+   * **Doble clic** en zona libre: agrega estructura.
+   * **Arrastrar** un poste: lo mueve (inicio, fin y vértices ■ están fijos).
+   * **Clic derecho** en un poste: tipo, armado, poste, altura de amarre, retenidas, eliminar.
+   * Conductor **verde** = vano cumple, **rojo** = no cumple (✕ marca el punto crítico con
+     su despeje); línea morada = despeje mínimo; poste rojo = falla de verificación.
+   * **Ctrl+Z** deshace; la barra superior da zoom y desplazamiento.
+5. **Planilla de estructuras**: editable como hoja de cálculo (progresiva, tipo, armado,
+   poste, altura, retenidas); recalcula al instante.
+6. Resultados: *Vanos*, *Mecánico*, *Cargas*, *Verificación* (FS de postes y
+   retenidas), *Metrado* y *Avisos*. **Exportar** genera DXF, Excel y memoria PDF.
+
+Otros: *Herramientas → Configurar visor DXF (CADCraft)*; *Archivo → Importar proyecto
+LineCraft (.json)*; *Archivo → Recientes*. Por línea de comandos:
+`linecraft calcular proyecto.sel --out salidas`.
+
+**Catálogos**: vienen con los códigos del proyecto Capachica (CAC 12/300, PS-1, PA-1, PR-1,
+retenida 3/8") marcados PENDIENTE. Complete empotramiento y distancia punta–amarre para que
+la altura de amarre se calcule desde el poste, y los materiales por armado para un metrado
+completo.
 
 ## 2. Topografía (TopoCraft)
 

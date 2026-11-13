@@ -110,3 +110,12 @@ def test_catalogos_plantilla():
     assert list(c.postes["codigo"]) == ["CAC 12/300", "CAC 12/400", "CAC 13/400"]
     assert c.elegir_armado("ANCLAJE", 10) == "PR-1"
     assert c.elegir_armado("SUSPENSION", 0) == "PS-1"
+
+
+def test_cli_calcula_sel(doc, tmp_path):
+    from suite_electrica.linecraft.cli import main
+    ruta = doc.guardar(tmp_path / "p.sel")
+    assert main(["calcular", str(ruta), "--out", str(tmp_path / "out")]) == 0
+    hojas = pd.read_excel(tmp_path / "out" / "planilla_estructuras.xlsx", sheet_name=None)
+    assert {"Verificacion", "Metrado"} <= set(hojas)
+    assert len(Documento.abrir(ruta).estructuras) > 0  # guardó la ubicación automática

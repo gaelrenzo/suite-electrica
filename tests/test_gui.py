@@ -1,21 +1,21 @@
 """Pruebas de la GUI sin pantalla (QT_QPA_PLATFORM=offscreen). Se omiten sin PySide6."""
 
 import os
-import shutil
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets")
 
+from PySide6.QtCore import Qt  # noqa: E402
 from PySide6.QtWidgets import QApplication, QMessageBox  # noqa: E402
 
 from suite_electrica.gui import servicios as sv  # noqa: E402
 from suite_electrica.gui.app import VentanaPrincipal  # noqa: E402
-from suite_electrica.topocraft import sinteticos as st  # noqa: E402
 
-EJEMPLOS = Path(__file__).resolve().parents[1] / "examples"
+EJ = Path(__file__).resolve().parents[1] / "examples"
 
 
 @pytest.fixture
@@ -23,67 +23,128 @@ def ventana(monkeypatch, tmp_path):
     app = QApplication.instance() or QApplication([])
     for nombre in ("information", "warning", "critical"):
         monkeypatch.setattr(QMessageBox, nombre, staticmethod(lambda *a, **k: None))
-    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "cfg"))
     v = VentanaPrincipal(sincrono=True)
     v.ajustes.clear()
     yield v
+    v.doc.modificado = False
     v.close()
     app.processEvents()
 
 
 @pytest.fixture
-def puntos(tmp_path):
-    ruta = tmp_path / "pts.csv"
-    st.malla(st.colina_gaussiana(), 20).to_csv(ruta, index=False)
-    return ruta
+def con_datos(ventana):
+    ventana.topo.importar_puntos(EJ / "colina_gaussiana.csv")
+    ventana.topo.importar_eje(EJ / "eje.dxf")
+    return ventana
 
 
-def test_topocraft_procesar_y_exportar(ventana, puntos, tmp_path):
-    p = ventana.topo
-    p.puntos.campo.setText(str(puntos))
-    p.eje.campo.setText(str(EJEMPLOS / "eje.dxf"))
-    p.procesar()
-    assert p.resultado is not None and p.resultado.perfil is not None
-    assert p.modelo.rowCount() == len(p.resultado.perfil.progresiva)
-    assert "Puntos leídos" in p.registro.toPlainText()
-    assert p.plano.figura.axes and p.perfil.figura.axes
-    p.exportar(tmp_path / "out")
-    assert {r.name for r in p.exportados} == {"plano.dxf", "perfil.pdf", "perfil.xlsx", "perfil.dxf"}
-    assert all(r.exists() for r in p.exportados)
+def evento(lienzo, s, z, boton=1, doble=False):
+    """Evento de ratón falso en coordenadas de datos."""
+    ax = lienzo._ax
+    x, y = ax.transData.transform((s, z))
+    return SimpleNamespace(inaxes=ax, xdata=s, ydata=z, x=x, y=y, button=boton, dblclick=doble)
 
 
-def test_topocraft_error_se_informa(ventana, tmp_path):
-    ventana.topo.puntos.campo.setText(str(tmp_path / "no_existe.csv"))
-    ventana.topo.procesar()
-    assert "FileNotFoundError" in ventana.ultimo_error
+def test_topocraft(con_datos, tmp_path):
+    v = con_datos
+    assert "2601 puntos" in v.topo.lbl_datos.text()
+    v.topo.procesar()
+    assert v.topo.modelo.rowCount() > 0 and v.topo.plano.figura.axes
+    v.topo.eq.setValue(2.0)
+    assert v.doc.topo.equidistancia == 2.0 and v.doc.modificado
+    v.topo.exportar(tmp_path)
+    assert {r.name for r in v.topo.exportados} == {"plano.dxf", "perfil.pdf", "perfil.xlsx", "perfil.dxf"}
 
 
-def test_linecraft_nuevo_calcular_exportar(ventana, puntos, tmp_path):
-    carpeta = tmp_path / "linea"
-    ventana.linea.nuevo(carpeta)
-    shutil.copy(puntos, carpeta / "puntos.csv")
-    shutil.copy(EJEMPLOS / "eje.dxf", carpeta / "eje.dxf")
-    lp = ventana.linea
-    assert lp.ruta == carpeta / "proyecto.json"
-    assert '"nombre"' in lp.editor.toPlainText()
-    lp.editor.setPlainText(lp.editor.toPlainText().replace("NOMBRE DEL PROYECTO", "Prueba GUI"))
-    lp.calcular()  # guarda antes de calcular
-    assert "Prueba GUI" in (carpeta / "proyecto.json").read_text(encoding="utf-8")
-    assert lp.resultado is not None
-    assert "CUMPLE" in lp.lbl_estado.text()
-    assert lp.modelos["Estructuras"].rowCount() == len(lp.resultado.estructuras)
-    lp.exportar(carpeta / "salidas")
+def test_linea_calcular_y_planilla(con_datos, tmp_path):
+    v, lp = con_datos, con_datos.linea
+    lp.recalcular()
+    assert lp.resultado is not None and "CUMPLE" in lp.lbl_estado.text()
+    n = len(v.doc.estructuras)
+    assert lp.modelo_planilla.rowCount() == n
+    # editar armado desde la planilla
+    col = lp.modelo_planilla.df.columns.get_loc("Armado")
+    lp.modelo_planilla.setData(lp.modelo_planilla.index(1, col), "PA-1", Qt.ItemDataRole.EditRole)
+    assert v.doc.estructuras.at[1, "armado"] == "PA-1"
+    # mover desde la planilla
+    col = lp.modelo_planilla.df.columns.get_loc("Progresiva (m)")
+    lp.modelo_planilla.setData(lp.modelo_planilla.index(1, col), "100", Qt.ItemDataRole.EditRole)
+    assert v.doc.estructuras.at[1, "progresiva_m"] == 100
+    assert lp.modelos["Metrado"].rowCount() > 0 and lp.modelos["Verificacion"].rowCount() == n
+    lp.exportar(tmp_path)
     assert {r.name for r in lp.exportados} == {"perfil_linea.dxf", "planilla_estructuras.xlsx",
                                                "memoria_calculo.pdf"}
-    assert str(carpeta / "proyecto.json") in ventana._recientes()
 
 
-def test_json_invalido_no_se_guarda(ventana, tmp_path):
-    ventana.linea.nuevo(tmp_path / "x")
-    original = (tmp_path / "x" / "proyecto.json").read_text(encoding="utf-8")
-    ventana.linea.editor.setPlainText("{ mal json")
-    assert ventana.linea.guardar() is False
-    assert (tmp_path / "x" / "proyecto.json").read_text(encoding="utf-8") == original
+def test_perfil_interactivo_raton(con_datos):
+    v, lp = con_datos, con_datos.linea
+    lp.recalcular()
+    pi = lp.perfil
+    n = len(v.doc.estructuras)
+    # doble clic en zona libre -> agrega
+    pi.al_presionar(evento(pi, 60.0, 3900.0, doble=True))
+    assert len(v.doc.estructuras) == n + 1
+    i = int((v.doc.estructuras["progresiva_m"] - 60).abs().idxmin())
+    e = lp.resultado.estructuras[i]
+    # arrastrar el poste nuevo a 80 m
+    pi.al_presionar(evento(pi, e.progresiva, (e.cota_terreno + e.cota_amarre) / 2))
+    assert pi._arrastre == i
+    pi.al_mover(evento(pi, 80.0, e.cota_terreno))
+    pi.al_soltar(evento(pi, 80.0, e.cota_terreno))
+    assert v.doc.estructuras.at[i, "progresiva_m"] == pytest.approx(80.0)
+    # el inicio (fijo) no se arrastra
+    e0 = lp.resultado.estructuras[0]
+    pi.al_presionar(evento(pi, e0.progresiva, e0.cota_amarre))
+    assert pi._arrastre is None
+    # clic derecho -> menú; eliminar
+    e = lp.resultado.estructuras[i]
+    pi.al_presionar(evento(pi, e.progresiva, e.cota_amarre, boton=3))
+    menu = lp.ultimo_menu
+    accion = [a for a in menu.actions() if a.text() == "Eliminar estructura"][0]
+    assert accion.isEnabled()
+    accion.trigger()
+    assert len(v.doc.estructuras) == n
+    lp.deshacer()
+    assert len(v.doc.estructuras) == n + 1
+
+
+def test_formularios_actualizan_documento(con_datos):
+    lp = con_datos.linea
+    lp.campos["distancia_minima_terreno"].setValue(12.0)
+    assert con_datos.doc.linea.distancia_minima_terreno == 12.0
+    lp.recalcular()
+    assert "NO CUMPLE" in lp.lbl_estado.text()
+    lp.campos_cond["nombre"].setText("Conductor X")
+    lp.campos_cond["nombre"].editingFinished.emit()
+    assert con_datos.doc.conductor.nombre == "Conductor X"
+    lp.hip.agregar_fila()
+    assert len(con_datos.doc.hipotesis) == 6
+    df = lp.fuentes.df()
+    df.loc[0, "Fuente"] = "CNE 2011 Regla X"
+    lp._fuentes_cambiadas(df)
+    assert con_datos.doc.fuentes[df.loc[0, "Parámetro"]] == "CNE 2011 Regla X"
+
+
+def test_guardar_abrir_sel(con_datos, tmp_path):
+    v = con_datos
+    v.linea.recalcular()
+    assert v.guardar(tmp_path / "linea.sel")
+    assert not v.doc.modificado and "linea.sel" in v.windowTitle()
+    n = len(v.doc.estructuras)
+    v.nuevo()
+    assert v.doc.puntos.empty
+    v.abrir_proyecto(tmp_path / "linea.sel")
+    assert len(v.doc.estructuras) == n and v.linea.resultado is not None
+    assert str(tmp_path / "linea.sel") in v.recientes()
+
+
+def test_importar_json_y_error(ventana, tmp_path):
+    ventana.importar_json(EJ / "linecraft" / "proyecto_manual.json")
+    assert len(ventana.doc.estructuras) == 8
+    assert "NO CUMPLE" in ventana.linea.lbl_estado.text()
+    (tmp_path / "x.sel").write_text("{}")
+    ventana.abrir_proyecto(tmp_path / "x.sel")
+    assert "No se pudo abrir" in ventana.ultimo_error
 
 
 def test_abrir_dxf_usa_visor_configurado(ventana, monkeypatch, tmp_path):
