@@ -8,6 +8,7 @@ aparece en la memoria de cálculo.
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -53,17 +54,29 @@ class Proyecto:
     estructuras_manual: pd.DataFrame | None = None
     fuentes: dict[str, str] = field(default_factory=dict)
     alertas: dict[str, float] = field(default_factory=dict)
+    vanos_independientes: bool = False
+    """Estados finales calculados vano por vano (aisladores rígidos, criterio de REDLIN);
+    False = vano regulador del tramo (cadenas de suspensión)."""
     condicion_final: str = "creep"
     """``creep``: hipótesis ≠ inicial con alargamiento por fluencia lenta (si el conductor
     tiene curva de creep); ``inicial``: sin deformación permanente."""
     """Límites de ``linecraft.alertas.ConfigAlertas`` (0 o ausente = no verificar)."""
 
-    def hip(self, nombre: str) -> Hipotesis:
-        """Busca una hipótesis por nombre."""
-        for h in self.hipotesis:
-            if h.nombre == nombre:
-                return h
-        raise KeyError(f"Hipótesis no definida: {nombre}")
+    def hip(self, nombre: str, z: float | None = None) -> Hipotesis:
+        """Hipótesis por nombre; con ``z`` (msnm), la de ese rango de altitud."""
+        cand = [h for h in self.hipotesis if h.nombre == nombre]
+        if not cand:
+            raise KeyError(f"Hipótesis no definida: {nombre}")
+        if z is not None:
+            for h in cand:
+                if h.altitud_min <= z < h.altitud_max:
+                    return h
+            raise KeyError(f"Hipótesis {nombre}: ningún rango de altitud contiene {z:.0f} msnm")
+        return cand[0]
+
+    def hipotesis_en(self, z: float | None = None) -> list[Hipotesis]:
+        """Una hipótesis por nombre (en orden), la del rango de altitud ``z``."""
+        return [self.hip(n, z) for n in dict.fromkeys(h.nombre for h in self.hipotesis)]
 
     def avisos_fuentes(self) -> list[str]:
         """Parámetros normativos sin fuente verificada."""
@@ -105,7 +118,8 @@ def cargar(ruta: str | Path) -> Proyecto:
     if nombre_c not in cat:
         raise ValueError(f"Conductor '{nombre_c}' no está en el catálogo ({sorted(cat)})")
     hips = [Hipotesis(h["nombre"], float(h["temperatura_C"]), float(h.get("presion_viento_Pa", 0)),
-                      float(h.get("espesor_hielo_mm", 0)) / 1000, float(h.get("densidad_hielo_kg_m3", 0)))
+                      float(h.get("espesor_hielo_mm", 0)) / 1000, float(h.get("densidad_hielo_kg_m3", 0)),
+                      float(h.get("altitud_min_m", -math.inf)), float(h.get("altitud_max_m", math.inf)))
             for h in cfg["hipotesis"]]
     perfil, eje = _perfil_desde(cfg["perfil"], base)
     manual = None
@@ -133,6 +147,7 @@ def cargar(ruta: str | Path) -> Proyecto:
         fuentes={k: str(v) for k, v in cfg.get("fuentes", {}).items()},
         alertas={k: float(v) for k, v in (cfg.get("alertas") or {}).items()},
         condicion_final=cfg.get("condicion_final", "creep"),
+        vanos_independientes=bool(cfg.get("vanos_independientes", False)),
     )
     p.hip(p.hip_inicial)
     p.hip(p.hip_flecha_maxima)

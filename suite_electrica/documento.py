@@ -33,7 +33,9 @@ FORMATO = "suite-electrica"
 VERSION = 1
 EXTENSION = ".sel"
 COLS_EST = ["progresiva_m", "tipo", "altura_amarre_m", "armado", "poste", "retenidas"]
-COLS_HIP = ["nombre", "temperatura_C", "presion_viento_Pa", "espesor_hielo_mm", "densidad_hielo_kg_m3"]
+COLS_HIP = ["nombre", "temperatura_C", "presion_viento_Pa", "espesor_hielo_mm", "densidad_hielo_kg_m3",
+            "altitud_min_m", "altitud_max_m"]
+"""``altitud_min_m``/``altitud_max_m`` vacíos (o 0) = sin límite."""
 FUENTES_EXTRA = ("factor_seguridad_poste", "factor_seguridad_retenida")
 FUENTES_ALERTAS = ("sep_k_tension", "sep_k_flecha", "angulo_salida_min", "angulo_salida_max",
                    "tiro_max_espiga", "eds_max_pct")
@@ -69,6 +71,8 @@ class ParamLinea:
     vano_minimo: float = 30.0
     angulo_retenida: float = 45.0
     condicion_final: str = "creep"
+    estado_final_vanos: str = "tramo"
+    """``tramo`` (vano regulador) o ``por vano`` (vanos independientes, criterio de REDLIN)."""
     fs_poste: float = 2.0
     fs_retenida: float = 2.0
     retenida: str = ""
@@ -132,7 +136,9 @@ def _hip_df(registros: list[dict[str, Any]]) -> pd.DataFrame:
     df = pd.DataFrame(registros).reindex(columns=COLS_HIP)
     df["nombre"] = df["nombre"].fillna("").astype(str)
     for c in COLS_HIP[1:]:
-        df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0.0)
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+        if not c.startswith("altitud"):
+            df[c] = df[c].fillna(0.0)
     return df
 
 
@@ -217,8 +223,11 @@ class Documento:
 
     # ------------------------------------------------------------------ línea
     def hipotesis_obj(self) -> list[Hipotesis]:
+        def lim(v: float, defecto: float) -> float:
+            return defecto if pd.isna(v) or (v == 0 and defecto > 0) else float(v)
         return [Hipotesis(str(h.nombre), float(h.temperatura_C), float(h.presion_viento_Pa),
-                          float(h.espesor_hielo_mm) / 1000, float(h.densidad_hielo_kg_m3))
+                          float(h.espesor_hielo_mm) / 1000, float(h.densidad_hielo_kg_m3),
+                          lim(h.altitud_min_m, -math.inf), lim(h.altitud_max_m, math.inf))
                 for h in self.hipotesis.itertuples(index=False) if str(h.nombre).strip()]
 
     def _estructuras_para_calculo(self) -> pd.DataFrame:
@@ -251,6 +260,7 @@ class Documento:
             estructuras_manual=(self._estructuras_para_calculo()
                                 if con_estructuras and len(self.estructuras) else None),
             fuentes=dict(self.fuentes), condicion_final=L.condicion_final,
+            vanos_independientes=L.estado_final_vanos == "por vano",
         )
         p.hip(p.hip_inicial)
         p.hip(p.hip_flecha_maxima)

@@ -117,20 +117,28 @@ class Resultado:
         return ok and (self.alertas is None or self.alertas.empty)
 
 
-def _estados_tramo(p: Proyecto, a_r: float, desnivel: float = 0.0) -> dict[str, tuple[float, object]]:
-    """H (N) y carga unitaria por hipótesis para un vano regulador (desnivel: tramo de un vano)."""
+def _estados_tramo(p: Proyecto, a_r: float, desnivel: float = 0.0, z: float | None = None,
+                   propio: tuple[float, float] | None = None) -> dict[str, tuple[float, object]]:
+    """H (N) y carga unitaria por hipótesis.
+
+    Estado inicial (EDS) con el vano regulador ``a_r`` (``desnivel``: tramo de un vano). Los
+    estados finales usan el mismo vano, o ``propio = (vano, desnivel)`` si los vanos trabajan
+    independientes. ``z``: cota media (msnm) para elegir las hipótesis por altitud.
+    """
     c = p.conductor
-    h1 = p.hip(p.hip_inicial)
+    hips = {h.nombre: h for h in p.hipotesis_en(z)}
+    h1 = hips[p.hip_inicial]
     w1 = carga_unitaria(c, h1).resultante
     sigma1 = p.tiro_inicial_pct / 100 * c.carga_rotura / c.seccion
     dt = 0.0  # temperatura equivalente del alargamiento por creep (estados finales)
     if p.condicion_final == "creep":
         dt = deformacion_creep(c, sigma1, w1, h1.temperatura, a_r, desnivel) / c.coef_dilatacion
+    a2, h2 = propio or (a_r, desnivel)
     res = {}
-    for h in p.hipotesis:
+    for h in hips.values():
         cu = carga_unitaria(c, h)
         s2 = sigma1 if h.nombre == p.hip_inicial else cambio_estado(
-            sigma1, w1, h1.temperatura, cu.resultante, h.temperatura + dt, a_r, c, desnivel)
+            sigma1, w1, h1.temperatura, cu.resultante, h.temperatura + dt, a2, c, h2)
         res[h.nombre] = (s2 * c.seccion, cu)
     return res
 
@@ -185,14 +193,24 @@ def calcular(p: Proyecto) -> Resultado:
         a_r = vano_regulador(longitudes)
         # tramo de un solo vano: cambio de estado exacto con su desnivel de amarres
         h_unico = est[i1].cota_amarre - est[i0].cota_amarre if i1 - i0 == 1 else 0.0
-        hs = _estados_tramo(p, a_r, h_unico)
+        z = float(np.mean([e.cota_terreno for e in est[i0:i1 + 1]]))
+        if p.vanos_independientes and i1 - i0 > 1:
+            hs_v = [_estados_tramo(p, a_r, 0.0, z, (est[i + 1].progresiva - est[i].progresiva,
+                                                    est[i + 1].cota_amarre - est[i].cota_amarre))
+                    for i in range(i0, i1)]
+        else:
+            hs_v = [_estados_tramo(p, a_r, h_unico, z)] * (i1 - i0)
+        hs = hs_v[0]
+        temps = {h.nombre: h.temperatura for h in p.hipotesis_en(z)}
         t = Tramo(i0, i1, a_r)
-        for nombre, (H, cu) in hs.items():
-            tmax = max(curva(p.modelo, est[i + 1].progresiva - est[i].progresiva,
-                             est[i + 1].cota_amarre - est[i].cota_amarre, H, cu.resultante).tiro_maximo
-                       for i in range(i0, i1))
+        for nombre in hs:
+            tmax, H = max((curva(p.modelo, est[i + 1].progresiva - est[i].progresiva,
+                                 est[i + 1].cota_amarre - est[i].cota_amarre, hv[nombre][0],
+                                 hv[nombre][1].resultante).tiro_maximo, hv[nombre][0])
+                          for i, hv in zip(range(i0, i1), hs_v))
+            cu = hs[nombre][1]
             pct = 100 * tmax / c.carga_rotura
-            t.estados[nombre] = Estado(nombre, p.hip(nombre).temperatura, cu.vertical, cu.viento,
+            t.estados[nombre] = Estado(nombre, temps[nombre], cu.vertical, cu.viento,
                                        cu.resultante, H, tmax, pct, pct <= p.tiro_maximo_pct + 1e-9)
             if pct > p.tiro_maximo_pct + 1e-9:
                 avisos.append(f"Tramo {est[i0].codigo}-{est[i1].codigo}, {nombre}: tiro {pct:.1f} % "
@@ -200,7 +218,7 @@ def calcular(p: Proyecto) -> Resultado:
         tramos.append(t)
 
         # 3. Vanos
-        for i in range(i0, i1):
+        for i, hs in zip(range(i0, i1), hs_v):
             ea, eb = est[i], est[i + 1]
             a, h = eb.progresiva - ea.progresiva, eb.cota_amarre - ea.cota_amarre
             flechas = {n: curva(p.modelo, a, h, H, cu.resultante).flecha * cu.vertical / cu.resultante
@@ -226,29 +244,30 @@ def calcular(p: Proyecto) -> Resultado:
         atras = vanos[i - 1] if i > 0 else None
         adelante = vanos[i] if i < len(vanos) else None
         mitad = math.radians(abs(e.angulo)) / 2
-        for h in p.hipotesis:
+        # hipótesis y cargas unitarias del vano vecino (ya elegidas por la altitud de su tramo)
+        ref = estados_vano[(adelante or atras).a]
+        for nombre, (_, cu) in ref.items():
             av = ap = 0.0
             Hb = Ha = 0.0
             for v, lado in ((atras, "b"), (adelante, "a")):
                 if v is None:
                     continue
-                H, cu = estados_vano[v.a][h.nombre]
-                xm = curva(p.modelo, v.longitud, v.desnivel, H, cu.vertical).x_vertice
+                H, cuv = estados_vano[v.a][nombre]
+                xm = curva(p.modelo, v.longitud, v.desnivel, H, cuv.vertical).x_vertice
                 av += v.longitud / 2
                 if lado == "b":
                     Hb, ap = H, ap + (v.longitud - xm)
                 else:
                     Ha, ap = H, ap + xm
-            cu = carga_unitaria(c, h)
             trans = n * ((Hb + Ha) * math.sin(mitad) + cu.viento * av * math.cos(mitad))
             longi = n * abs(Ha - Hb) * math.cos(mitad)
             vert = n * cu.vertical * ap
             fh = math.hypot(trans, longi)
             ret = fh / math.cos(phi) if _necesita_retenida(e) else 0.0
-            cargas.append(Cargas(e.numero, h.nombre, av, ap, trans, longi, vert, fh,
+            cargas.append(Cargas(e.numero, nombre, av, ap, trans, longi, vert, fh,
                                  fh * e.altura_amarre, ret))
             if ap < 0:
-                arranque.append(f"{h.nombre} ({ap:.1f} m)")
+                arranque.append(f"{nombre} ({ap:.1f} m)")
         if arranque:
             avisos.append(f"{e.codigo}: vano peso negativo (arrancamiento) en " + ", ".join(arranque))
     return Resultado(p, est, tramos, vanos, cargas, avisos)

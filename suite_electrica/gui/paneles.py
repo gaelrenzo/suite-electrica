@@ -244,6 +244,7 @@ CAMPOS_LINEA: list[tuple[str, str, tuple]] = [
     ("tiro_inicial_pct", "Tiro inicial (% rotura)", (1, 60, 2, " %")),
     ("hip_flecha_maxima", "Hipótesis de flecha máxima", ("hip",)),
     ("condicion_final", "Condición final (si el conductor tiene curva de creep)", ("creep", "inicial")),
+    ("estado_final_vanos", "Estados finales calculados por", ("tramo", "por vano")),
     ("tiro_maximo_pct", "Tiro máximo admisible (% rotura)", (1, 100, 2, " %")),
     ("distancia_minima_terreno", "Distancia mínima al terreno", (0, 50, 2, " m")),
     ("altura_amarre", "Altura de amarre por defecto", (1, 60, 2, " m")),

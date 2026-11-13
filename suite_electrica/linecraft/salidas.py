@@ -223,9 +223,11 @@ def memoria_pdf(ruta: str | Path, r: Resultado) -> Path:
         ], columns=["Parámetro", "Valor", "Fuente"]), 7.5),
         Spacer(1, 3 * mm),
         tabla(pd.DataFrame([[h.nombre, h.temperatura, h.presion_viento, h.espesor_hielo * 1e3,
-                             h.densidad_hielo] for h in p.hipotesis],
+                             h.densidad_hielo,
+                             "todas" if h.altitud_min == -float("inf") and h.altitud_max == float("inf")
+                             else f"{max(h.altitud_min, 0):g}–{h.altitud_max:g}"] for h in p.hipotesis],
                            columns=["Hipótesis", "Temp. (°C)", "Viento (Pa)", "Hielo (mm)",
-                                    "Dens. hielo (kg/m³)"]), 7.5),
+                                    "Dens. hielo (kg/m³)", "Altitud (msnm)"]), 7.5),
         Paragraph("3. Fórmulas", H),
         Paragraph("Cambio de estado: σ2²·[σ2 − σ1 + a²·w1²·E/(24·A²·σ1²) + α·E·(t2 − t1)] = "
                   "a²·w2²·E/(24·A²), con a = vano regulador √(Σa³/Σa).", B),

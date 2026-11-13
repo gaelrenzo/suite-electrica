@@ -136,3 +136,36 @@ def test_creep_aumenta_flecha(doc, tmp_path):
     assert r2.vanos[0].flechas[hf] == pytest.approx(r0.vanos[0].flechas[hf])
     d = Documento.abrir(doc.guardar(tmp_path / "c.sel"))  # curvas y condición se guardan
     assert d.conductor.curva_creep == (0.0, 38.29) and d.linea.condicion_final == "inicial"
+
+
+def test_hipotesis_por_altitud(doc):
+    r0 = doc.calcular()
+    z = np.mean([e.cota_terreno for e in r0.estructuras])
+    hf = doc.linea.hip_flecha_maxima
+    base = doc.hipotesis[doc.hipotesis.nombre == hf].iloc[0]
+    caliente = base.copy()
+    caliente["temperatura_C"] = base.temperatura_C + 30
+    # rango bajo con la temperatura original, rango alto (que contiene la línea) más caliente
+    bajo, alto = base.copy(), caliente
+    bajo["altitud_min_m"], bajo["altitud_max_m"] = np.nan, z - 1e4
+    alto["altitud_min_m"], alto["altitud_max_m"] = z - 1e4, np.nan
+    otras = doc.hipotesis[doc.hipotesis.nombre != hf]
+    doc.hipotesis = pd.concat([otras, pd.DataFrame([bajo, alto])], ignore_index=True)
+    r1 = doc.calcular()
+    assert all(b.flechas[hf] > a.flechas[hf] for a, b in zip(r0.vanos, r1.vanos))
+    assert r1.tramos[0].estados[hf].temperatura == base.temperatura_C + 30
+
+
+def test_vanos_independientes(doc):
+    doc.calcular()
+    doc.linea.estado_final_vanos = "por vano"
+    r = doc.calcular()
+    t = max(r.tramos, key=lambda t: t.fin - t.inicio)
+    assert t.fin - t.inicio > 1
+    from suite_electrica.linecraft.calculo import _estados_tramo
+    p = doc.proyecto()
+    hf, ini = doc.linea.hip_flecha_maxima, doc.linea.hip_inicial
+    hs = [_estados_tramo(p, t.vano_regulador, 0.0, None,
+                         (r.vanos[i].longitud, r.vanos[i].desnivel))[hf][0] for i in range(t.inicio, t.fin)]
+    assert max(hs) - min(hs) > 1.0  # cada vano con su propio tiro final
+    assert t.estados[ini].H == pytest.approx(_estados_tramo(p, t.vano_regulador)[ini][0])

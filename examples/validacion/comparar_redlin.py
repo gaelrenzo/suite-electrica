@@ -135,8 +135,9 @@ def comparar_final(ruta_planilla: str, ruta_tabla: str, ruta_suministros: str, r
         s1 = eds / 100 * c.carga_rotura / c.seccion
         dt = deformacion_creep(c, s1, w0, t0, ar, hh) / c.coef_dilatacion
         C_lc = cambio_estado(s1, w0, t0, w2, t2 + dt, ar, c, hh) * c.seccion / w2
+        C_pv = cambio_estado(s1, w0, t0, w2, t2 + dt, a, c, h) * c.seccion / w2  # "por vano"
         filas.append({"vanos_tramo": "1" if hh or abs(a - ar) < 0.01 else "varios", "z": z,
-                      "C_R": Cr, "C_LC": C_lc})
+                      "C_R": Cr, "C_LC": C_lc, "C_LC_por_vano": C_pv})
     return pd.DataFrame(filas)
 
 
@@ -146,8 +147,11 @@ if __name__ == "__main__":
         f["err"] = 100 * (f.C_LC / f.C_R - 1)
         print(f"Estado final con creep (C en máximo esfuerzo): {len(f)} vanos  "
               f"|error| mediana {f.err.abs().median():.2f} %")
-        print(f.groupby("vanos_tramo")["err"].agg(
-            lambda e: f"n={len(e)} mediana {e.abs().median():.2f} %  p90 {e.abs().quantile(.9):.2f} %").to_string())
+        f["err_pv"] = 100 * (f.C_LC_por_vano / f.C_R - 1)
+        for col, titulo in (("err", "estado final por tramo"), ("err_pv", "estado final por vano")):
+            print(f"  {titulo}:")
+            print(f.groupby("vanos_tramo")[col].agg(
+                lambda e: f"n={len(e)} mediana {e.abs().median():.2f} %  p90 {e.abs().quantile(.9):.2f} %").to_string())
         sys.exit()
     if len(sys.argv) == 4:  # comparar_redlin.py TablaFlechado.XLS Suministros.XLS --flechado
         f = comparar_flechado(sys.argv[1], sys.argv[2])

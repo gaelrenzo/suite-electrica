@@ -82,6 +82,10 @@ class Hipotesis:
     """Espesor radial del manguito de hielo (m)."""
     densidad_hielo: float = 0.0
     """Densidad del hielo (kg/m³); obligatoria si hay hielo."""
+    altitud_min: float = -math.inf
+    """Rango de altitud (msnm) en que aplica; varias hipótesis con el mismo nombre y
+    rangos distintos se eligen por la cota media del tramo."""
+    altitud_max: float = math.inf
 
 
 @dataclass(frozen=True)
