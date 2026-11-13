@@ -139,7 +139,7 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
 | Vano viento | 264 | 0 (ver nota) |
 | Tiro H vs temperatura (15–35 °C, *Tabla de Flechado*) | 1280 puntos / 256 tramos | mediana 0,001 %; p95 0,43 % en vanos ≥ 20 m |
 | C en *Máximo Esfuerzo*, estado final con creep (tramos de un vano) | 152 | mediana 0,48 % (lineal sin creep: 10 %) |
-| Ídem, tramos de varios vanos | 104 | mediana 6,3 % (ver nota) |
+| Ídem, tramos de varios vanos, `estado_final_vanos = "por vano"` | 104 | mediana 2,7 %, p90 6,2 % (con "tramo": 6,3 %) |
 
 * REDLIN reporta la **flecha a medio vano**; LineCraft reporta además la flecha
   máxima (paralela a la cuerda), que en vanos inclinados es algo mayor. Ambas van
@@ -156,12 +156,11 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
   del método gráfico de Alcoa, `Δε = [ε_c(σf) − σf/E] − [ε_i(σ1) − σ1/E]`, con el
   esfuerzo final σf iterado, aplicado como temperatura equivalente `Δε/α`
   (`condicion_final = "creep"`; `"inicial"` lo desactiva).
-* En tramos de varios vanos REDLIN reporta en los estados finales un C distinto por
-  vano (cada vano con su propio largo, como con aisladores rígidos); LineCraft usa el
-  vano regulador del tramo. Calculando cada vano por separado el error baja a 2,7 %
-  (pendiente de implementar como opción).
-* REDLIN elige las hipótesis por rango de altitud de cada tramo; en LineCraft el
-  proyecto define un solo juego de hipótesis.
+* `estado_final_vanos`: `tramo` (por defecto; vano regulador, cadenas de suspensión) o
+  `por vano` (cada vano con su largo y desnivel en los estados finales, como REDLIN con
+  aisladores rígidos). El estado inicial (EDS) siempre usa el vano regulador del tramo.
+* Hipótesis por altitud: una hipótesis puede repetirse con `altitud_min_m`/`altitud_max_m`
+  distintos; cada tramo usa la de su cota media de terreno (como REDLIN).
 * La longitud de catenaria coincide por construcción (de ella se despeja el
   desnivel de amarres, que depende de la altura de cada armado).
 
