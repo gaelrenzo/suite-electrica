@@ -6,7 +6,7 @@ Suite libre (MIT) para ingeniería eléctrica de distribución en Perú.
 |---|---|---|
 | **TopoCraft** | Topografía: limpieza de puntos, TIN, curvas de nivel, perfil longitudinal | Fase 1 — MVP |
 | **LineCraft** | Líneas primarias MT: postes, cálculo mecánico, despejes, cargas y retenidas | Fase 2 — MVP |
-| **GridCraft** | Redes primarias/secundarias: cargas, caída de tensión | Fase 3 — pendiente |
+| **GridCraft** | Redes primarias/secundarias: demandas, caída de tensión, pérdidas, transformador | Fase 3 — MVP |
 | **App** | PySide6: proyecto `.sel`, perfil interactivo, formularios, catálogos, metrado, CADCraft | Fase 4 — MVP |
 
 Normativa base: Código Nacional de Electricidad (Suministro 2011), normas DGE/MINEM.
@@ -68,6 +68,20 @@ Salidas: `perfil_linea.dxf` (capas PERFIL, POSTES, CONDUCTOR, DESPEJE, TEXTO_LC)
 `memoria_calculo.pdf`. Código de salida 3 si el diseño no cumple.
 
 Fórmulas y fuentes: [`docs/linecraft.md`](docs/linecraft.md).
+
+## GridCraft
+
+Red radial en `nodos.csv` (padre → nodo) + catálogo de conductores + `red.json`.
+
+```bash
+gridcraft nuevo mi_red
+gridcraft calcular mi_red/red.json --out mi_red/salidas
+python -m suite_electrica.gridcraft calcular examples/gridcraft/red.json --out examples/salidas/gridcraft
+```
+
+Salidas: `caida_tension.xlsx` (Resumen, CaidaTension, Alertas, Avisos) y
+`plano_red.dxf` (capas RED, NODOS, TEXTO_RED, ALERTAS_RED). Código 3 si no cumple.
+Fórmulas: [`docs/gridcraft.md`](docs/gridcraft.md).
 
 ## Estructura
 

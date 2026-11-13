@@ -1,0 +1,26 @@
+{
+  "nombre": "Red secundaria - ejemplo",
+  "nodos": "nodos.csv",
+  "conductores": "conductores_bt.csv",
+  "sistema": "3F",
+  "tension_V": 380,
+  "calificacion_kw_lote": 0.5,
+  "fs_sp": 0.5,
+  "tabla_fs": [],
+  "fp_sp": 0.9,
+  "fs_ce": 1.0,
+  "kw_lampara": 0.05,
+  "fs_ap": 1.0,
+  "fp_ap": 0.9,
+  "caida_max_pct": 5.0,
+  "perdidas_max_pct": 0,
+  "factor_carga": 0.3,
+  "transformador_kva": 25,
+  "factor_sobrecarga": 1.0,
+  "fuentes": {
+    "calificacion_kw_lote": "EJEMPLO: citar calificación eléctrica por lote de la norma DGE",
+    "fs_sp": "EJEMPLO: citar factor de simultaneidad de la norma DGE",
+    "caida_max_pct": "EJEMPLO: citar caída de tensión máxima (NTCSE / norma DGE)",
+    "conductores": "EJEMPLO: ver conductores_bt.csv"
+  }
+}

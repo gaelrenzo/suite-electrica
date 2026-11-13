@@ -42,6 +42,7 @@ echo Listo. Abra "Suite Electrica" desde el Escritorio o el menu Inicio.
 echo Comandos (en una NUEVA terminal):
 echo    topocraft --help
 echo    linecraft --help
+echo    gridcraft --help
 echo Guia: docs\GUIA_RAPIDA.md
 pause
 exit /b 0

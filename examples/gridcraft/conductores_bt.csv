@@ -1,0 +1,8 @@
+# Catálogo de conductores de la red. k_ohm_km: factor de caída K (Ω/km) de la norma DGE para el sistema;
+# si está vacío se calcula K = c (r cos φ + x sen φ). k_ap/r_ap: hilo de alumbrado público (vacío = AP sobre SP).
+# EJEMPLO: r = ρ_Al / S a 20 °C con ρ = 0,028264 Ω·mm²/m (aluminio 61 % IACS); x y corriente máxima sin dato.
+# Reemplazar por la ficha del fabricante o la tabla de K de la norma DGE antes de usar en un proyecto.
+formacion,k_ohm_km,r_ohm_km,x_ohm_km,k_ap_ohm_km,r_ap_ohm_km,corriente_max_A,fuente
+3x35+16/25,,0.8075,,,1.7665,,EJEMPLO: r = rho/S (ver encabezado)
+3x25+16/25,,1.1306,,,1.7665,,EJEMPLO: r = rho/S (ver encabezado)
+2x16/25,,1.7665,,,,,EJEMPLO: r = rho/S (ver encabezado)

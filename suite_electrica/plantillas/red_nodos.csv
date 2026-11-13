@@ -1,0 +1,13 @@
+# Red radial: un nodo raíz (subestación) con padre vacío. longitud_m y conductor: tramo padre -> nodo.
+# lotes: abonados de servicio particular; kw_ce: carga especial (kW); lamparas: alumbrado público.
+# este/norte opcionales (UTM, m): si están en todos los nodos se genera plano_red.dxf.
+nodo,padre,longitud_m,conductor,lotes,kw_ce,lamparas,este,norte
+SED,,,,0,0,0,390000,8250000
+N1,SED,35,3x35+16/25,4,0,1,390035,8250000
+N2,N1,40,3x35+16/25,5,0,1,390075,8250000
+N3,N2,38,3x25+16/25,6,1.5,1,390113,8250000
+N4,N3,42,3x25+16/25,4,0,1,390155,8250000
+N5,N1,30,3x25+16/25,3,0,1,390035,8250030
+N6,N5,36,3x25+16/25,5,0,1,390035,8250066
+N7,SED,40,3x35+16/25,6,0,1,389960,8250000
+N8,N7,45,3x25+16/25,4,0,1,389915,8250000

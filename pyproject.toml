@@ -29,6 +29,7 @@ dev = ["pytest>=8"]
 [project.scripts]
 topocraft = "suite_electrica.topocraft.cli:main"
 linecraft = "suite_electrica.linecraft.cli:main"
+gridcraft = "suite_electrica.gridcraft.cli:main"
 
 [project.gui-scripts]
 suite-electrica = "suite_electrica.gui.app:main"
