@@ -23,7 +23,7 @@ from suite_electrica.linecraft import catalogos as cat_mod
 from suite_electrica.linecraft.alertas import ConfigAlertas, alertas
 from suite_electrica.linecraft.calculo import Resultado, calcular
 from suite_electrica.linecraft.catalogos import Catalogos
-from suite_electrica.linecraft.conductor import G, Conductor, Hipotesis, leer_catalogo
+from suite_electrica.linecraft.conductor import G, Conductor, Hipotesis, curva, leer_catalogo
 from suite_electrica.linecraft.estructuras import TIPOS, TOL_VERTICE, angulos_eje
 from suite_electrica.linecraft.proyecto import PARAMETROS_NORMATIVOS, Proyecto
 from suite_electrica.topocraft import datos
@@ -68,6 +68,7 @@ class ParamLinea:
     vano_maximo: float = 120.0
     vano_minimo: float = 30.0
     angulo_retenida: float = 45.0
+    condicion_final: str = "creep"
     fs_poste: float = 2.0
     fs_retenida: float = 2.0
     retenida: str = ""
@@ -109,14 +110,16 @@ def conductor_a_dict(c: Conductor) -> dict[str, Any]:
     return {"nombre": c.nombre, "seccion_mm2": c.seccion * 1e6, "diametro_mm": c.diametro * 1e3,
             "masa_kg_m": c.peso / G, "carga_rotura_kN": c.carga_rotura / 1e3,
             "modulo_elasticidad_MPa": c.modulo_elasticidad / 1e6,
-            "coef_dilatacion_1_C": c.coef_dilatacion, "fuente": c.fuente}
+            "coef_dilatacion_1_C": c.coef_dilatacion, "fuente": c.fuente,
+            "curva_inicial": ";".join(f"{v:g}" for v in c.curva_inicial),
+            "curva_creep": ";".join(f"{v:g}" for v in c.curva_creep)}
 
 
 def conductor_desde_dict(d: dict[str, Any]) -> Conductor:
     return Conductor(str(d["nombre"]), float(d["seccion_mm2"]) * 1e-6, float(d["diametro_mm"]) * 1e-3,
                      float(d["masa_kg_m"]) * G, float(d["carga_rotura_kN"]) * 1e3,
                      float(d["modulo_elasticidad_MPa"]) * 1e6, float(d["coef_dilatacion_1_C"]),
-                     str(d.get("fuente", "")))
+                     str(d.get("fuente", "")), curva(d.get("curva_inicial")), curva(d.get("curva_creep")))
 
 
 def _df_a_json(df: pd.DataFrame) -> list[dict[str, Any]]:
@@ -247,7 +250,7 @@ class Documento:
             angulo_retenida=L.angulo_retenida, perfil=perfil, eje=self.eje,
             estructuras_manual=(self._estructuras_para_calculo()
                                 if con_estructuras and len(self.estructuras) else None),
-            fuentes=dict(self.fuentes),
+            fuentes=dict(self.fuentes), condicion_final=L.condicion_final,
         )
         p.hip(p.hip_inicial)
         p.hip(p.hip_flecha_maxima)

@@ -67,6 +67,49 @@ def _cambio_estado_inclinado(sigma1: float, w1: float, t1: float, w2: float, t2:
     return brentq(lambda H: l0(H, w2) - objetivo, w2 * a / 40, 100 * H1 + 1e5, xtol=1e-6) / A
 
 
+KG_MM2 = 9.80665e6
+"""Pa por kg/mm² (unidades de las curvas esfuerzo-deformación de catálogo)."""
+
+
+def _deformacion(poli: Sequence[float], sigma_kg: float) -> float:
+    """ε (%) de la curva ``σ(ε)`` para ``σ`` (kg/mm²), en su rama creciente."""
+    from scipy.optimize import brentq
+
+    f = lambda x: sum(a * x**k for k, a in enumerate(poli)) - sigma_kg  # noqa: E731
+    x0, x1 = -0.01, 0.01
+    while f(x1) < 0:
+        if x1 > 5:
+            raise ValueError(f"σ = {sigma_kg:.2f} kg/mm² fuera de la curva esfuerzo-deformación")
+        x0, x1 = x1, x1 + 0.01
+    return brentq(f, x0, x1)
+
+
+def deformacion_creep(c: Conductor, sigma1: float, w1: float, t1: float, vano: float,
+                      desnivel: float = 0.0) -> float:
+    """Alargamiento permanente por fluencia lenta (adimensional), método gráfico de Alcoa.
+
+    El conductor se tiende en la curva inicial a ``σ1`` (EDS, condición ``w1``, ``t1``). Tras
+    el creep queda sobre la curva de creep a un esfuerzo final ``σf`` < σ1; la deformación
+    permanente respecto del modelo elástico es
+    ``Δε = [ε_c(σf) − σf/E] − [ε_i(σ1) − σ1/E]`` y ``σf`` sale de iterar el cambio de estado
+    con la temperatura equivalente ``Δε/α``. Sin ``curva_creep`` devuelve 0.
+    Validado contra REDLIN 2023 (docs/linecraft.md).
+    """
+    if not c.curva_creep:
+        return 0.0
+    E = c.modulo_elasticidad / KG_MM2
+    s1 = sigma1 / KG_MM2
+    base = (_deformacion(c.curva_inicial, s1) / 100 - s1 / E) if c.curva_inicial else 0.0
+    sf, de = s1, 0.0
+    for _ in range(100):
+        de = max(_deformacion(c.curva_creep, sf) / 100 - sf / E - base, 0.0)
+        nuevo = cambio_estado(sigma1, w1, t1, w1, t1 + de / c.coef_dilatacion, vano, c, desnivel) / KG_MM2
+        if abs(nuevo - sf) < 1e-9:
+            break
+        sf = nuevo
+    return de
+
+
 def vano_regulador(vanos: Sequence[float]) -> float:
     """Vano regulador (equivalente) de un tramo de tensado: ``sqrt(Σa³ / Σa)`` (m)."""
     a = np.asarray(vanos, dtype=float)

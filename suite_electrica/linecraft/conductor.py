@@ -30,13 +30,25 @@ class Conductor:
     coef_dilatacion: float
     """Coeficiente de dilatación lineal (1/°C)."""
     fuente: str = ""
+    curva_inicial: tuple[float, ...] = ()
+    """Curva esfuerzo-deformación inicial ``σ = a0 + a1 ε + … + a4 ε⁴`` (σ kg/mm², ε %); opcional."""
+    curva_creep: tuple[float, ...] = ()
+    """Curva después de fluencia lenta (creep), mismas unidades; vacía = sin creep."""
+
+
+def curva(texto: object) -> tuple[float, ...]:
+    """``"a0;a1;a2;a3;a4"`` → tupla (vacía si no hay dato)."""
+    if texto is None or (isinstance(texto, float) and math.isnan(texto)) or not str(texto).strip():
+        return ()
+    return tuple(float(v.replace(",", ".")) for v in str(texto).split(";") if v.strip())
 
 
 def leer_catalogo(ruta: str | Path) -> dict[str, Conductor]:
     """Lee un catálogo CSV de conductores (líneas ``#`` son comentarios).
 
     Columnas: ``nombre, seccion_mm2, diametro_mm, masa_kg_m, carga_rotura_kN,
-    modulo_elasticidad_MPa, coef_dilatacion_1_C, fuente``.
+    modulo_elasticidad_MPa, coef_dilatacion_1_C, fuente`` y opcionales
+    ``curva_inicial, curva_creep`` (coeficientes ``a0;a1;a2;a3;a4``, σ kg/mm² vs ε %).
     """
     df = pd.read_csv(ruta, comment="#", skipinitialspace=True)
     df = df.fillna({"fuente": ""})
@@ -50,6 +62,8 @@ def leer_catalogo(ruta: str | Path) -> dict[str, Conductor]:
             modulo_elasticidad=r.modulo_elasticidad_MPa * 1e6,
             coef_dilatacion=float(r.coef_dilatacion_1_C),
             fuente=str(r.fuente),
+            curva_inicial=curva(getattr(r, "curva_inicial", None)),
+            curva_creep=curva(getattr(r, "curva_creep", None)),
         )
         for r in df.itertuples(index=False)
     }

@@ -61,7 +61,9 @@ def conductores(ruta_suministros: str) -> dict:
     for r in c.itertuples(index=False):
         try:
             out[str(r[1])] = Conductor(str(r[1]), float(r[8]) * 1e-6, float(r[7]) * 1e-3, float(r[5]) * G,
-                                       float(r[6]) * G, float(r[12]) * G * 1e6, float(r[11]))
+                                       float(r[6]) * G, float(r[12]) * G * 1e6, float(r[11]),
+                                       curva_inicial=tuple(float(v) for v in r[15:20]),
+                                       curva_creep=tuple(float(v) for v in r[20:25]))
         except (TypeError, ValueError):
             pass
     return out
@@ -92,7 +94,61 @@ def comparar_flechado(ruta_tabla: str, ruta_suministros: str) -> pd.DataFrame:
     return pd.DataFrame(filas)
 
 
+def hipotesis_por_altitud(ruta_config: str) -> list[tuple[float, float, dict]]:
+    """[(z_min, z_max, {nombre: (temperatura, presión de viento Pa)})] de la hoja Hipotesis."""
+    h = pd.read_excel(ruta_config, "Hipotesis", header=None)
+    rangos = []
+    for s in range(2, h.shape[1] - 11, 12):
+        z0, z1 = pd.to_numeric(h.iat[1, s + 2], errors="coerce"), pd.to_numeric(h.iat[1, s + 3], errors="coerce")
+        if pd.isna(z0):
+            continue
+        hips = {str(h.iat[i, 0]): (float(h.iat[i, s]), float(h.iat[i, s + 11]) * (float(h.iat[i, s + 8]) / 3.6) ** 2)
+                for i in range(4, h.shape[0]) if pd.notna(h.iat[i, 0])}
+        rangos.append((float(z0), float(z1), hips))
+    return rangos
+
+
+def comparar_final(ruta_planilla: str, ruta_tabla: str, ruta_suministros: str, ruta_config: str,
+                   hip_templado: str = "Templado", hip_final: str = "Máximo Esfuerzo") -> pd.DataFrame:
+    """C (= H/w) en la hipótesis final con creep: Planilla de Estructuras vs LineCraft.
+
+    Estado inicial (EDS de la Tabla de Flechado) con el vano regulador del tramo; alargamiento
+    por creep con ``deformacion_creep`` y cambio de estado a la hipótesis final del rango de altitud.
+    """
+    from suite_electrica.linecraft.conductor import Hipotesis, carga_unitaria
+    from suite_electrica.linecraft.mecanica import cambio_estado, deformacion_creep
+    cond, rangos = conductores(ruta_suministros), hipotesis_por_altitud(ruta_config)
+    tf = pd.read_excel(ruta_tabla, header=None)
+    tramos = {(str(r[1]), int(r[2])): r for r in (tf.iloc[i] for i in range(2, len(tf)))
+              if str(r[10]).startswith("Flecha")}
+    filas = []
+    for r in pd.read_excel(ruta_planilla, header=None).iloc[2:].itertuples(index=False):
+        t = tramos.get((str(r[1]), int(r[2]) + 1))
+        Cr = pd.to_numeric(r[50], errors="coerce")
+        if t is None or not Cr > 0 or t[8] not in cond:
+            continue
+        c, ar, eds, h, a, z = cond[t[8]], float(t[4]), float(t[9]), float(t[6]), float(t[5]), float(t[7])
+        hips = next(hp for z0, z1, hp in rangos if z0 <= z < z1 or z >= rangos[-1][0])
+        (t0, _), (t2, p2) = hips[hip_templado], next(v for k, v in hips.items() if k[:5] == hip_final[:5])
+        w0, w2 = c.peso, carga_unitaria(c, Hipotesis("f", t2, p2)).resultante
+        hh = h if abs(a - ar) < 0.01 else 0.0
+        s1 = eds / 100 * c.carga_rotura / c.seccion
+        dt = deformacion_creep(c, s1, w0, t0, ar, hh) / c.coef_dilatacion
+        C_lc = cambio_estado(s1, w0, t0, w2, t2 + dt, ar, c, hh) * c.seccion / w2
+        filas.append({"vanos_tramo": "1" if hh or abs(a - ar) < 0.01 else "varios", "z": z,
+                      "C_R": Cr, "C_LC": C_lc})
+    return pd.DataFrame(filas)
+
+
 if __name__ == "__main__":
+    if len(sys.argv) == 6:  # planilla tabla suministros configuracion --final
+        f = comparar_final(*sys.argv[1:5])
+        f["err"] = 100 * (f.C_LC / f.C_R - 1)
+        print(f"Estado final con creep (C en máximo esfuerzo): {len(f)} vanos  "
+              f"|error| mediana {f.err.abs().median():.2f} %")
+        print(f.groupby("vanos_tramo")["err"].agg(
+            lambda e: f"n={len(e)} mediana {e.abs().median():.2f} %  p90 {e.abs().quantile(.9):.2f} %").to_string())
+        sys.exit()
     if len(sys.argv) == 4:  # comparar_redlin.py TablaFlechado.XLS Suministros.XLS --flechado
         f = comparar_flechado(sys.argv[1], sys.argv[2])
         e = 100 * (f.H_LC / f.H_R - 1)

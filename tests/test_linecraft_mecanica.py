@@ -118,3 +118,22 @@ def test_cambio_estado_inclinado():
     # vano inclinado: al calentar el tiro cae más que en vano a nivel (mismo sentido que REDLIN)
     incl = cambio_estado(s1, c.peso, 25, c.peso, 40, 300, c, desnivel=150)
     assert incl < nivel
+
+
+def test_deformacion_creep_alcoa():
+    from dataclasses import replace
+
+    from suite_electrica.linecraft.conductor import Conductor, curva
+    from suite_electrica.linecraft.mecanica import KG_MM2, _deformacion, cambio_estado, deformacion_creep
+    base = Conductor("X", 34.36e-6, 7.5e-3, 0.094 * 9.80665, 1056.12 * 9.80665, 6206.12 * KG_MM2, 2.3e-5)
+    s1, w = 0.18 * base.carga_rotura / base.seccion, base.peso
+    assert deformacion_creep(base, s1, w, 25, 200) == 0.0  # sin curva de creep
+    assert curva("0;55,6; 25.4;-85.8;0") == (0.0, 55.6, 25.4, -85.8, 0.0) and curva(None) == ()
+    # curva inicial lineal con el módulo E (sin término inicial) y creep lineal más blando
+    c = replace(base, curva_inicial=(0.0, 62.0612), curva_creep=(0.0, 38.29))
+    de = deformacion_creep(c, s1, w, 25, 200)
+    assert de > 0
+    # punto fijo: el esfuerzo final cumple Δε = ε_c(σf) − σf/E
+    sf = cambio_estado(s1, w, 25, w, 25 + de / c.coef_dilatacion, 200, c) / KG_MM2
+    assert de == pytest.approx(_deformacion(c.curva_creep, sf) / 100 - sf / 6206.12, rel=1e-6)
+    assert sf < s1 / KG_MM2  # el creep afloja el conductor

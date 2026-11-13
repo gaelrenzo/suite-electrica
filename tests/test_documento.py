@@ -119,3 +119,20 @@ def test_cli_calcula_sel(doc, tmp_path):
     hojas = pd.read_excel(tmp_path / "out" / "planilla_estructuras.xlsx", sheet_name=None)
     assert {"Verificacion", "Metrado"} <= set(hojas)
     assert len(Documento.abrir(ruta).estructuras) > 0  # guardó la ubicación automática
+
+
+def test_creep_aumenta_flecha(doc, tmp_path):
+    from dataclasses import replace
+    r0 = doc.calcular()
+    doc.conductor = replace(doc.conductor, curva_inicial=(0.0629, 55.61, 25.38, -85.78),
+                            curva_creep=(0.0, 38.29))
+    r1 = doc.calcular()
+    hf = doc.linea.hip_flecha_maxima
+    assert all(b.flechas[hf] > a.flechas[hf] for a, b in zip(r0.vanos, r1.vanos))
+    ini = doc.linea.hip_inicial  # la condición inicial (EDS) no cambia
+    assert r1.tramos[0].estados[ini].H == pytest.approx(r0.tramos[0].estados[ini].H)
+    doc.linea.condicion_final = "inicial"
+    r2 = doc.calcular()
+    assert r2.vanos[0].flechas[hf] == pytest.approx(r0.vanos[0].flechas[hf])
+    d = Documento.abrir(doc.guardar(tmp_path / "c.sel"))  # curvas y condición se guardan
+    assert d.conductor.curva_creep == (0.0, 38.29) and d.linea.condicion_final == "inicial"

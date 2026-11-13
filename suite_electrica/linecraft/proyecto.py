@@ -53,6 +53,9 @@ class Proyecto:
     estructuras_manual: pd.DataFrame | None = None
     fuentes: dict[str, str] = field(default_factory=dict)
     alertas: dict[str, float] = field(default_factory=dict)
+    condicion_final: str = "creep"
+    """``creep``: hipótesis ≠ inicial con alargamiento por fluencia lenta (si el conductor
+    tiene curva de creep); ``inicial``: sin deformación permanente."""
     """Límites de ``linecraft.alertas.ConfigAlertas`` (0 o ausente = no verificar)."""
 
     def hip(self, nombre: str) -> Hipotesis:
@@ -129,6 +132,7 @@ def cargar(ruta: str | Path) -> Proyecto:
         estructuras_manual=manual,
         fuentes={k: str(v) for k, v in cfg.get("fuentes", {}).items()},
         alertas={k: float(v) for k, v in (cfg.get("alertas") or {}).items()},
+        condicion_final=cfg.get("condicion_final", "creep"),
     )
     p.hip(p.hip_inicial)
     p.hip(p.hip_flecha_maxima)

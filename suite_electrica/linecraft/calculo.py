@@ -21,7 +21,7 @@ from suite_electrica.linecraft.conductor import carga_unitaria
 from suite_electrica.linecraft.estructuras import (
     ANCLAJE, FIN, Estructura, crear_estructuras, despeje_vano, ubicar_automatico,
 )
-from suite_electrica.linecraft.mecanica import cambio_estado, curva, vano_regulador
+from suite_electrica.linecraft.mecanica import cambio_estado, curva, deformacion_creep, vano_regulador
 from suite_electrica.linecraft.proyecto import Proyecto
 
 
@@ -123,11 +123,14 @@ def _estados_tramo(p: Proyecto, a_r: float, desnivel: float = 0.0) -> dict[str, 
     h1 = p.hip(p.hip_inicial)
     w1 = carga_unitaria(c, h1).resultante
     sigma1 = p.tiro_inicial_pct / 100 * c.carga_rotura / c.seccion
+    dt = 0.0  # temperatura equivalente del alargamiento por creep (estados finales)
+    if p.condicion_final == "creep":
+        dt = deformacion_creep(c, sigma1, w1, h1.temperatura, a_r, desnivel) / c.coef_dilatacion
     res = {}
     for h in p.hipotesis:
         cu = carga_unitaria(c, h)
         s2 = sigma1 if h.nombre == p.hip_inicial else cambio_estado(
-            sigma1, w1, h1.temperatura, cu.resultante, h.temperatura, a_r, c, desnivel)
+            sigma1, w1, h1.temperatura, cu.resultante, h.temperatura + dt, a_r, c, desnivel)
         res[h.nombre] = (s2 * c.seccion, cu)
     return res
 

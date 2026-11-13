@@ -243,6 +243,7 @@ CAMPOS_LINEA: list[tuple[str, str, tuple]] = [
     ("hip_inicial", "Condición inicial (EDS)", ("hip",)),
     ("tiro_inicial_pct", "Tiro inicial (% rotura)", (1, 60, 2, " %")),
     ("hip_flecha_maxima", "Hipótesis de flecha máxima", ("hip",)),
+    ("condicion_final", "Condición final (si el conductor tiene curva de creep)", ("creep", "inicial")),
     ("tiro_maximo_pct", "Tiro máximo admisible (% rotura)", (1, 100, 2, " %")),
     ("distancia_minima_terreno", "Distancia mínima al terreno", (0, 50, 2, " m")),
     ("altura_amarre", "Altura de amarre por defecto", (1, 60, 2, " m")),
@@ -266,7 +267,9 @@ CAMPOS_CONDUCTOR = [("nombre", "Nombre", None), ("seccion_mm2", "Sección (mm²)
                     ("diametro_mm", "Diámetro (mm)", 3), ("masa_kg_m", "Masa (kg/m)", 5),
                     ("carga_rotura_kN", "Tiro de rotura (kN)", 3),
                     ("modulo_elasticidad_MPa", "Módulo de elasticidad (MPa)", 0),
-                    ("coef_dilatacion_1_C", "Coef. dilatación (1/°C)", "e"), ("fuente", "Fuente", None)]
+                    ("coef_dilatacion_1_C", "Coef. dilatación (1/°C)", "e"), ("fuente", "Fuente", None),
+                    ("curva_inicial", "Curva inicial σ(ε) a0;a1;a2;a3;a4 (kg/mm², ε %)", None),
+                    ("curva_creep", "Curva después de creep a0;…;a4 (vacía = sin creep)", None)]
 COLS_PLANILLA = ["N°", "Código", "Progresiva (m)", "Tipo", "Armado", "Poste", "Altura amarre (m)",
                  "Retenidas", "Cota terreno (m)", "Deflexión (°)", "Vano adelante (m)", "Verificación"]
 EDITABLES_PLANILLA = {"Progresiva (m)", "Tipo", "Armado", "Poste", "Altura amarre (m)", "Retenidas"}

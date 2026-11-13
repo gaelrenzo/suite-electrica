@@ -138,6 +138,8 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
 | Vano peso | 245 | 1 cm |
 | Vano viento | 264 | 0 (ver nota) |
 | Tiro H vs temperatura (15–35 °C, *Tabla de Flechado*) | 1280 puntos / 256 tramos | mediana 0,001 %; p95 0,43 % en vanos ≥ 20 m |
+| C en *Máximo Esfuerzo*, estado final con creep (tramos de un vano) | 152 | mediana 0,48 % (lineal sin creep: 10 %) |
+| Ídem, tramos de varios vanos | 104 | mediana 6,3 % (ver nota) |
 
 * REDLIN reporta la **flecha a medio vano**; LineCraft reporta además la flecha
   máxima (paralela a la cuerda), que en vanos inclinados es algo mayor. Ambas van
@@ -148,15 +150,25 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
   (longitud de catenaria y longitud sin tensión); con la cúbica de vano a nivel el
   error llegaba a 39 % en vanos cortos muy inclinados. Los únicos desvíos > 3 % son
   vanos flojos < 20 m (EDS 2–7 %).
-* Pendiente de comparar: hipótesis con viento/hielo y estado final con fluencia
-  (REDLIN usa curvas esfuerzo-deformación polinómicas inicial/final; LineCraft,
-  módulo E lineal).
+* **Creep (fluencia lenta)**: si el conductor tiene `curva_creep` (y opcional
+  `curva_inicial`), coeficientes `a0;…;a4` de σ (kg/mm²) vs ε (%) del fabricante,
+  las hipótesis distintas de la inicial se calculan con el alargamiento permanente
+  del método gráfico de Alcoa, `Δε = [ε_c(σf) − σf/E] − [ε_i(σ1) − σ1/E]`, con el
+  esfuerzo final σf iterado, aplicado como temperatura equivalente `Δε/α`
+  (`condicion_final = "creep"`; `"inicial"` lo desactiva).
+* En tramos de varios vanos REDLIN reporta en los estados finales un C distinto por
+  vano (cada vano con su propio largo, como con aisladores rígidos); LineCraft usa el
+  vano regulador del tramo. Calculando cada vano por separado el error baja a 2,7 %
+  (pendiente de implementar como opción).
+* REDLIN elige las hipótesis por rango de altitud de cada tramo; en LineCraft el
+  proyecto define un solo juego de hipótesis.
 * La longitud de catenaria coincide por construcción (de ella se despeja el
   desnivel de amarres, que depende de la altura de cada armado).
 
 Script reproducible (requiere exportar la planilla desde REDLIN; no se
 distribuyen sus datos): `examples/validacion/comparar_redlin.py PlanillaEstTotal.xls` y
-`... TablaFlechado.XLS Suministros.XLS --flechado`.
+`... TablaFlechado.XLS Suministros.XLS --flechado` y
+`... PlanillaEstTotal.xls TablaFlechado.XLS Suministros.XLS Configuracion.XLS --final`.
 
 ## 9. Limitaciones conocidas
 
