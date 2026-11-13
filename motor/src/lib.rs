@@ -4,6 +4,7 @@
 //! versión Python (`tests/referencia*.txt`, generados por `motor/generar_referencia*.py`),
 //! que a su vez está validada contra REDLIN.
 
+pub mod catalogos;
 pub mod conductor;
 pub mod geo;
 pub mod linea;
