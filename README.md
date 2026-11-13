@@ -25,6 +25,9 @@ Pruebas: `python -m pytest -q`.
 
 Entrada: CSV `punto,este,norte,cota,descripcion` (UTM WGS84, m) —también `;`,
 coma decimal o sin encabezado (orden PENZD o PNEZD, autodetectado)— o DXF con POINT / polilíneas 3D.
+También importa **KML** (Google Earth), **GPX** (GPS), **TXT de MapSource** y
+**Excel RLT** formato UTM (puntos + rutas como eje), y perfiles tabulares
+**TPG** / Excel *ACUMULADA/ANGULO* (en `proyecto.json`: `"perfil": {"tabla": "ruta.tpg"}`).
 
 ```bash
 topocraft validar puntos.csv [--out limpio.csv]

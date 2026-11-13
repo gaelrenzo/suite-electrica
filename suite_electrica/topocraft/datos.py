@@ -95,10 +95,13 @@ def leer_dxf(ruta: str | Path, capa: str | None = None) -> pd.DataFrame:
 
 
 def leer(ruta: str | Path) -> pd.DataFrame:
-    """Lee puntos desde .csv/.txt o .dxf según la extensión."""
+    """Lee puntos desde .csv/.txt, .dxf, .kml, .gpx, .xls/.xlsx (RLT UTM) o TXT MapSource."""
+    from suite_electrica.topocraft import importar
     ext = Path(ruta).suffix.lower()
     if ext == ".dxf":
         return leer_dxf(ruta)
+    if ext in {".kml", ".gpx", ".xls", ".xlsx"} or (ext == ".txt" and importar.es_mapsource(ruta)):
+        return importar.importar(ruta)[0]
     if ext in {".csv", ".txt"}:
         return leer_csv(ruta)
     raise ValueError(f"Formato no soportado: {ext}")

@@ -75,6 +75,9 @@ class Proyecto:
 
 
 def _perfil_desde(cfg: dict, base: Path) -> tuple[Perfil, np.ndarray]:
+    if "tabla" in cfg:  # perfil REDLIN/TOPOMAGIC: .tpg o Excel ACUMULADA/ANGULO
+        from suite_electrica.topocraft.importar import leer_perfil_tabular
+        return leer_perfil_tabular(base / cfg["tabla"])
     if "excel" in cfg:
         from suite_electrica.topocraft.salidas import leer_perfil_excel
         return leer_perfil_excel(base / cfg["excel"])

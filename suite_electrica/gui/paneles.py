@@ -164,7 +164,7 @@ class PanelTopo(QWidget):
         self.registro.appendPlainText(texto)
 
     def importar_puntos_dialogo(self) -> None:
-        r, _ = QFileDialog.getOpenFileName(self, "Importar puntos", "", "Puntos (*.csv *.txt *.dxf)")
+        r, _ = QFileDialog.getOpenFileName(self, "Importar puntos", "", "Puntos (*.csv *.txt *.dxf *.kml *.gpx *.xls *.xlsx)")
         if r:
             self.importar_puntos(r)
 
@@ -180,7 +180,7 @@ class PanelTopo(QWidget):
         self.v.cambiado()
 
     def importar_eje_dialogo(self) -> None:
-        r, _ = QFileDialog.getOpenFileName(self, "Importar eje", "", "Eje (*.dxf *.csv)")
+        r, _ = QFileDialog.getOpenFileName(self, "Importar eje", "", "Eje (*.dxf *.csv *.kml *.gpx *.xls *.xlsx)")
         if r:
             self.importar_eje(r)
 

@@ -183,9 +183,19 @@ class Documento:
         self.puntos = datos.leer(ruta)
         self.cambio_topografia()
 
-    def importar_eje(self, ruta: str | Path) -> None:
+    def importar_eje(self, ruta: str | Path, nombre: str | None = None) -> None:
+        """Eje desde DXF/CSV, o la ruta ``nombre`` (por defecto la primera) de KML/GPX/XLS."""
         r = Path(ruta)
-        self.eje = leer_polilinea(r) if r.suffix.lower() == ".dxf" else datos.leer_eje_csv(r)
+        ext = r.suffix.lower()
+        if ext in {".kml", ".gpx", ".xls", ".xlsx"}:
+            from suite_electrica.topocraft.importar import importar
+            rutas = importar(r)[1]
+            elegidas = [xyz for n, xyz in rutas if nombre in (None, n)]
+            if not elegidas:
+                raise ValueError(f"{r.name}: sin rutas" + (f" llamadas {nombre!r}" if nombre else ""))
+            self.eje = elegidas[0][:, :2]
+        else:
+            self.eje = leer_polilinea(r) if ext == ".dxf" else datos.leer_eje_csv(r)
         self.estructuras = _est_df([])
         self.cambio_topografia()
 
