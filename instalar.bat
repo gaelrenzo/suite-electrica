@@ -43,6 +43,7 @@ echo Comandos (en una NUEVA terminal):
 echo    topocraft --help
 echo    linecraft --help
 echo    gridcraft --help
+echo    presucraft --help
 echo Guia: docs\GUIA_RAPIDA.md
 pause
 exit /b 0
