@@ -118,7 +118,8 @@ tests/     pytest            docs/      fundamentos de cálculo
 
 ## Migración a Rust
 
-La suite se está reescribiendo en Rust (carpeta `motor/`) para distribuirla como un solo`n`ejecutable; cada módulo se valida contra la versión Python. Plan y estado: [`docs/PLAN_RUST.md`](docs/PLAN_RUST.md).
+La suite se está reescribiendo en Rust (carpeta `motor/`) para distribuirla como un solo
+ejecutable; cada módulo se valida contra la versión Python. Plan y estado: [`docs/PLAN_RUST.md`](docs/PLAN_RUST.md).
 
 ## Licencia
 
