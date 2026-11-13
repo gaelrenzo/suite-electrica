@@ -66,6 +66,41 @@ def perfil_dxf(ruta: str | Path, r: Resultado, exageracion: float = 10.0) -> Pat
     return guardar(doc, ruta)
 
 
+def tabla_flechado(r: Resultado, amplitud: float = 20.0, paso: float = 5.0) -> pd.DataFrame:
+    """Tabla de tendido (flechado): tiro horizontal y flecha a medio vano por temperatura.
+
+    Condición de templado (EDS en la hipótesis inicial, sin viento ni creep), cambio de estado
+    con el vano regulador de cada tramo (forma exacta en tramos de un vano con desnivel), como la
+    *Tabla de Flechado* de REDLIN; temperaturas ``t_templado ± amplitud`` cada ``paso`` °C.
+    """
+    from suite_electrica.linecraft.conductor import Hipotesis, carga_unitaria
+    from suite_electrica.linecraft.mecanica import cambio_estado, curva
+
+    p, c = r.proyecto, r.proyecto.conductor
+    filas = []
+    for k, t in enumerate(r.tramos):
+        est = r.estructuras
+        z = float(np.mean([e.cota_terreno for e in est[t.inicio:t.fin + 1]]))
+        h0 = p.hip(p.hip_inicial, z)
+        w = carga_unitaria(c, Hipotesis("templado", h0.temperatura)).vertical
+        s1 = p.tiro_inicial_pct / 100 * c.carga_rotura / c.seccion
+        unico = t.fin - t.inicio == 1
+        temps = np.arange(h0.temperatura - amplitud, h0.temperatura + amplitud + 1e-9, paso)
+        for i in range(t.inicio, t.fin):
+            v = r.vanos[i]
+            fila = {"Tramo": f"{est[t.inicio].codigo}-{est[t.fin].codigo}", "Vano": f"{est[i].codigo}-{est[i + 1].codigo}",
+                    "Vano regulador (m)": round(t.vano_regulador, 2), "Vano (m)": round(v.longitud, 2),
+                    "Desnivel (m)": round(v.desnivel, 2), "EDS (%)": p.tiro_inicial_pct}
+            for T in temps:
+                H = cambio_estado(s1, w, h0.temperatura, w, float(T), t.vano_regulador, c,
+                                  v.desnivel if unico else 0.0) * c.seccion
+                cv = curva(p.modelo, v.longitud, v.desnivel, H, w)
+                fila[f"H {T:g} °C (kgf)"] = round(H / G, 2)
+                fila[f"Flecha {T:g} °C (m)"] = round(v.desnivel / 2 - float(cv.y(v.longitud / 2)), 3)
+            filas.append(fila)
+    return pd.DataFrame(filas)
+
+
 def tablas(r: Resultado) -> dict[str, pd.DataFrame]:
     """Tablas de resultados (unidades en los encabezados)."""
     p = r.proyecto
@@ -109,6 +144,7 @@ def tablas(r: Resultado) -> dict[str, pd.DataFrame]:
         res["Verificacion"] = r.verificacion
     if r.metrado is not None:
         res["Metrado"] = r.metrado
+    res["Flechado"] = tabla_flechado(r)
     if r.alertas is not None:
         res["Alertas"] = (r.alertas.assign(**{"Crítica": r.alertas["Crítica"].map({True: "SÍ", False: ""})})
                           if len(r.alertas) else pd.DataFrame({"Alerta": ["Sin alertas"]}))
@@ -247,8 +283,10 @@ def memoria_pdf(ruta: str | Path, r: Resultado) -> Path:
     titulos = {"Estructuras": "Estructuras", "Mecanico": "Cálculo mecánico por tramo",
                "Vanos": "Vanos, flechas y distancias de seguridad", "Cargas": "Cargas en estructuras",
                "Verificacion": "Verificación de postes y retenidas", "Metrado": "Metrado",
-               "Alertas": "Alertas de diseño (exceso sobre el permisible)", "Avisos": "Avisos"}
-    orden = ["Estructuras", "Mecanico", "Vanos", "Cargas", "Verificacion", "Alertas", "Metrado", "Avisos"]
+               "Alertas": "Alertas de diseño (exceso sobre el permisible)",
+               "Flechado": "Tabla de flechado (tendido, sin viento)", "Avisos": "Avisos"}
+    orden = ["Estructuras", "Mecanico", "Vanos", "Cargas", "Verificacion", "Alertas", "Flechado", "Metrado",
+             "Avisos"]
     for k, clave in enumerate([c for c in orden if c in tb], start=5):
         story += [Paragraph(f"{k}. {titulos[clave]}", H), tabla(tb[clave])]
     doc.build(story)

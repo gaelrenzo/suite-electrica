@@ -111,7 +111,7 @@ def test_salidas_y_cli(tmp_path):
     assert {"POSTES", "CONDUCTOR", "DESPEJE", "PERFIL"} <= {l.dxf.name for l in doc.layers}
     assert len(doc.modelspace().query('LINE[layer=="POSTES"]')) == len(r.estructuras)
     hojas = pd.read_excel(salidas.planilla_excel(tmp_path / "p.xlsx", r), sheet_name=None)
-    assert set(hojas) == {"Estructuras", "Vanos", "Mecanico", "Cargas", "Avisos"}
+    assert set(hojas) == {"Estructuras", "Vanos", "Mecanico", "Cargas", "Flechado", "Avisos"}
     assert len(hojas["Estructuras"]) == len(r.estructuras)
     assert salidas.memoria_pdf(tmp_path / "m.pdf", r).read_bytes()[:4] == b"%PDF"
     assert main(["calcular", str(ruta), "--out", str(tmp_path / "out")]) == 0
@@ -150,3 +150,20 @@ def test_nuevo_proyecto_desde_plantilla(tmp_path):
     assert len(r.estructuras) >= 2
     assert sum("PENDIENTE_REVISION" in a for a in r.avisos) == len(proyecto.PARAMETROS_NORMATIVOS)
     assert main(["nuevo", str(destino)]) == 0  # no sobrescribe
+
+
+def test_tabla_flechado():
+    from pathlib import Path
+
+    from suite_electrica.linecraft.salidas import tabla_flechado
+    r = calcular(proyecto.cargar(Path(__file__).resolve().parents[1] / "examples" / "linecraft" / "proyecto.json"))
+    t = tabla_flechado(r)
+    assert len(t) == len(r.vanos)
+    t0 = r.proyecto.hip(r.proyecto.hip_inicial).temperatura
+    h = [c for c in t.columns if c.startswith("H ")]
+    assert len(h) == 9  # ±20 °C cada 5 °C
+    # a la temperatura de templado el tiro es el EDS; al calentar baja y la flecha crece
+    assert t[f"H {t0:g} °C (kgf)"].iloc[0] == pytest.approx(
+        r.proyecto.tiro_inicial_pct / 100 * r.proyecto.conductor.carga_rotura / 9.80665, rel=1e-3)
+    assert (t[h[0]] > t[h[-1]]).all()
+    assert (t[f"Flecha {t0 + 20:g} °C (m)"] > t[f"Flecha {t0 - 20:g} °C (m)"]).all()
