@@ -153,3 +153,21 @@ def test_abrir_dxf_usa_visor_configurado(ventana, monkeypatch, tmp_path):
     ventana.ajustes.setValue("visor_dxf", "/opt/cadcraft/cadcraft")
     ventana.abrir_dxf(tmp_path / "a.dxf")
     assert llamadas == [["/opt/cadcraft/cadcraft", str((tmp_path / "a.dxf").resolve())]]
+
+
+def test_gridcraft_y_presucraft(ventana, tmp_path):
+    ventana.grid.nuevo(tmp_path / "red")
+    ventana.grid.calcular()
+    assert "CUMPLE" in ventana.grid.lbl.text() and ventana.grid.tabs.count() == 4
+    rutas = ventana.grid.exportar(tmp_path / "red" / "salidas")
+    assert {p.name for p in rutas} == {"caida_tension.xlsx", "plano_red.dxf"}
+
+    ventana.presu.nuevo(tmp_path / "presu")
+    ventana.presu.calcular()
+    assert "Total S/" in ventana.presu.lbl.text()
+    assert ventana.metrado_a_presupuesto() is None  # sin línea calculada -> error
+    ventana.topo.importar_puntos(EJ / "colina_gaussiana.csv")
+    ventana.topo.importar_eje(EJ / "eje.dxf")
+    ventana.linea.recalcular()
+    ruta = ventana.metrado_a_presupuesto()
+    assert ruta.exists() and "AAAC 35" in ruta.read_text(encoding="utf-8")

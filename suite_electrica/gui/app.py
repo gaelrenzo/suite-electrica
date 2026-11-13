@@ -10,12 +10,13 @@ from typing import Any
 from PySide6.QtCore import QSettings, QThreadPool, QUrl
 from PySide6.QtGui import QAction, QCloseEvent, QDesktopServices, QKeySequence
 from PySide6.QtWidgets import (
-    QApplication, QFileDialog, QLabel, QMainWindow, QMessageBox, QProgressBar, QTabWidget,
+    QApplication, QFileDialog, QMainWindow, QMessageBox, QProgressBar, QTabWidget,
 )
 
 from suite_electrica import __version__
 from suite_electrica.documento import EXTENSION, Documento
 from suite_electrica.gui import servicios as sv
+from suite_electrica.gui.panel_json import PanelJSON, modulo_grid, modulo_presu
 from suite_electrica.gui.paneles import PanelLinea, PanelTopo
 from suite_electrica.gui.widgets import Tarea
 
@@ -40,8 +41,10 @@ class VentanaPrincipal(QMainWindow):
         self.modulos = QTabWidget()
         self.modulos.addTab(self.topo, "TopoCraft · Topografía")
         self.modulos.addTab(self.linea, "LineCraft · Línea MT")
-        self.modulos.addTab(QLabel("GridCraft (fase 3) aún no está disponible."), "GridCraft · Redes")
-        self.modulos.setTabEnabled(2, False)
+        self.grid = PanelJSON(self, modulo_grid())
+        self.presu = PanelJSON(self, modulo_presu(), [("Metrado desde LineCraft", self.metrado_a_presupuesto)])
+        self.modulos.addTab(self.grid, "GridCraft · Redes")
+        self.modulos.addTab(self.presu, "PresuCraft · Presupuesto")
         self.setCentralWidget(self.modulos)
 
         self.progreso = QProgressBar()
@@ -191,6 +194,22 @@ class VentanaPrincipal(QMainWindow):
             ev.accept()
         else:
             ev.ignore()
+
+    def metrado_a_presupuesto(self) -> Path | None:
+        """Escribe el metrado de la línea calculada en ``metrado.csv`` junto al presupuesto y recalcula."""
+        from suite_electrica.presucraft.presupuesto import metrado_linecraft
+        r = self.linea.resultado
+        if r is None or r.metrado is None:
+            self.error("Calcule primero la línea en LineCraft")
+            return None
+        try:
+            ruta = self.presu.ruta().parent / "metrado.csv"
+        except ValueError as exc:
+            self.error(str(exc))
+            return None
+        metrado_linecraft(r.metrado).to_csv(ruta, index=False)
+        self.presu.calcular()
+        return ruta
 
     # ------------------------------------------------------------------ utilidades para paneles
     def estado(self, texto: str) -> None:
