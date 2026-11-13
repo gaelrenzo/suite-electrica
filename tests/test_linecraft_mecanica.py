@@ -92,3 +92,14 @@ def test_cargas_unitarias_capachica():
     assert carga_unitaria(AAAC35, hielo).resultante / G == pytest.approx(0.3434, abs=5e-4)
     with pytest.raises(ValueError):
         carga_unitaria(AAAC35, Hipotesis("x", 0, 0, 0.006, 0))
+
+
+def test_flecha_medio_vano_y_maxima():
+    # Criterio REDLIN: flecha a medio vano. En vano a nivel coincide con la máxima;
+    # en vano inclinado la máxima (paralela a la cuerda) es mayor.
+    from suite_electrica.linecraft.mecanica import Catenaria
+    c0 = Catenaria(300.0, 0.0, 1200.0, 1.0)
+    assert c0.flecha == pytest.approx(-float(c0.y(150.0)), rel=1e-12)
+    c = Catenaria(300.0, 60.0, 1200.0, 1.0)
+    f_medio = 30.0 - float(c.y(150.0))
+    assert c.flecha > f_medio and c.flecha == pytest.approx(f_medio, rel=0.03)

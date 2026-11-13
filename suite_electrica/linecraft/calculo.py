@@ -66,6 +66,8 @@ class Vano:
     """Despeje mínimo al terreno en la hipótesis de flecha máxima (m)."""
     s_despeje: float
     cumple: bool
+    flecha_medio: float = 0.0
+    """Flecha vertical a medio vano en la hipótesis de flecha máxima (m); criterio de REDLIN."""
 
 
 @dataclass
@@ -205,7 +207,9 @@ def calcular(p: Proyecto) -> Resultado:
             if not ok:
                 avisos.append(f"Vano {ea.codigo}-{eb.codigo}: despeje {d:.2f} m < "
                               f"{p.distancia_minima_terreno:.2f} m en {sd:.1f} m")
-            vanos.append(Vano(i, len(tramos) - 1, a, h, flechas, d, sd, ok))
+            cf = curva(p.modelo, a, h, Hf, cuf.resultante)
+            f_medio = (h / 2 - float(cf.y(a / 2))) * cuf.vertical / cuf.resultante
+            vanos.append(Vano(i, len(tramos) - 1, a, h, flechas, d, sd, ok, f_medio))
             estados_vano.append(hs)
 
     # 4. Cargas en estructuras

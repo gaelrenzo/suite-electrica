@@ -126,7 +126,30 @@ valores normativos). Al activarlos se exige su fuente en `fuentes`
 No implementado aún: crucetas, coordinación de flechas entre conductores,
 número de amortiguadores.
 
-## 8. Limitaciones conocidas
+## 8. Validación contra REDLIN 2023
+
+Ejemplo *Sistema eléctrico rural* de REDLIN (11 derivaciones, 270 estructuras,
+AAAC 35/50/70, norma DGE/MEM). Con el parámetro de catenaria `C`, el vano y el
+desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
+
+| Magnitud | Vanos | Error máx. |
+|---|---|---|
+| Flecha a medio vano | 256 | < 0,1 mm |
+| Vano peso | 245 | 1 cm |
+| Vano viento | 264 | 0 (ver nota) |
+
+* REDLIN reporta la **flecha a medio vano**; LineCraft reporta además la flecha
+  máxima (paralela a la cuerda), que en vanos inclinados es algo mayor. Ambas van
+  en la hoja *Vanos*.
+* En el primer vano de una derivación REDLIN no suma el vano de enlace al vano
+  viento (6 estructuras); LineCraft aún no modela derivaciones.
+* La longitud de catenaria coincide por construcción (de ella se despeja el
+  desnivel de amarres, que depende de la altura de cada armado).
+
+Script reproducible (requiere exportar la planilla desde REDLIN; no se
+distribuyen sus datos): `examples/validacion/comparar_redlin.py`.
+
+## 9. Limitaciones conocidas
 
 * Ubicación automática voraz: puede dejar vanos cortos antes de un vértice; no
   optimiza costo.

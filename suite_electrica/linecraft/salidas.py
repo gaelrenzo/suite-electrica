@@ -82,6 +82,7 @@ def tablas(r: Resultado) -> dict[str, pd.DataFrame]:
         "Vano": f"{r.estructuras[v.a].codigo} - {r.estructuras[v.a + 1].codigo}",
         "Longitud (m)": round(v.longitud, 2), "Desnivel amarres (m)": round(v.desnivel, 2),
         **{f"Flecha {k} (m)": round(f, 3) for k, f in v.flechas.items()},
+        f"Flecha medio vano {p.hip_flecha_maxima} (m)": round(v.flecha_medio, 3),
         "Despeje mín. (m)": round(v.despeje, 2), "En progresiva": formato_progresiva(v.s_despeje),
         "Exigido (m)": p.distancia_minima_terreno, "Cumple": "SÍ" if v.cumple else "NO",
     } for v in r.vanos])
