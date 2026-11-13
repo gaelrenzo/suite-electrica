@@ -17,7 +17,51 @@ from suite_electrica.linecraft import proyecto, salidas
 from suite_electrica.linecraft.calculo import calcular
 
 
+def _reportar(r, p, out: Path, exageracion: float) -> bool:
+    print(f"{p.nombre}: {len(r.estructuras)} estructuras, {len(r.vanos)} vanos, {len(r.tramos)} tramo(s)")
+    for t in r.tramos:
+        print(f"  Tramo {r.estructuras[t.inicio].codigo}-{r.estructuras[t.fin].codigo}: "
+              f"vano regulador {t.vano_regulador:.2f} m")
+    print(f"  Despeje mínimo: {min(v.despeje for v in r.vanos):.2f} m "
+          f"(exigido {p.distancia_minima_terreno:.2f} m)")
+    print(f"  Resultado: {'CUMPLE' if r.cumple else 'NO CUMPLE'}")
+    for a in r.alertas.itertuples(index=False):
+        print(f"  ALERTA {a[1]} {a[0]}: {a[2]} % — {a[3]}")
+    for a in r.avisos:
+        print(f"  AVISO: {a}")
+    print(salidas.perfil_dxf(out / "perfil_linea.dxf", r, exageracion))
+    print(salidas.planilla_excel(out / "planilla_estructuras.xlsx", r))
+    print(salidas.memoria_pdf(out / "memoria_calculo.pdf", r))
+    return r.cumple
+
+
+def _calcular_con_derivaciones(args: argparse.Namespace) -> int:
+    import re
+
+    from suite_electrica.linecraft.alertas import ConfigAlertas, alertas
+    from suite_electrica.linecraft.derivaciones import calcular_red, cargar_red
+    principal, ramales, _ = cargar_red(args.proyecto)
+    red = calcular_red(principal, ramales)
+    out = Path(args.out)
+    ok = True
+    for r in [red.principal, *red.ramales.values()]:
+        r.alertas = alertas(r, None, ConfigAlertas(**r.proyecto.alertas))
+    ok &= _reportar(red.principal, principal, out, args.exageracion)
+    for nombre, r in red.ramales.items():
+        sub = out / re.sub(r"[^\w-]+", "_", nombre).strip("_")
+        ok &= _reportar(r, r.proyecto, sub, args.exageracion)
+    out.mkdir(parents=True, exist_ok=True)
+    red.derivaciones.to_excel(out / "derivaciones.xlsx", index=False)
+    print(out / "derivaciones.xlsx")
+    return 0 if ok else 3
+
+
 def cmd_calcular(args: argparse.Namespace) -> int:
+    if str(args.proyecto).lower().endswith(".json") and "derivaciones" in Path(args.proyecto).read_text(
+            encoding="utf-8"):
+        import json
+        if json.loads(Path(args.proyecto).read_text(encoding="utf-8")).get("derivaciones"):
+            return _calcular_con_derivaciones(args)
     if str(args.proyecto).lower().endswith(".sel"):
         from suite_electrica.documento import Documento
         doc = Documento.abrir(args.proyecto)
@@ -30,22 +74,7 @@ def cmd_calcular(args: argparse.Namespace) -> int:
         p = proyecto.cargar(args.proyecto)
         r = calcular(p)
         r.alertas = alertas(r, None, ConfigAlertas(**p.alertas))
-    out = Path(args.out)
-    print(f"{p.nombre}: {len(r.estructuras)} estructuras, {len(r.vanos)} vanos, {len(r.tramos)} tramo(s)")
-    for t in r.tramos:
-        print(f"  Tramo {r.estructuras[t.inicio].codigo}-{r.estructuras[t.fin].codigo}: "
-              f"vano regulador {t.vano_regulador:.2f} m")
-    print(f"  Despeje mínimo: {min(v.despeje for v in r.vanos):.2f} m "
-          f"(exigido {p.distancia_minima_terreno:.2f} m)")
-    print(f"  Resultado: {'CUMPLE' if r.cumple else 'NO CUMPLE'}")
-    for a in r.alertas.itertuples(index=False):
-        print(f"  ALERTA {a[1]} {a[0]}: {a[2]} % — {a[3]}")
-    for a in r.avisos:
-        print(f"  AVISO: {a}")
-    print(salidas.perfil_dxf(out / "perfil_linea.dxf", r, args.exageracion))
-    print(salidas.planilla_excel(out / "planilla_estructuras.xlsx", r))
-    print(salidas.memoria_pdf(out / "memoria_calculo.pdf", r))
-    return 0 if r.cumple else 3
+    return 0 if _reportar(r, p, Path(args.out), args.exageracion) else 3
 
 
 def crear_proyecto(carpeta: str | Path) -> tuple[list[Path], list[Path]]:

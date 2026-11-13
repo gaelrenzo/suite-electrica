@@ -109,10 +109,13 @@ def _perfil_desde(cfg: dict, base: Path) -> tuple[Perfil, np.ndarray]:
 
 
 def cargar(ruta: str | Path) -> Proyecto:
-    """Lee el proyecto JSON."""
+    """Lee el proyecto JSON (sin derivaciones; ver ``linecraft.derivaciones``)."""
     ruta = Path(ruta)
-    base = ruta.parent
-    cfg = json.loads(ruta.read_text(encoding="utf-8"))
+    return desde_cfg(json.loads(ruta.read_text(encoding="utf-8")), ruta.parent, ruta.stem)
+
+
+def desde_cfg(cfg: dict, base: Path, nombre_defecto: str = "linea") -> Proyecto:
+    """Proyecto desde un diccionario de configuración; rutas relativas a ``base``."""
     cat = leer_catalogo(base / cfg["conductor"]["catalogo"])
     nombre_c = cfg["conductor"]["nombre"]
     if nombre_c not in cat:
@@ -127,7 +130,7 @@ def cargar(ruta: str | Path) -> Proyecto:
         manual = pd.read_csv(base / cfg["estructuras"], comment="#", skipinitialspace=True)
     ini = cfg["condicion_inicial"]
     p = Proyecto(
-        nombre=cfg.get("nombre", ruta.stem),
+        nombre=cfg.get("nombre", nombre_defecto),
         conductor=cat[nombre_c],
         n_conductores=int(cfg.get("n_conductores", 3)),
         modelo=cfg.get("modelo", "catenaria"),

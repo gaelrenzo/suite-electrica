@@ -169,7 +169,21 @@ distribuyen sus datos): `examples/validacion/comparar_redlin.py PlanillaEstTotal
 `... TablaFlechado.XLS Suministros.XLS --flechado` y
 `... PlanillaEstTotal.xls TablaFlechado.XLS Suministros.XLS Configuracion.XLS --final`.
 
-## 9. Limitaciones conocidas
+## 9. Derivaciones (`derivaciones.py`)
+
+En `proyecto.json`, `"derivaciones": [{"nombre", "desde": "E-05", "perfil": {...},
+"estructuras"?: "...", ...}]`. Cada ramal hereda la configuración de la principal
+(puede sobrescribirla) y su eje debe empezar en la estructura `desde` (≤ 2 m). Se
+calcula como una línea propia; en la estructura de derivación se suman sus cargas
+con β = ángulo entre el ramal y el eje longitudinal de la principal:
+
+* longitudinal += |L_r·cos β|, transversal += |L_r·sen β| + T_r, vertical += V_r
+* momento y retenida se recalculan con la horizontal resultante.
+
+Suma de magnitudes (conservadora: sin signos del desbalance ni del viento). Salidas:
+la principal en `--out`, cada ramal en una subcarpeta y `derivaciones.xlsx`.
+
+## 10. Limitaciones conocidas
 
 * Ubicación automática voraz: puede dejar vanos cortos antes de un vértice; no
   optimiza costo.
