@@ -6,14 +6,14 @@ cd /d "%~dp0"
 
 where py >nul 2>nul
 if errorlevel 1 (
-  echo No se encontro Python. Instale Python 3.12 o superior desde https://www.python.org/downloads/
+  echo No se encontro Python. Instale Python 3.11 o superior desde https://www.python.org/downloads/
   echo y marque la opcion "Add python.exe to PATH". Luego ejecute de nuevo este archivo.
   pause
   exit /b 1
 )
-py -3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)"
+py -3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"
 if errorlevel 1 (
-  echo Se requiere Python 3.12 o superior. Version encontrada:
+  echo Se requiere Python 3.11 o superior. Version encontrada:
   py -3 --version
   pause
   exit /b 1

@@ -40,8 +40,9 @@ def _a_float(serie: pd.Series) -> pd.Series:
 def leer_csv(ruta: str | Path, requeridas: tuple[str, ...] = ("este", "norte", "cota")) -> pd.DataFrame:
     """Lee un CSV de puntos (con o sin encabezado; separador ``,``, ``;`` o tabulador).
 
-    Sin encabezado se asume el orden PENZD: punto, este, norte, cota, descripción
-    (o ``este, norte`` con 2 columnas).
+    Sin encabezado se asume PENZD (punto, este, norte, cota, descripción); si las
+    magnitudes indican PNEZD (estación total) se intercambian este y norte.
+    Con 2 columnas se asume ``este, norte``.
     Columnas no requeridas ausentes quedan vacías (NaN).
     """
     with open(ruta, encoding="utf-8-sig") as fh:
@@ -71,6 +72,11 @@ def leer_csv(ruta: str | Path, requeridas: tuple[str, ...] = ("este", "norte", "
         "descripcion": crudo["descripcion"].fillna("").astype(str).str.strip()
         if "descripcion" in crudo else "",
     })
+    # ponytail: autodetección PNEZD (estación total, TOPOMAGIC). El Este UTM siempre
+    # está en ~[160 000, 834 000] m y el Norte del hemisferio sur > 1 000 000 m; falla
+    # solo cerca del ecuador en el hemisferio norte (Norte < 1e6). Ahí usar encabezado.
+    if df["este"].median() > 1e6 > df["norte"].median():
+        df[["este", "norte"]] = df[["norte", "este"]].to_numpy()
     return df.reset_index(drop=True)
 
 

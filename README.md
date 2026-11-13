@@ -14,7 +14,7 @@ No se inventan valores normativos (ver `data/README.md`).
 
 ## Instalación
 
-* **Windows 11**: instalar Python 3.12+ (con "Add to PATH") y ejecutar `instalar.bat`;
+* **Windows 11**: instalar Python 3.11+ (con "Add to PATH") y ejecutar `instalar.bat`;
   crea el acceso directo **Suite Electrica** (app) y los comandos.
 * **Linux**: `python3 -m pip install -e ".[dev,gui]"` y abrir con `suite-electrica`.
 
@@ -24,7 +24,7 @@ Pruebas: `python -m pytest -q`.
 ## TopoCraft
 
 Entrada: CSV `punto,este,norte,cota,descripcion` (UTM WGS84, m) —también `;`,
-coma decimal o sin encabezado (orden PENZD)— o DXF con POINT / polilíneas 3D.
+coma decimal o sin encabezado (orden PENZD o PNEZD, autodetectado)— o DXF con POINT / polilíneas 3D.
 
 ```bash
 topocraft validar puntos.csv [--out limpio.csv]

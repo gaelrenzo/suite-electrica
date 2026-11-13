@@ -4,7 +4,7 @@
 
 **Windows 10/11**
 
-1. Instale Python 3.12 o superior desde <https://www.python.org/downloads/> y
+1. Instale Python 3.11 o superior desde <https://www.python.org/downloads/> y
    marque **"Add python.exe to PATH"**.
 2. Descargue el repositorio (`git clone git@github.com:gaelrenzo/suite-electrica.git`
    o *Code → Download ZIP*).

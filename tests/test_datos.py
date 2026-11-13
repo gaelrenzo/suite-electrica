@@ -76,3 +76,12 @@ def test_eje_csv_con_y_sin_encabezado(tmp_path):
     (tmp_path / "b.csv").write_text("1;2\n3;4\n")
     for f in ("a.csv", "b.csv"):
         assert datos.leer_eje_csv(tmp_path / f).tolist() == [[1, 2], [3, 4]]
+
+
+def test_csv_pnezd_estacion_total(tmp_path):
+    # Formato de estación total / TOPOMAGIC: punto, norte, este, cota, descripción.
+    p = tmp_path / "et.csv"
+    p.write_text("1,8437165.837,797638.292,3783.341,.K-0\n2,8437177.219,797656.193,3785.041,J\n")
+    df = datos.leer_csv(p)
+    assert df["este"].tolist() == [797638.292, 797656.193]
+    assert df["norte"].iloc[0] == 8437165.837
