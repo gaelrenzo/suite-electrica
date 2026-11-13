@@ -33,7 +33,8 @@ def cambio_estado(
 
     Con ``desnivel ≠ 0`` (vano único inclinado) se usa la forma exacta: longitud de
     catenaria ``L = sqrt(h² + (2C sinh(a/2C))²)`` y longitud sin tensión
-    ``L0 = L / (1 + T_m / EA)`` con ``T_m = H sqrt(1 + (h/a)²)``; se resuelve
+    ``L0 = L / (1 + H / EA)`` (elongación elástica con el tiro horizontal, como REDLIN:
+    con ``H·sqrt(1 + (h/a)²)`` el error en vanos muy inclinados llegaba a 23 %); se resuelve
     ``L0(σ2) = L0(σ1) (1 + α Δt)``. Validado contra REDLIN (ver docs/linecraft.md).
     """
     if sigma1 <= 0 or vano <= 0:
@@ -55,11 +56,10 @@ def _cambio_estado_inclinado(sigma1: float, w1: float, t1: float, w2: float, t2:
     from scipy.optimize import brentq
 
     A, EA = c.seccion, c.modulo_elasticidad * c.seccion
-    k = math.hypot(1.0, h / a)
 
     def l0(H: float, w: float) -> float:
         C = H / w
-        return math.hypot(h, 2 * C * math.sinh(a / (2 * C))) / (1 + H * k / EA)
+        return math.hypot(h, 2 * C * math.sinh(a / (2 * C))) / (1 + H / EA)
 
     H1 = sigma1 * A
     objetivo = l0(H1, w1) * (1 + c.coef_dilatacion * (t2 - t1))

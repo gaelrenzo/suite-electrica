@@ -137,7 +137,10 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
 | Flecha a medio vano | 256 | < 0,1 mm |
 | Vano peso | 245 | 1 cm |
 | Vano viento | 264 | 0 (ver nota) |
-| Tiro H vs temperatura (15–35 °C, *Tabla de Flechado*) | 1280 puntos / 256 tramos | mediana 0,001 %; p95 0,43 % en vanos ≥ 20 m |
+| Tiro H vs temperatura (15–35 °C, *Tabla de Flechado*) | 1280 puntos / 256 tramos | mediana 0,001 %; p95 0,011 % en vanos ≥ 20 m; máx. 0,034 % en vanos ≥ 50 m |
+| Fuerza longitudinal en estructuras (con los tiros de REDLIN) | 263 | mediana 0,000 %, p95 0,000 % |
+| Fuerza transversal por ángulo | 59 | mediana 0,005 %, p95 0,3 % |
+| Viento sobre el conductor (vano adelante) | 252 | mediana 0,07 %; 10 casos cerca de 2000 msnm usan otro rango de hipótesis |
 | C en *Máximo Esfuerzo*, estado final con creep (tramos de un vano) | 152 | mediana 0,48 % (lineal sin creep: 10 %) |
 | Ídem, tramos de varios vanos, `estado_final_vanos = "por vano"` | 104 | mediana 2,7 %, p90 6,2 % (con "tramo": 6,3 %) |
 
@@ -145,11 +148,12 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
   máxima (paralela a la cuerda), que en vanos inclinados es algo mayor. Ambas van
   en la hoja *Vanos*.
 * En el primer vano de una derivación REDLIN no suma el vano de enlace al vano
-  viento (6 estructuras); LineCraft aún no modela derivaciones.
+  viento (6 estructuras); en LineCraft el ramal es una línea propia (sección 9).
 * Cambio de estado: en tramos de **un vano con desnivel** se usa la forma exacta
-  (longitud de catenaria y longitud sin tensión); con la cúbica de vano a nivel el
-  error llegaba a 39 % en vanos cortos muy inclinados. Los únicos desvíos > 3 % son
-  vanos flojos < 20 m (EDS 2–7 %).
+  (longitud de catenaria y longitud sin tensión con elongación elástica `H/EA`); con
+  la cúbica de vano a nivel el error llegaba a 39 % en vanos cortos muy inclinados, y
+  con `H·sec β/EA`, a 23 %. Único desvío restante: un vano flojo de 16 m (EDS 7 %) a
+  35 °C (21 %; a 15 °C, 1,3 %).
 * **Creep (fluencia lenta)**: si el conductor tiene `curva_creep` (y opcional
   `curva_inicial`), coeficientes `a0;…;a4` de σ (kg/mm²) vs ε (%) del fabricante,
   las hipótesis distintas de la inicial se calculan con el alargamiento permanente
@@ -167,7 +171,8 @@ desnivel de amarres que reporta REDLIN, la catenaria de LineCraft reproduce:
 Script reproducible (requiere exportar la planilla desde REDLIN; no se
 distribuyen sus datos): `examples/validacion/comparar_redlin.py PlanillaEstTotal.xls` y
 `... TablaFlechado.XLS Suministros.XLS --flechado` y
-`... PlanillaEstTotal.xls TablaFlechado.XLS Suministros.XLS Configuracion.XLS --final`.
+`... PlanillaEstTotal.xls TablaFlechado.XLS Suministros.XLS Configuracion.XLS --final` y
+`... PlanillaEstTotal.xls CalculoMecanicoEst.xls Suministros.XLS Configuracion.XLS --cargas`.
 
 ## 9. Derivaciones (`derivaciones.py`)
 

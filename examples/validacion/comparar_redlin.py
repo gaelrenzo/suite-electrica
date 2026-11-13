@@ -141,7 +141,43 @@ def comparar_final(ruta_planilla: str, ruta_tabla: str, ruta_suministros: str, r
     return pd.DataFrame(filas)
 
 
+def comparar_cargas(ruta_planilla: str, ruta_cme: str, ruta_suministros: str, ruta_config: str) -> pd.DataFrame:
+    """Cargas por estructura del reporte *Cálculo mecánico de estructuras* con las fórmulas de LineCraft.
+
+    Con los tiros horizontales atrás/adelante de REDLIN (THAt, THAd) y la deflexión θ:
+    FT = (THAt + THAd)·sen(θ/2), FL = |THAd − THAt|·cos(θ/2); viento del vano adelante
+    w_v·a/2·cos(θ/2) con la hipótesis *Máximo Esfuerzo* del rango de altitud (por la cota de la estructura).
+    """
+    from suite_electrica.linecraft.conductor import G, Hipotesis, carga_unitaria
+    cond, rangos = conductores(ruta_suministros), hipotesis_por_altitud(ruta_config)
+    pl = pd.read_excel(ruta_planilla, header=None).iloc[2:].reset_index(drop=True)
+    cme = pd.read_excel(ruta_cme, header=None).iloc[4:].reset_index(drop=True)
+    num = lambda s: pd.to_numeric(s, errors="coerce")  # noqa: E731
+    filas = []
+    for i in range(min(len(pl), len(cme))):
+        th = math.radians(abs(num(pl.iat[i, 13]) or 0.0)) / 2
+        at, ad = num(cme.iat[i, 25]), num(cme.iat[i, 26])
+        f = {"FT_R": num(cme.iat[i, 41]), "FT_LC": (at + ad) * math.sin(th),
+             "FL_R": num(cme.iat[i, 49]), "FL_LC": abs(ad - at) * math.cos(th),
+             "Fv_R": num(cme.iat[i, 10]), "Fv_LC": math.nan}
+        tipo, a, z = pl.iat[i, 57], num(pl.iat[i, 14]), num(pl.iat[i, 9])
+        if tipo in cond and a > 0:
+            hips = next(hp for z0, z1, hp in rangos if z0 <= z < z1 or z >= rangos[-1][0])
+            t, p = next(v for k, v in hips.items() if k[:5] == "Máxim"[:5] and "Esf" in k)
+            f["Fv_LC"] = carga_unitaria(cond[tipo], Hipotesis("x", t, p)).viento / G * a / 2 * math.cos(th)
+        filas.append(f)
+    return pd.DataFrame(filas)
+
+
 if __name__ == "__main__":
+    if len(sys.argv) == 6 and sys.argv[5] == "--cargas":  # planilla cme suministros configuracion --cargas
+        f = comparar_cargas(*sys.argv[1:5])
+        for k in ("FT", "FL", "Fv"):
+            m = f[[k + "_R", k + "_LC"]].dropna()
+            m = m[m.iloc[:, 0].abs() > 0.5]
+            e = 100 * (m.iloc[:, 1] / m.iloc[:, 0] - 1)
+            print(f"{k:3s} n={len(m):3d}  |error| mediana {e.abs().median():.3f} %  p95 {e.abs().quantile(.95):.3f} %")
+        sys.exit()
     if len(sys.argv) == 6:  # planilla tabla suministros configuracion --final
         f = comparar_final(*sys.argv[1:5])
         f["err"] = 100 * (f.C_LC / f.C_R - 1)
@@ -160,7 +196,7 @@ if __name__ == "__main__":
               f"p95 {e.abs().quantile(.95):.3f} %  máx {e.abs().max():.2f} %")
         for lim in (20, 50):
             m = f.a_r >= lim
-            print(f"  vanos ≥ {lim} m: p95 {e[m].abs().quantile(.95):.3f} %  máx {e[m].abs().max():.3f} %")
+            print(f"  vanos >= {lim} m: p95 {e[m].abs().quantile(.95):.3f} %  máx {e[m].abs().max():.3f} %")
         sys.exit()
     t = comparar(leer(sys.argv[1]))
     for nombre in ("vv", "f", "L", "vp"):
