@@ -32,8 +32,8 @@ Nada se da por portado sin comparación numérica:
 | 1b | Perfil y eje | `geo` | ✅ |
 | 1c | Cálculo de línea (ubicación automática, tramos, vanos, cargas, altitud, estados por vano) | `linea` | ✅ 4 proyectos = Python |
 | 1d | Catálogos DGE, verificación con momentos de poste, metrado | `catalogos` | ✅ = Python |
-| 1e | Alertas, tabla de flechado, derivaciones | `alertas`, `salidas`, `derivaciones` | ⏳ siguiente |
-| 2 | GridCraft (caída de tensión) y PresuCraft (presupuesto) | `red`, `presupuesto` | pendiente |
+| 1e | Alertas, tabla de flechado, derivaciones | `alertas`, `flechado`, `derivaciones` | ✅ = Python |
+| 2 | GridCraft (caída de tensión) y PresuCraft (presupuesto) | `red`, `presupuesto` | ⏳ siguiente |
 | 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `io`, `utm`, `tin` | pendiente |
 | 4 | Salidas: planillas Excel, planos DXF (perfil, red), memoria PDF | `salidas` | pendiente |
 | 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | binario `suite-electrica` | pendiente |
