@@ -73,3 +73,609 @@ PTV-3,oc Adaptador casquillo-ojo alargado,und,3,DGE RD 024-2003 lámina 024
 PTV-3,hb Adaptador anillo-bola,und,3,DGE RD 024-2003 lámina 024
 PTV-3,o1 Perno ojo A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 024
 PTV-3,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,6,DGE RD 024-2003 lámina 024
+PS1-0,ca Alambre de amarre,m,2.5,DGE RD 024-2003 lámina 001
+PS1-0,vs Varilla de armar preformada simple,und,1,DGE RD 024-2003 lámina 001
+PS1-0,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 001
+PS1-0,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 001
+PS1-0,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 001
+PS1-0,a2 Aislador de porcelana tipo pin clase ANSI,und,1,DGE RD 024-2003 lámina 001
+PS1-1N,ca Alambre de amarre,m,4.5,DGE RD 024-2003 lámina 002
+PS1-1N,vs Varilla de armar preformada simple,und,2,DGE RD 024-2003 lámina 002
+PS1-1N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 002
+PS1-1N,bs1 Perno simple borde A°G° 16 mm x 425 mm,und,1,DGE RD 024-2003 lámina 002
+PS1-1N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,3,DGE RD 024-2003 lámina 002
+PS1-1N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 002
+PS1-1N,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 002
+PS1-1N,a2 Aislador de porcelana tipo pin clase ANSI,und,1,DGE RD 024-2003 lámina 002
+PS1-2,ca Alambre de amarre,m,5.0,DGE RD 024-2003 lámina 003
+PS1-2,vs Varilla de armar preformada simple,und,2,DGE RD 024-2003 lámina 003
+PS1-2,c3 Perno maquinado A°G° 16 mm x 356 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2,f1 Espiga para cruceta,und,2,DGE RD 024-2003 lámina 003
+PS1-2,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2,a2 Aislador de porcelana tipo pin clase ANSI,und,2,DGE RD 024-2003 lámina 003
+PS1-2,j1 Tirafondo A°G° 13 mm x 102 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2,i1 Perno coche A°G° 13 mm x 152 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,1,DGE RD 024-2003 lámina 003
+PS1-2N,ca Alambre de amarre,m,7.0,DGE RD 024-2003 lámina 003
+PS1-2N,vs Varilla de armar preformada simple,und,3,DGE RD 024-2003 lámina 003
+PS1-2N,c3 Perno maquinado A°G° 16 mm x 356 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2N,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2N,f1 Espiga para cruceta,und,2,DGE RD 024-2003 lámina 003
+PS1-2N,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2N,bs1 Perno simple borde A°G° 16 mm x 425 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2N,a2 Aislador de porcelana tipo pin clase ANSI,und,2,DGE RD 024-2003 lámina 003
+PS1-2N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 003
+PS1-2N,j1 Tirafondo A°G° 13 mm x 102 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2N,i1 Perno coche A°G° 13 mm x 152 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2N,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,1,DGE RD 024-2003 lámina 003
+PS1-2L,ca Alambre de amarre,m,5.0,DGE RD 024-2003 lámina 003
+PS1-2L,vs Varilla de armar preformada simple,und,2,DGE RD 024-2003 lámina 003
+PS1-2L,c3 Perno maquinado A°G° 16 mm x 356 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2L,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2L,f1 Espiga para cruceta,und,2,DGE RD 024-2003 lámina 003
+PS1-2L,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2L,a2 Aislador de porcelana tipo pin clase ANSI,und,2,DGE RD 024-2003 lámina 003
+PS1-2L,j1 Tirafondo A°G° 13 mm x 102 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2L,i1 Perno coche A°G° 13 mm x 152 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2L,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2L,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,1,DGE RD 024-2003 lámina 003
+PS1-2NL,ca Alambre de amarre,m,7.0,DGE RD 024-2003 lámina 003
+PS1-2NL,vs Varilla de armar preformada simple,und,3,DGE RD 024-2003 lámina 003
+PS1-2NL,c3 Perno maquinado A°G° 16 mm x 356 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2NL,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2NL,f1 Espiga para cruceta,und,2,DGE RD 024-2003 lámina 003
+PS1-2NL,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2NL,bs1 Perno simple borde A°G° 16 mm x 425 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2NL,a2 Aislador de porcelana tipo pin clase ANSI,und,2,DGE RD 024-2003 lámina 003
+PS1-2NL,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 003
+PS1-2NL,j1 Tirafondo A°G° 13 mm x 102 mm,und,1,DGE RD 024-2003 lámina 003
+PS1-2NL,i1 Perno coche A°G° 13 mm x 152 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2NL,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 003
+PS1-2NL,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,1,DGE RD 024-2003 lámina 003
+PA1-0,ca Alambre de amarre,m,5.0,DGE RD 024-2003 lámina 005
+PA1-0,vd Varilla de armar preformada doble,und,1,DGE RD 024-2003 lámina 005
+PA1-0,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 005
+PA1-0,dl Tubo espaciador A°G° 19 mm x 38 mm,und,2,DGE RD 024-2003 lámina 005
+PA1-0,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 005
+PA1-0,cs1 Soporte separador de vértice de poste A°G° 110 mm,und,2,DGE RD 024-2003 lámina 005
+PA1-0,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 005
+PA1-0,c5 Perno maquinado A°G° 16 mm x 508 mm,und,2,DGE RD 024-2003 lámina 005
+PA1-0,b1 Espiga para cabeza de poste,und,2,DGE RD 024-2003 lámina 005
+PA1-0,a2 Aislador de porcelana tipo pin clase ANSI,und,2,DGE RD 024-2003 lámina 005
+PA1-1N,ca Alambre de amarre,m,7.5,DGE RD 024-2003 lámina 006
+PA1-1N,vd Varilla de armar preformada doble,und,1,DGE RD 024-2003 lámina 006
+PA1-1N,vs Varilla de armar preformada simple,und,1,DGE RD 024-2003 lámina 006
+PA1-1N,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 006
+PA1-1N,dl Tubo espaciador A°G° 19 mm x 38 mm,und,2,DGE RD 024-2003 lámina 006
+PA1-1N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 006
+PA1-1N,cs1 Soporte separador de vértice de poste A°G° 110 mm,und,2,DGE RD 024-2003 lámina 006
+PA1-1N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 006
+PA1-1N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 006
+PA1-1N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 006
+PA1-1N,c5 Perno maquinado A°G° 16 mm x 508 mm,und,2,DGE RD 024-2003 lámina 006
+PA1-1N,b1 Espiga para cabeza de poste,und,2,DGE RD 024-2003 lámina 006
+PA1-1N,a2 Aislador de porcelana tipo pin clase ANSI,und,2,DGE RD 024-2003 lámina 006
+PA1-2,ca Alambre de amarre,m,10,DGE RD 024-2003 lámina 007
+PA1-2,vd Varilla de armar preformada doble,und,2,DGE RD 024-2003 lámina 007
+PA1-2,f1 Espiga para cruceta,und,4,DGE RD 024-2003 lámina 007
+PA1-2,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 007
+PA1-2,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 007
+PA1-2,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 007
+PA1-2,a2 Aislador de porcelana tipo pin clase ANSI,und,4,DGE RD 024-2003 lámina 007
+PA1-2,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 007
+PA1-2,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 007
+PA1-2,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 007
+PA1-2N,ca Alambre de amarre,m,12.5,DGE RD 024-2003 lámina 007
+PA1-2N,vd Varilla de armar preformada doble,und,2,DGE RD 024-2003 lámina 007
+PA1-2N,vs Varilla de armar preformada simple,und,1,DGE RD 024-2003 lámina 007
+PA1-2N,f1 Espiga para cruceta,und,4,DGE RD 024-2003 lámina 007
+PA1-2N,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 007
+PA1-2N,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 007
+PA1-2N,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 007
+PA1-2N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 007
+PA1-2N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 007
+PA1-2N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 007
+PA1-2N,a2 Aislador de porcelana tipo pin clase ANSI,und,4,DGE RD 024-2003 lámina 007
+PA1-2N,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 007
+PA1-2N,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 007
+PA1-2N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 007
+PA1-2N,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 007
+PA1-2L,ca Alambre de amarre,m,10,DGE RD 024-2003 lámina 007
+PA1-2L,vd Varilla de armar preformada doble,und,2,DGE RD 024-2003 lámina 007
+PA1-2L,f1 Espiga para cruceta,und,4,DGE RD 024-2003 lámina 007
+PA1-2L,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 007
+PA1-2L,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 007
+PA1-2L,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 007
+PA1-2L,a2 Aislador de porcelana tipo pin clase ANSI,und,4,DGE RD 024-2003 lámina 007
+PA1-2L,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 007
+PA1-2L,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 007
+PA1-2L,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 007
+PA1-2NL,ca Alambre de amarre,m,12.5,DGE RD 024-2003 lámina 007
+PA1-2NL,vd Varilla de armar preformada doble,und,2,DGE RD 024-2003 lámina 007
+PA1-2NL,vs Varilla de armar preformada simple,und,1,DGE RD 024-2003 lámina 007
+PA1-2NL,f1 Espiga para cruceta,und,4,DGE RD 024-2003 lámina 007
+PA1-2NL,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 007
+PA1-2NL,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 007
+PA1-2NL,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 007
+PA1-2NL,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 007
+PA1-2NL,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 007
+PA1-2NL,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 007
+PA1-2NL,a2 Aislador de porcelana tipo pin clase ANSI,und,4,DGE RD 024-2003 lámina 007
+PA1-2NL,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 007
+PA1-2NL,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 007
+PA1-2NL,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 007
+PA1-2NL,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 007
+PA2-0,vs Varilla de armar preformada simple,und,1,DGE RD 024-2003 lámina 009
+PA2-0,ag Grillete,und,1,DGE RD 024-2003 lámina 009
+PA2-0,oc Adaptador casquillo-ojo alargado,und,1,DGE RD 024-2003 lámina 009
+PA2-0,hb Adaptador anillo-bola,und,1,DGE RD 024-2003 lámina 009
+PA2-0,m Grapa de ángulo,und,1,DGE RD 024-2003 lámina 009
+PA2-0,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,2,DGE RD 024-2003 lámina 009
+PA2-0,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 009
+PA2-0,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 009
+PA2-1N,ca Alambre de amarre,m,2.5,DGE RD 024-2003 lámina 010
+PA2-1N,vs Varilla de armar preformada simple,und,2,DGE RD 024-2003 lámina 010
+PA2-1N,ag Grillete,und,1,DGE RD 024-2003 lámina 010
+PA2-1N,oc Adaptador casquillo-ojo alargado,und,1,DGE RD 024-2003 lámina 010
+PA2-1N,hb Adaptador anillo-bola,und,1,DGE RD 024-2003 lámina 010
+PA2-1N,m Grapa de ángulo,und,1,DGE RD 024-2003 lámina 010
+PA2-1N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,2,DGE RD 024-2003 lámina 010
+PA2-1N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 010
+PA2-1N,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 010
+PA2-1N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,3,DGE RD 024-2003 lámina 010
+PA2-1N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 010
+PA2-1N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 010
+PA2-2,vs Varilla de armar preformada simple,und,2,DGE RD 024-2003 lámina 011
+PA2-2,ag Grillete,und,2,DGE RD 024-2003 lámina 011
+PA2-2,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 011
+PA2-2,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 011
+PA2-2,m Grapa de ángulo,und,2,DGE RD 024-2003 lámina 011
+PA2-2,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 011
+PA2-2,o1 Perno ojo A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 011
+PA2-2,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 011
+PA2-2N,ca Alambre de amarre,m,3.0,DGE RD 024-2003 lámina 011
+PA2-2N,vs Varilla de armar preformada simple,und,3,DGE RD 024-2003 lámina 011
+PA2-2N,ag Grillete,und,2,DGE RD 024-2003 lámina 011
+PA2-2N,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 011
+PA2-2N,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 011
+PA2-2N,m Grapa de ángulo,und,2,DGE RD 024-2003 lámina 011
+PA2-2N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 011
+PA2-2N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 011
+PA2-2N,o1 Perno ojo A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 011
+PA2-2N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,5,DGE RD 024-2003 lámina 011
+PA2-2N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 011
+PA2-2N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 011
+PA3-0,ag Grillete,und,2,DGE RD 024-2003 lámina 013
+PA3-0,p Grapa de doble vía,und,1,DGE RD 024-2003 lámina 013
+PA3-0,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 013
+PA3-0,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 013
+PA3-0,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 013
+PA3-0,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 013
+PA3-0,o1 Perno ojo A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 013
+PA3-0,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 013
+PA3-1N,ap Cinta plana para armar,m,2.0,DGE RD 024-2003 lámina 014
+PA3-1N,bn Grapa de anclaje tipo lazo de amarre,und,4,DGE RD 024-2003 lámina 014
+PA3-1N,p Grapa de doble vía,und,2,DGE RD 024-2003 lámina 014
+PA3-1N,ag Grillete,und,2,DGE RD 024-2003 lámina 014
+PA3-1N,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 014
+PA3-1N,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 014
+PA3-1N,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 014
+PA3-1N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 014
+PA3-1N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,2,DGE RD 024-2003 lámina 014
+PA3-1N,o1 Perno ojo A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 014
+PA3-1N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,6,DGE RD 024-2003 lámina 014
+PA3-1N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 014
+PA3-1N,da Portalínea unipolar A°G° 149x85 mm,und,2,DGE RD 024-2003 lámina 014
+PA3-2,p Grapa de doble vía,und,2,DGE RD 024-2003 lámina 015
+PA3-2,ag Grillete,und,4,DGE RD 024-2003 lámina 015
+PA3-2,oc Adaptador casquillo-ojo alargado,und,4,DGE RD 024-2003 lámina 015
+PA3-2,hb Adaptador anillo-bola,und,4,DGE RD 024-2003 lámina 015
+PA3-2,l1 Grapa de anclaje,und,4,DGE RD 024-2003 lámina 015
+PA3-2,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,8,DGE RD 024-2003 lámina 015
+PA3-2,o1 Perno ojo A°G° 16 mm x 305 mm,und,4,DGE RD 024-2003 lámina 015
+PA3-2,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,8,DGE RD 024-2003 lámina 015
+PA3-2N,ap Cinta plana para armar,m,2.0,DGE RD 024-2003 lámina 015
+PA3-2N,bn Grapa de anclaje tipo lazo de amarre,und,4,DGE RD 024-2003 lámina 015
+PA3-2N,p Grapa de doble vía,und,3,DGE RD 024-2003 lámina 015
+PA3-2N,ag Grillete,und,4,DGE RD 024-2003 lámina 015
+PA3-2N,oc Adaptador casquillo-ojo alargado,und,4,DGE RD 024-2003 lámina 015
+PA3-2N,hb Adaptador anillo-bola,und,4,DGE RD 024-2003 lámina 015
+PA3-2N,l1 Grapa de anclaje,und,4,DGE RD 024-2003 lámina 015
+PA3-2N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,8,DGE RD 024-2003 lámina 015
+PA3-2N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,2,DGE RD 024-2003 lámina 015
+PA3-2N,o1 Perno ojo A°G° 16 mm x 305 mm,und,4,DGE RD 024-2003 lámina 015
+PA3-2N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 015
+PA3-2N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 015
+PA3-2N,da Portalínea unipolar A°G° 149x85 mm,und,2,DGE RD 024-2003 lámina 015
+PR3-0,ag Grillete,und,2,DGE RD 024-2003 lámina 017
+PR3-0,ca Alambre de amarre,m,2.5,DGE RD 024-2003 lámina 017
+PR3-0,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 017
+PR3-0,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 017
+PR3-0,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 017
+PR3-0,p Grapa de doble vía,und,1,DGE RD 024-2003 lámina 017
+PR3-0,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,1,DGE RD 024-2003 lámina 017
+PR3-0,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 017
+PR3-0,a2 Aislador de porcelana tipo pin clase ANSI,und,1,DGE RD 024-2003 lámina 017
+PR3-0,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 017
+PR3-0,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 017
+PR3-0,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 017
+PR3-0,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 017
+PR3-1N,ca Alambre de amarre,m,2.5,DGE RD 024-2003 lámina 018
+PR3-1N,bn Grapa de anclaje tipo lazo de amarre,und,4,DGE RD 024-2003 lámina 018
+PR3-1N,ap Cinta plana para armar,m,2.0,DGE RD 024-2003 lámina 018
+PR3-1N,ag Grillete,und,2,DGE RD 024-2003 lámina 018
+PR3-1N,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 018
+PR3-1N,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 018
+PR3-1N,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 018
+PR3-1N,da Portalínea unipolar A°G° 149x85 mm,und,2,DGE RD 024-2003 lámina 018
+PR3-1N,p Grapa de doble vía,und,2,DGE RD 024-2003 lámina 018
+PR3-1N,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,1,DGE RD 024-2003 lámina 018
+PR3-1N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 018
+PR3-1N,a2 Aislador de porcelana tipo pin clase ANSI,und,1,DGE RD 024-2003 lámina 018
+PR3-1N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,2,DGE RD 024-2003 lámina 018
+PR3-1N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,3,DGE RD 024-2003 lámina 018
+PR3-1N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 018
+PR3-1N,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 018
+PR3-1N,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 018
+PR3-2,p Grapa de doble vía,und,2,DGE RD 024-2003 lámina 019
+PR3-2,ag Grillete,und,4,DGE RD 024-2003 lámina 019
+PR3-2,oc Adaptador casquillo-ojo alargado,und,4,DGE RD 024-2003 lámina 019
+PR3-2,hb Adaptador anillo-bola,und,4,DGE RD 024-2003 lámina 019
+PR3-2,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2,l1 Grapa de anclaje,und,4,DGE RD 024-2003 lámina 019
+PR3-2,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 019
+PR3-2,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,8,DGE RD 024-2003 lámina 019
+PR3-2,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 019
+PR3-2,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 019
+PR3-2,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 019
+PR3-2N,p Grapa de doble vía,und,3,DGE RD 024-2003 lámina 019
+PR3-2N,ap Cinta plana para armar,m,2,DGE RD 024-2003 lámina 019
+PR3-2N,bn Grapa de anclaje tipo lazo de amarre,und,4,DGE RD 024-2003 lámina 019
+PR3-2N,ag Grillete,und,4,DGE RD 024-2003 lámina 019
+PR3-2N,oc Adaptador casquillo-ojo alargado,und,4,DGE RD 024-2003 lámina 019
+PR3-2N,hb Adaptador anillo-bola,und,4,DGE RD 024-2003 lámina 019
+PR3-2N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 019
+PR3-2N,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2N,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,2,DGE RD 024-2003 lámina 019
+PR3-2N,da Portalínea unipolar A°G° 149x85 mm,und,2,DGE RD 024-2003 lámina 019
+PR3-2N,l1 Grapa de anclaje,und,4,DGE RD 024-2003 lámina 019
+PR3-2N,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 019
+PR3-2N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,8,DGE RD 024-2003 lámina 019
+PR3-2N,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 019
+PR3-2N,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2N,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 019
+PR3-2N,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 019
+PR3-2L,p Grapa de doble vía,und,2,DGE RD 024-2003 lámina 019
+PR3-2L,ag Grillete,und,4,DGE RD 024-2003 lámina 019
+PR3-2L,oc Adaptador casquillo-ojo alargado,und,4,DGE RD 024-2003 lámina 019
+PR3-2L,hb Adaptador anillo-bola,und,4,DGE RD 024-2003 lámina 019
+PR3-2L,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2L,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2L,l1 Grapa de anclaje,und,4,DGE RD 024-2003 lámina 019
+PR3-2L,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 019
+PR3-2L,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,8,DGE RD 024-2003 lámina 019
+PR3-2L,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 019
+PR3-2L,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2L,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 019
+PR3-2L,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 019
+PR3-2NL,p Grapa de doble vía,und,3,DGE RD 024-2003 lámina 019
+PR3-2NL,ap Cinta plana para armar,m,2,DGE RD 024-2003 lámina 019
+PR3-2NL,bn Grapa de anclaje tipo lazo de amarre,und,4,DGE RD 024-2003 lámina 019
+PR3-2NL,ag Grillete,und,4,DGE RD 024-2003 lámina 019
+PR3-2NL,oc Adaptador casquillo-ojo alargado,und,4,DGE RD 024-2003 lámina 019
+PR3-2NL,hb Adaptador anillo-bola,und,4,DGE RD 024-2003 lámina 019
+PR3-2NL,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 019
+PR3-2NL,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2NL,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2NL,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,2,DGE RD 024-2003 lámina 019
+PR3-2NL,da Portalínea unipolar A°G° 149x85 mm,und,2,DGE RD 024-2003 lámina 019
+PR3-2NL,l1 Grapa de anclaje,und,4,DGE RD 024-2003 lámina 019
+PR3-2NL,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 019
+PR3-2NL,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,8,DGE RD 024-2003 lámina 019
+PR3-2NL,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 019
+PR3-2NL,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 019
+PR3-2NL,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 019
+PR3-2NL,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 019
+PTV-0,l1 Grapa de anclaje,und,1,DGE RD 024-2003 lámina 021
+PTV-0,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,2,DGE RD 024-2003 lámina 021
+PTV-0,ag Grillete,und,1,DGE RD 024-2003 lámina 021
+PTV-0,oc Adaptador casquillo-ojo alargado,und,1,DGE RD 024-2003 lámina 021
+PTV-0,hb Adaptador anillo-bola,und,1,DGE RD 024-2003 lámina 021
+PTV-0,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 021
+PTV-0,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 021
+PTV-1N,bn Grapa de anclaje tipo lazo de amarre,und,2,DGE RD 024-2003 lámina 022
+PTV-1N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 022
+PTV-1N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 022
+PTV-1N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 022
+PTV-1N,ap Cinta plana para armar,m,1,DGE RD 024-2003 lámina 022
+PTV-1N,l1 Grapa de anclaje,und,1,DGE RD 024-2003 lámina 022
+PTV-1N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,2,DGE RD 024-2003 lámina 022
+PTV-1N,ag Grillete,und,1,DGE RD 024-2003 lámina 022
+PTV-1N,oc Adaptador casquillo-ojo alargado,und,1,DGE RD 024-2003 lámina 022
+PTV-1N,hb Adaptador anillo-bola,und,1,DGE RD 024-2003 lámina 022
+PTV-1N,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 022
+PTV-1N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,3,DGE RD 024-2003 lámina 022
+PTV-2,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 023
+PTV-2,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 023
+PTV-2,ag Grillete,und,2,DGE RD 024-2003 lámina 023
+PTV-2,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 023
+PTV-2,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 023
+PTV-2,o1 Perno ojo A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 023
+PTV-2,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 023
+PTV-2N,bn Grapa de anclaje tipo lazo de amarre,und,2,DGE RD 024-2003 lámina 023
+PTV-2N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 023
+PTV-2N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 023
+PTV-2N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 023
+PTV-2N,ap Cinta plana para armar,m,1,DGE RD 024-2003 lámina 023
+PTV-2N,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 023
+PTV-2N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 023
+PTV-2N,ag Grillete,und,2,DGE RD 024-2003 lámina 023
+PTV-2N,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 023
+PTV-2N,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 023
+PTV-2N,o1 Perno ojo A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 023
+PTV-2N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,5,DGE RD 024-2003 lámina 023
+PTH-2,ag Grillete,und,2,DGE RD 024-2003 lámina 025
+PTH-2,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 025
+PTH-2,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 025
+PTH-2,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,2,DGE RD 024-2003 lámina 025
+PTH-2,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 025
+PTH-2,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 025
+PTH-2,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 025
+PTH-2,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 025
+PTH-2,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 025
+PTH-2,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 025
+PTH-2,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 025
+PTH-2,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 025
+PTH-2N,ap Cinta plana para armar,m,1,DGE RD 024-2003 lámina 025
+PTH-2N,bn Grapa de anclaje tipo lazo de amarre,und,2,DGE RD 024-2003 lámina 025
+PTH-2N,ag Grillete,und,2,DGE RD 024-2003 lámina 025
+PTH-2N,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 025
+PTH-2N,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 025
+PTH-2N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 025
+PTH-2N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 025
+PTH-2N,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,2,DGE RD 024-2003 lámina 025
+PTH-2N,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 025
+PTH-2N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 025
+PTH-2N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 025
+PTH-2N,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 025
+PTH-2N,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 025
+PTH-2N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 025
+PTH-2N,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 025
+PTH-2N,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 025
+PTH-2N,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 025
+PTH-2N,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 025
+PTH-2L,ag Grillete,und,2,DGE RD 024-2003 lámina 025
+PTH-2L,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 025
+PTH-2L,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 025
+PTH-2L,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,2,DGE RD 024-2003 lámina 025
+PTH-2L,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 025
+PTH-2L,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 025
+PTH-2L,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 025
+PTH-2L,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 025
+PTH-2L,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 025
+PTH-2L,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 025
+PTH-2L,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 025
+PTH-2L,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 025
+PTH-2NL,ap Cinta plana para armar,m,1,DGE RD 024-2003 lámina 025
+PTH-2NL,bn Grapa de anclaje tipo lazo de amarre,und,2,DGE RD 024-2003 lámina 025
+PTH-2NL,ag Grillete,und,2,DGE RD 024-2003 lámina 025
+PTH-2NL,oc Adaptador casquillo-ojo alargado,und,2,DGE RD 024-2003 lámina 025
+PTH-2NL,hb Adaptador anillo-bola,und,2,DGE RD 024-2003 lámina 025
+PTH-2NL,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 025
+PTH-2NL,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 025
+PTH-2NL,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,2,DGE RD 024-2003 lámina 025
+PTH-2NL,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 025
+PTH-2NL,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 025
+PTH-2NL,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 025
+PTH-2NL,l1 Grapa de anclaje,und,2,DGE RD 024-2003 lámina 025
+PTH-2NL,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 025
+PTH-2NL,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,4,DGE RD 024-2003 lámina 025
+PTH-2NL,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 025
+PTH-2NL,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 025
+PTH-2NL,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 025
+PTH-2NL,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 025
+PS1-3N,ca Alambre de amarre,m,9.5,DGE RD 024-2003 lámina 004
+PS1-3N,vs Varilla de armar preformada simple,und,4,DGE RD 024-2003 lámina 004
+PS1-3N,c3 Perno maquinado A°G° 16 mm x 356 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3N,f1 Espiga para cruceta,und,2,DGE RD 024-2003 lámina 004
+PS1-3N,i1 Perno coche A°G° 13 mm x 152 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3N,j1 Tirafondo A°G° 13 mm x 102 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3N,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3N,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,1,DGE RD 024-2003 lámina 004
+PS1-3N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 004
+PS1-3N,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3N,bs1 Perno simple borde A°G° 16 mm x 425 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 004
+PS1-3N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3N,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 004
+PS1-3N,a2 Aislador de porcelana tipo pin clase ANSI,und,3,DGE RD 024-2003 lámina 004
+PS1-3NL,ca Alambre de amarre,m,9.5,DGE RD 024-2003 lámina 004
+PS1-3NL,vs Varilla de armar preformada simple,und,4,DGE RD 024-2003 lámina 004
+PS1-3NL,c3 Perno maquinado A°G° 16 mm x 356 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3NL,f1 Espiga para cruceta,und,2,DGE RD 024-2003 lámina 004
+PS1-3NL,i1 Perno coche A°G° 13 mm x 152 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3NL,j1 Tirafondo A°G° 13 mm x 102 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3NL,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3NL,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,1,DGE RD 024-2003 lámina 004
+PS1-3NL,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 004
+PS1-3NL,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3NL,bs1 Perno simple borde A°G° 16 mm x 425 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3NL,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 004
+PS1-3NL,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3NL,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 004
+PS1-3NL,a2 Aislador de porcelana tipo pin clase ANSI,und,3,DGE RD 024-2003 lámina 004
+PA1-3N,ca Alambre de amarre,m,17.5,DGE RD 024-2003 lámina 008
+PA1-3N,vd Varilla de armar preformada doble,und,3,DGE RD 024-2003 lámina 008
+PA1-3N,vs Varilla de armar preformada simple,und,1,DGE RD 024-2003 lámina 008
+PA1-3N,dl Tubo espaciador A°G° 19 mm x 38 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3N,c5 Perno maquinado A°G° 16 mm x 508 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3N,cs1 Soporte separador de vértice de poste A°G° 110 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3N,b1 Espiga para cabeza de poste,und,2,DGE RD 024-2003 lámina 008
+PA1-3N,f1 Espiga para cruceta forjada 350 mm (pin ANSI 56-2),und,4,DGE RD 024-2003 lámina 008
+PA1-3N,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 008
+PA1-3N,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,12,DGE RD 024-2003 lámina 008
+PA1-3N,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 008
+PA1-3N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 008
+PA1-3N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 008
+PA1-3N,a2 Aislador de porcelana tipo pin clase ANSI,und,6,DGE RD 024-2003 lámina 008
+PA1-3N,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3N,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 008
+PA1-3N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,3,DGE RD 024-2003 lámina 008
+PA1-3N,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 008
+PA1-3NL,ca Alambre de amarre,m,17.5,DGE RD 024-2003 lámina 008
+PA1-3NL,vd Varilla de armar preformada doble,und,3,DGE RD 024-2003 lámina 008
+PA1-3NL,vs Varilla de armar preformada simple,und,1,DGE RD 024-2003 lámina 008
+PA1-3NL,dl Tubo espaciador A°G° 19 mm x 38 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3NL,c5 Perno maquinado A°G° 16 mm x 508 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3NL,cs1 Soporte separador de vértice de poste A°G° 110 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3NL,b1 Espiga para cabeza de poste,und,2,DGE RD 024-2003 lámina 008
+PA1-3NL,f1 Espiga para cruceta forjada 350 mm (pin ANSI 56-2),und,4,DGE RD 024-2003 lámina 008
+PA1-3NL,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 008
+PA1-3NL,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,12,DGE RD 024-2003 lámina 008
+PA1-3NL,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 008
+PA1-3NL,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3NL,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 008
+PA1-3NL,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 008
+PA1-3NL,a2 Aislador de porcelana tipo pin clase ANSI,und,6,DGE RD 024-2003 lámina 008
+PA1-3NL,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3NL,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 008
+PA1-3NL,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,3,DGE RD 024-2003 lámina 008
+PA1-3NL,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 008
+PA2-3N,ca Alambre de amarre,m,3.0,DGE RD 024-2003 lámina 012
+PA2-3N,rs Varilla de armar preformada simple,und,4,DGE RD 024-2003 lámina 012
+PA2-3N,ag Grillete,und,3,DGE RD 024-2003 lámina 012
+PA2-3N,oc Adaptador casquillo-ojo alargado,und,3,DGE RD 024-2003 lámina 012
+PA2-3N,hb Adaptador anillo-bola,und,3,DGE RD 024-2003 lámina 012
+PA2-3N,m Grapa de ángulo,und,3,DGE RD 024-2003 lámina 012
+PA2-3N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,6,DGE RD 024-2003 lámina 012
+PA2-3N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 012
+PA2-3N,o1 Perno ojo A°G° 16 mm x 305 mm,und,3,DGE RD 024-2003 lámina 012
+PA2-3N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,7,DGE RD 024-2003 lámina 012
+PA2-3N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 012
+PA2-3N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 012
+PA3-3N,ap Cinta plana para armar,m,2.0,DGE RD 024-2003 lámina 016
+PA3-3N,bn Grapa de anclaje tipo lazo de amarre,und,4,DGE RD 024-2003 lámina 016
+PA3-3N,p Grapa de doble vía,und,4,DGE RD 024-2003 lámina 016
+PA3-3N,ag Grillete,und,6,DGE RD 024-2003 lámina 016
+PA3-3N,oc Adaptador casquillo-ojo alargado,und,6,DGE RD 024-2003 lámina 016
+PA3-3N,hb Adaptador anillo-bola,und,6,DGE RD 024-2003 lámina 016
+PA3-3N,l1 Grapa de anclaje,und,6,DGE RD 024-2003 lámina 016
+PA3-3N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,12,DGE RD 024-2003 lámina 016
+PA3-3N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,2,DGE RD 024-2003 lámina 016
+PA3-3N,o1 Perno ojo A°G° 16 mm x 305 mm,und,6,DGE RD 024-2003 lámina 016
+PA3-3N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,14,DGE RD 024-2003 lámina 016
+PA3-3N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 016
+PA3-3N,da Portalínea unipolar A°G° 149x85 mm,und,2,DGE RD 024-2003 lámina 016
+PR3-3N,ca Alambre de amarre,m,2.5,DGE RD 024-2003 lámina 020
+PR3-3N,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 020
+PR3-3N,a2 Aislador de porcelana tipo pin clase ANSI,und,1,DGE RD 024-2003 lámina 020
+PR3-3N,p Grapa de doble vía,und,4,DGE RD 024-2003 lámina 020
+PR3-3N,ap Cinta plana para armar,m,2,DGE RD 024-2003 lámina 020
+PR3-3N,bn Grapa de anclaje tipo lazo de amarre,und,4,DGE RD 024-2003 lámina 020
+PR3-3N,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 020
+PR3-3N,ag Grillete,und,6,DGE RD 024-2003 lámina 020
+PR3-3N,oc Adaptador casquillo-ojo alargado,und,6,DGE RD 024-2003 lámina 020
+PR3-3N,hb Adaptador anillo-bola,und,6,DGE RD 024-2003 lámina 020
+PR3-3N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 020
+PR3-3N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,3,DGE RD 024-2003 lámina 020
+PR3-3N,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,5,DGE RD 024-2003 lámina 020
+PR3-3N,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 020
+PR3-3N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,2,DGE RD 024-2003 lámina 020
+PR3-3N,da Portalínea unipolar A°G° 149x85 mm,und,2,DGE RD 024-2003 lámina 020
+PR3-3N,l1 Grapa de anclaje,und,6,DGE RD 024-2003 lámina 020
+PR3-3N,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 020
+PR3-3N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,12,DGE RD 024-2003 lámina 020
+PR3-3N,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 020
+PR3-3N,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 020
+PR3-3N,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 020
+PR3-3N,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 020
+PR3-3NL,ca Alambre de amarre,m,2.5,DGE RD 024-2003 lámina 020
+PR3-3NL,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 020
+PR3-3NL,a2 Aislador de porcelana tipo pin clase ANSI,und,1,DGE RD 024-2003 lámina 020
+PR3-3NL,p Grapa de doble vía,und,4,DGE RD 024-2003 lámina 020
+PR3-3NL,ap Cinta plana para armar,m,2,DGE RD 024-2003 lámina 020
+PR3-3NL,bn Grapa de anclaje tipo lazo de amarre,und,4,DGE RD 024-2003 lámina 020
+PR3-3NL,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 020
+PR3-3NL,ag Grillete,und,6,DGE RD 024-2003 lámina 020
+PR3-3NL,oc Adaptador casquillo-ojo alargado,und,6,DGE RD 024-2003 lámina 020
+PR3-3NL,hb Adaptador anillo-bola,und,6,DGE RD 024-2003 lámina 020
+PR3-3NL,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,4,DGE RD 024-2003 lámina 020
+PR3-3NL,c2 Perno maquinado A°G° 16 mm x 305 mm,und,3,DGE RD 024-2003 lámina 020
+PR3-3NL,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,5,DGE RD 024-2003 lámina 020
+PR3-3NL,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 020
+PR3-3NL,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,2,DGE RD 024-2003 lámina 020
+PR3-3NL,da Portalínea unipolar A°G° 149x85 mm,und,2,DGE RD 024-2003 lámina 020
+PR3-3NL,l1 Grapa de anclaje,und,6,DGE RD 024-2003 lámina 020
+PR3-3NL,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 020
+PR3-3NL,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,12,DGE RD 024-2003 lámina 020
+PR3-3NL,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 020
+PR3-3NL,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 020
+PR3-3NL,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 020
+PR3-3NL,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 020
+PTV-3N,bn Grapa de anclaje tipo lazo de amarre,und,2,DGE RD 024-2003 lámina 024
+PTV-3N,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 024
+PTV-3N,da Portalínea unipolar A°G° 149x85 mm,und,1,DGE RD 024-2003 lámina 024
+PTV-3N,a8 Aislador de porcelana tipo carrete clase ANSI 53-2,und,1,DGE RD 024-2003 lámina 024
+PTV-3N,ap Cinta plana para armar,m,1,DGE RD 024-2003 lámina 024
+PTV-3N,l1 Grapa de anclaje,und,3,DGE RD 024-2003 lámina 024
+PTV-3N,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,6,DGE RD 024-2003 lámina 024
+PTV-3N,ag Grillete,und,3,DGE RD 024-2003 lámina 024
+PTV-3N,oc Adaptador casquillo-ojo alargado,und,3,DGE RD 024-2003 lámina 024
+PTV-3N,hb Adaptador anillo-bola,und,3,DGE RD 024-2003 lámina 024
+PTV-3N,o1 Perno ojo A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 024
+PTV-3N,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,7,DGE RD 024-2003 lámina 024
+PS1-3L,ca Alambre de amarre,m,7.5,DGE RD 024-2003 lámina 004
+PS1-3L,vs Varilla de armar preformada simple,und,3,DGE RD 024-2003 lámina 004
+PS1-3L,c3 Perno maquinado A°G° 16 mm x 356 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3L,f1 Espiga para cruceta,und,2,DGE RD 024-2003 lámina 004
+PS1-3L,i1 Perno coche A°G° 13 mm x 152 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3L,j1 Tirafondo A°G° 13 mm x 102 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3L,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3L,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,1,DGE RD 024-2003 lámina 004
+PS1-3L,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,1,DGE RD 024-2003 lámina 004
+PS1-3L,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,3,DGE RD 024-2003 lámina 004
+PS1-3L,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 004
+PS1-3L,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 004
+PS1-3L,a2 Aislador de porcelana tipo pin clase ANSI,und,3,DGE RD 024-2003 lámina 004
+PA1-3L,ca Alambre de amarre,m,15.0,DGE RD 024-2003 lámina 008
+PA1-3L,vd Varilla de armar preformada doble,und,3,DGE RD 024-2003 lámina 008
+PA1-3L,dl Tubo espaciador A°G° 19 mm x 38 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3L,c5 Perno maquinado A°G° 16 mm x 508 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3L,cs1 Soporte separador de vértice de poste A°G° 110 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3L,b1 Espiga para cabeza de poste,und,2,DGE RD 024-2003 lámina 008
+PA1-3L,f1 Espiga para cruceta forjada 350 mm (pin ANSI 56-2),und,4,DGE RD 024-2003 lámina 008
+PA1-3L,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 008
+PA1-3L,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,12,DGE RD 024-2003 lámina 008
+PA1-3L,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 008
+PA1-3L,c2 Perno maquinado A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 008
+PA1-3L,a2 Aislador de porcelana tipo pin clase ANSI,und,6,DGE RD 024-2003 lámina 008
+PA1-3L,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3L,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 008
+PA1-3L,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,2,DGE RD 024-2003 lámina 008
+PA1-3L,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 008
+PR3-3L,ca Alambre de amarre,m,2.5,DGE RD 024-2003 lámina 020
+PR3-3L,b1 Espiga para cabeza de poste,und,1,DGE RD 024-2003 lámina 020
+PR3-3L,a2 Aislador de porcelana tipo pin clase ANSI,und,1,DGE RD 024-2003 lámina 020
+PR3-3L,p Grapa de doble vía,und,3,DGE RD 024-2003 lámina 020
+PR3-3L,o1 Perno ojo A°G° 16 mm x 305 mm,und,1,DGE RD 024-2003 lámina 020
+PR3-3L,ag Grillete,und,6,DGE RD 024-2003 lámina 020
+PR3-3L,oc Adaptador casquillo-ojo alargado,und,6,DGE RD 024-2003 lámina 020
+PR3-3L,hb Adaptador anillo-bola,und,6,DGE RD 024-2003 lámina 020
+PR3-3L,d2 Arandela cuadrada curva A°G° 57x57x5 mm,und,3,DGE RD 024-2003 lámina 020
+PR3-3L,c2 Perno maquinado A°G° 16 mm x 305 mm,und,2,DGE RD 024-2003 lámina 020
+PR3-3L,aa Tuerca ojo A°G° forjada para perno de 16 mm,und,5,DGE RD 024-2003 lámina 020
+PR3-3L,cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm,und,4,DGE RD 024-2003 lámina 020
+PR3-3L,l1 Grapa de anclaje,und,6,DGE RD 024-2003 lámina 020
+PR3-3L,n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas,und,3,DGE RD 024-2003 lámina 020
+PR3-3L,k1 Aislador de porcelana tipo suspensión clase ANSI 52-3,und,12,DGE RD 024-2003 lámina 020
+PR3-3L,j1 Tirafondo A°G° 13 mm x 102 mm,und,2,DGE RD 024-2003 lámina 020
+PR3-3L,i1 Perno coche A°G° 13 mm x 152 mm,und,4,DGE RD 024-2003 lámina 020
+PR3-3L,g1 Cruceta de madera tratada 90x115 mm 2.40 m,und,2,DGE RD 024-2003 lámina 020
+PR3-3L,d1 Arandela cuadrada plana A°G° 57x57x5 mm,und,10,DGE RD 024-2003 lámina 020

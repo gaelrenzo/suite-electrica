@@ -36,6 +36,10 @@ pub struct Armado {
     pub alturas_fases_m: String,
     pub retenida_toma: String,
     pub fuente: String,
+    /// Fases del armado (1, 2 o 3; vacío = 3).
+    pub fases: Option<f64>,
+    /// Lleva neutro corrido.
+    pub neutro: bool,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -119,6 +123,8 @@ impl Catalogos {
                     alturas_fases_m: txt(f, "alturas_fases_m"),
                     retenida_toma: txt(f, "retenida_toma"),
                     fuente: txt(f, "fuente"),
+                    fases: numero(f, "fases"),
+                    neutro: numero(f, "neutro").is_some_and(|v| v != 0.0),
                 })
                 .collect(),
             retenidas: leer_csv(retenidas)?
@@ -194,6 +200,19 @@ impl Catalogos {
         for a in &self.armados {
             let incluye = a.funcion.split('|').any(|f| f.trim().eq_ignore_ascii_case(tipo.como_str()));
             if incluye && a.angulo_max_deg.map_or(true, |m| angulo.abs() <= m) {
+                return a.codigo.clone();
+            }
+        }
+        String::new()
+    }
+
+    /// Como [`Self::elegir_armado`], solo entre los armados del sistema del proyecto
+    /// (`fases` 1, 2 o 3 y con o sin neutro corrido).
+    pub fn elegir_armado_sistema(&self, tipo: Tipo, angulo: f64, fases: usize, neutro: bool) -> String {
+        for a in &self.armados {
+            let sistema = a.fases.unwrap_or(3.0) as usize == fases && a.neutro == neutro;
+            let incluye = a.funcion.split('|').any(|f| f.trim().eq_ignore_ascii_case(tipo.como_str()));
+            if sistema && incluye && a.angulo_max_deg.map_or(true, |m| angulo.abs() <= m) {
                 return a.codigo.clone();
             }
         }

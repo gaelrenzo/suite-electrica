@@ -33,7 +33,7 @@ pub const COLS_CATALOGO: [(&str, &[&str]); 4] = [
     ("postes", &["codigo", "material", "longitud_m", "carga_nominal_daN", "empotramiento_m", "carga_vertical_max_daN",
         "diam_punta_m", "diam_tierra_m", "mor_MPa", "dist_aplicacion_m", "fuente"]),
     ("armados", &["codigo", "descripcion", "funcion", "angulo_max_deg", "distancia_punta_amarre_m", "separacion_fases_m",
-        "aislador", "aisladores_por_fase", "alturas_fases_m", "retenida_toma", "fuente"]),
+        "aislador", "aisladores_por_fase", "alturas_fases_m", "retenida_toma", "fuente", "fases", "neutro"]),
     ("retenidas", &["codigo", "descripcion", "carga_rotura_kN", "fuente"]),
     ("materiales", &["armado", "material", "unidad", "cantidad", "fuente"]),
 ];
@@ -58,6 +58,9 @@ impl Default for ParamTopo {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ParamLinea {
     pub n_conductores: i64,
+    /// Sistema para elegir armados: fases (1, 2, 3) y neutro corrido.
+    pub fases: i64,
+    pub neutro: bool,
     pub modelo: String,
     pub hip_inicial: String,
     pub tiro_inicial_pct: f64,
@@ -88,6 +91,8 @@ impl Default for ParamLinea {
     fn default() -> Self {
         ParamLinea {
             n_conductores: 3,
+            fases: 3,
+            neutro: false,
             modelo: "catenaria".into(),
             hip_inicial: "V_EDS".into(),
             tiro_inicial_pct: 18.0,
@@ -118,7 +123,7 @@ impl Default for ParamLinea {
 impl ParamLinea {
     fn a_json(&self) -> Value {
         json!({
-            "n_conductores": self.n_conductores, "modelo": self.modelo, "hip_inicial": self.hip_inicial,
+            "n_conductores": self.n_conductores, "fases": self.fases, "neutro": self.neutro, "modelo": self.modelo, "hip_inicial": self.hip_inicial,
             "tiro_inicial_pct": self.tiro_inicial_pct, "hip_flecha_maxima": self.hip_flecha_maxima,
             "tiro_maximo_pct": self.tiro_maximo_pct, "distancia_minima_terreno": self.distancia_minima_terreno,
             "altura_amarre": self.altura_amarre, "vano_maximo": self.vano_maximo, "vano_minimo": self.vano_minimo,
@@ -137,6 +142,8 @@ impl ParamLinea {
         let s = |k: &str, x: &str| v.get(k).and_then(|y| y.as_str()).unwrap_or(x).to_string();
         ParamLinea {
             n_conductores: v.get("n_conductores").and_then(|y| y.as_i64()).unwrap_or(d.n_conductores),
+            fases: v.get("fases").and_then(|y| y.as_i64()).unwrap_or(d.fases),
+            neutro: v.get("neutro").and_then(|y| y.as_bool()).unwrap_or(d.neutro),
             modelo: s("modelo", &d.modelo),
             hip_inicial: s("hip_inicial", &d.hip_inicial),
             tiro_inicial_pct: f("tiro_inicial_pct", d.tiro_inicial_pct),
@@ -562,6 +569,13 @@ impl Documento {
         let ver = catalogos::verificar(&r, &p, &cat, l.fs_poste, l.fs_retenida, ret, &nret);
         let met = catalogos::metrado(&r, &p, &cat, l.desperdicio_pct, ret, &nret);
         r.avisos.extend(cat.avisos());
+        let hay_sistema = cat.armados.iter().any(|a| a.fases.unwrap_or(3.0) as i64 == l.fases && a.neutro == l.neutro);
+        if !hay_sistema {
+            r.avisos.push(format!(
+                "Sin armado del catálogo para el sistema {} fase(s){}: cargue los catálogos de la plantilla o agréguelos",
+                l.fases, if l.neutro { " con neutro" } else { "" }
+            ));
+        }
         let pendiente = |f: &str| f.is_empty() || f.to_uppercase().contains("PENDIENTE") || f.to_uppercase().contains("EJEMPLO");
         for k in FUENTES_EXTRA {
             let f = self.fuente(k).trim().to_string();
@@ -643,7 +657,7 @@ impl Documento {
                 break;
             }
             if !(solo_vacios && !df[i].armado.is_empty()) {
-                df[i].armado = cat.elegir_armado(e.tipo, e.angulo);
+                df[i].armado = cat.elegir_armado_sistema(e.tipo, e.angulo, self.linea.fases.max(1) as usize, self.linea.neutro);
             }
             if !(solo_vacios && !df[i].poste.is_empty()) {
                 let (fh, mb, _) = fm.get(&e.numero).copied().unwrap_or((0.0, 0.0, 0.0));

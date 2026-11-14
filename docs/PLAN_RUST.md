@@ -216,6 +216,22 @@ resultados de referencia. Si un cambio los altera a propósito, se explica aquí
   cumple y que ningún poste más chico cumple. Con el catálogo de prueba y FS 4, E-02, E-03 y
   E-04 pasan de CAC 12/300 (que no cumplía por momentos) a CAC 12/400 (FS de 4,48 a 5,00).
   `elegir_poste` sigue igual, por la paridad con Python.
+* **Armados DGE monofásicos, bifásicos y trifásicos con neutro** (plantilla `armados.csv` y
+  `materiales.csv`). Se agregan 43 armados de la Norma DGE RD 024-2003, transcritos de sus
+  láminas: PS1, PA1, PA2, PA3, PR3, PTV y PTH, en las versiones 1Φ con retorno por tierra
+  (`-0`), 1Φ con neutro corrido (`-1N`), 2Φ (`-2`, `-2N`, variantes `L`) y 3Φ con neutro (`-3N`,
+  `-3NL`). Se completan también los materiales de PS1-3L, PA1-3L y PR3-3L, que comparten columna
+  con el armado base en su lámina. Las columnas nuevas `fases` y `neutro` se combinan con el
+  sistema del proyecto («Sistema» en LineCraft, guardado en el `.sel`):
+  `Catalogos::elegir_armado_sistema` elige solo entre los armados de ese sistema. En los armados
+  con neutro, `distancia_punta_amarre_m` llega hasta el neutro (el conductor más bajo, que manda
+  en el despeje), y `alturas_fases_m` lista solo las fases. Python ignora las columnas nuevas y
+  sigue eligiendo los trifásicos, que están primero en el archivo, así que la referencia no
+  cambia. Un `.sel` guarda sus propios catálogos: el botón «Cargar catálogos de la plantilla»
+  actualiza un proyecto existente, y si el catálogo no tiene armados del sistema se avisa.
+  `tests/armados_dge.rs` comprueba la elección, que cada armado tenga geometría y materiales, y
+  el cálculo completo con una línea 1Φ, una 2Φ con neutro y una 3Φ con neutro. **Pendiente:**
+  biposte en H (láminas 027-030), porque el modelo verifica un solo poste por estructura.
 
 ## Cómo continuar
 

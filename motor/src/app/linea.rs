@@ -132,6 +132,19 @@ fn datos(app: &mut App, ui: &mut egui::Ui) {
                 });
                 c
             };
+            ui.label("Sistema (armados DGE)");
+            ui.horizontal(|ui| {
+                egui::ComboBox::from_id_salt("fases").selected_text(match l.fases { 1 => "Monofásico", 2 => "Bifásico", _ => "Trifásico" }).show_ui(ui, |ui| {
+                    for (f, t) in [(1, "Monofásico"), (2, "Bifásico"), (3, "Trifásico")] {
+                        if ui.selectable_value(&mut l.fases, f, t).changed() {
+                            l.n_conductores = f;
+                            cambio = true;
+                        }
+                    }
+                });
+                cambio |= ui.checkbox(&mut l.neutro, "neutro corrido").changed();
+            });
+            ui.end_row();
             ui.label("Conductores por circuito");
             cambio |= ui.add(egui::DragValue::new(&mut l.n_conductores).range(1..=12)).changed();
             ui.end_row();
@@ -175,6 +188,12 @@ fn datos(app: &mut App, ui: &mut egui::Ui) {
             cambio |= num(ui, "EDS máx. (vibraciones)", &mut l.eds_max_pct, 0.1, " %");
         });
     });
+    if ui.button("Cargar catálogos de la plantilla").on_hover_text(
+        "Reemplaza postes, armados, retenidas y materiales del proyecto por los de la plantilla (armados DGE 1Φ, 2Φ, 3Φ con y sin neutro). Se guarda al guardar el proyecto.",
+    ).clicked() {
+        app.doc.catalogos = suite_motor::documento::Documento::nuevo().catalogos;
+        cambio = true;
+    }
     egui::CollapsingHeader::new("Conductor").show(ui, |ui| {
         let c = &mut app.doc.conductor;
         egui::ComboBox::from_id_salt("cond").selected_text(c.nombre.as_str()).show_ui(ui, |ui| {
