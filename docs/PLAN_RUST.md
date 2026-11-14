@@ -199,6 +199,24 @@ Antes de borrar `suite_electrica/`, hay que:
    (se incluye `SHA256SUMS.txt`).
 4. Confirmar con el autor.
 
+## Funciones nuevas (solo en Rust)
+
+Desde `python-referencia-v1`, las funciones nuevas se escriben solo en Rust y no cambian los
+resultados de referencia. Si un cambio los altera a propósito, se explica aquí.
+
+* **Elección de poste por momento de vuelco** (`catalogos::elegir_poste_mrn`, la usan «Ubicar
+  automático» y «Asignar catálogos»). Cuando el poste tiene geometría (diámetros, empotramiento
+  y MOR o carga nominal), se elige el de menor momento resistente en la línea de tierra que
+  cumple FS(MRN) ≥ FS mínimo en todas las hipótesis. Es el mismo cálculo de la verificación, que
+  ya coincide con REDLIN (`comparar-redlin --postes`). También se aplica a estructuras con
+  retenida, según la carga que ésta tome. El criterio anterior usaba la fuerza equivalente en la
+  punta, sin el viento sobre el poste (MVE), y aceptaba sin verificar cualquier poste con
+  retenida. Sin geometría (como en la plantilla actual) se usa ese criterio anterior, así que
+  los resultados de referencia no cambian. `tests/postes_mrn.rs` comprueba que el poste elegido
+  cumple y que ningún poste más chico cumple. Con el catálogo de prueba y FS 4, E-02, E-03 y
+  E-04 pasan de CAC 12/300 (que no cumplía por momentos) a CAC 12/400 (FS de 4,48 a 5,00).
+  `elegir_poste` sigue igual, por la paridad con Python.
+
 ## Cómo continuar
 
 ```bash

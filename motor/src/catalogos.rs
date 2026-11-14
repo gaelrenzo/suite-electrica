@@ -444,6 +444,61 @@ pub fn elegir_poste(cat: &Catalogos, e: &Estructura, fh: f64, mb: f64, fs_poste:
     String::new()
 }
 
+/// Momento resistente en la línea de tierra (N·m) para ordenar postes de menor a mayor.
+fn capacidad(p: &Poste) -> Option<f64> {
+    if let (Some(mor), Some(d)) = (p.mor_mpa, p.diam_tierra_m) {
+        return Some(mor * 1e6 * std::f64::consts::PI * d.powi(3) / 32.0);
+    }
+    let brazo = p.longitud_m? - p.empotramiento_m? - p.dist_aplicacion_m.unwrap_or(0.0);
+    Some(p.carga_nominal_dan? * 10.0 * brazo)
+}
+
+/// Peor FS por momento de vuelco (MRN, criterio de REDLIN) de un poste en todas las hipótesis.
+pub fn fs_momentos(e: &Estructura, cargas: &[&Cargas], poste: &Poste, armado: Option<&Armado>, n: usize) -> f64 {
+    let alt = alturas_fases(e, Some(poste), armado, n);
+    let toma = retenida_toma(e, armado);
+    cargas
+        .iter()
+        .map(|c| factor_seguridad_poste(poste, momentos_poste(c, &alt, poste, toma.as_deref()).mrn).0)
+        .fold(f64::INFINITY, f64::min)
+}
+
+/// Poste más chico que cumple, como REDLIN: con geometría (diámetros, empotramiento y MOR o
+/// carga nominal) se exige `FS(MRN) ≥ fs_poste` en todas las hipótesis, también con retenida
+/// (según lo que ésta tome); sin geometría, el criterio simplificado de [`elegir_poste`].
+/// Candidatos de menor a mayor momento resistente en la línea de tierra y luego por longitud.
+pub fn elegir_poste_mrn(
+    cat: &Catalogos, e: &Estructura, cargas: &[&Cargas], armado: Option<&Armado>, n: usize, fh: f64, mb: f64, fs_poste: f64,
+) -> String {
+    let mut cand: Vec<&Poste> = cat.postes.iter().filter(|p| p.carga_nominal_dan.is_some() || geometria(Some(p))).collect();
+    let clave = |p: &Poste| {
+        (capacidad(p).unwrap_or(f64::INFINITY), p.carga_nominal_dan.unwrap_or(f64::INFINITY), p.longitud_m.unwrap_or(f64::INFINITY))
+    };
+    cand.sort_by(|a, b| clave(a).partial_cmp(&clave(b)).unwrap_or(std::cmp::Ordering::Equal));
+    for p in cand {
+        if p.longitud_m.is_some_and(|l| e.altura_amarre >= l) {
+            continue;
+        }
+        if geometria(Some(p)) {
+            if fs_momentos(e, cargas, p, armado, n) >= fs_poste {
+                return p.codigo.clone();
+            }
+            continue;
+        }
+        if lleva_retenida(e) {
+            return p.codigo.clone();
+        }
+        let f_punta = match (p.longitud_m, p.empotramiento_m) {
+            (Some(l), Some(emp)) => mb / (l - emp),
+            _ => fh,
+        };
+        if f_punta <= 0.0 || p.carga_nominal_dan.unwrap_or(0.0) * 10.0 / f_punta >= fs_poste {
+            return p.codigo.clone();
+        }
+    }
+    String::new()
+}
+
 /// Fila de metrado.
 #[derive(Clone, Debug, PartialEq)]
 pub struct FilaMetrado {

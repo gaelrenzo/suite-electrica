@@ -647,7 +647,9 @@ impl Documento {
             }
             if !(solo_vacios && !df[i].poste.is_empty()) {
                 let (fh, mb, _) = fm.get(&e.numero).copied().unwrap_or((0.0, 0.0, 0.0));
-                df[i].poste = catalogos::elegir_poste(&cat, e, fh, mb, self.linea.fs_poste);
+                let cargas: Vec<_> = r.cargas.iter().filter(|c| c.estructura == e.numero).collect();
+                let arm = if df[i].armado.is_empty() { None } else { cat.armado(&df[i].armado) };
+                df[i].poste = catalogos::elegir_poste_mrn(&cat, e, &cargas, arm, p.n_conductores, fh, mb, self.linea.fs_poste);
             }
         }
         if df != self.estructuras {
