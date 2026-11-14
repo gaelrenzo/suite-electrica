@@ -1,1 +1,5 @@
 *.bat text eol=crlf
+*.pdf binary
+*.xlsx binary
+*.ttf binary
+*.dxf -text
