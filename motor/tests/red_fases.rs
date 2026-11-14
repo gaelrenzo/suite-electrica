@@ -22,7 +22,7 @@ fn cond(f: &str, fases: f64, k: f64, r: f64, k_ap: f64) -> ConductorRed {
 }
 
 fn nodo(n: &str, p: &str, l: f64, c: &str, lotes: f64, ce: f64, lamp: f64) -> Nodo {
-    Nodo { nodo: n.into(), padre: p.into(), longitud_m: l, conductor: c.into(), lotes, kw_ce: ce, lamparas: lamp, este: None, norte: None }
+    Nodo { nodo: n.into(), padre: p.into(), longitud_m: l, conductor: c.into(), lotes, kw_ce: ce, lamparas: lamp, ..Default::default() }
 }
 
 #[test]

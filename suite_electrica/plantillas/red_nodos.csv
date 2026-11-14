@@ -1,6 +1,9 @@
 # Red radial: un nodo raíz (subestación) con padre vacío. longitud_m y conductor: tramo padre -> nodo.
 # lotes: abonados de servicio particular; kw_ce: carga especial (kW); lamparas: alumbrado público.
 # este/norte opcionales (UTM, m): si están en todos los nodos se genera plano_red.dxf.
+# Metrado (columnas opcionales, versión Rust): armado (E1/S, 2E3/S, E3+E3/S), soporte, n_soportes, pat, caja,
+#   pastoral, retenida, n_retenidas, conectores ("CFF35-16:3:SP;CFF35-16:1:AP") y acometidas
+#   ("C;L3;XM": C corta, L larga, X extra larga, 3 trifásica, M con murete).
 nodo,padre,longitud_m,conductor,lotes,kw_ce,lamparas,este,norte
 SED,,,,0,0,0,390000,8250000
 N1,SED,35,3x35+16/25,4,0,1,390035,8250000

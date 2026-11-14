@@ -361,6 +361,18 @@ pub fn tablas_red(r: &ResultadoRed) -> Vec<Tabla> {
     vec![res, tr, al, Tabla::lista("Avisos", "Aviso", &r.avisos, "Sin avisos")]
 }
 
+/// Hojas de GridCraft con el metrado (si la red tiene datos de estructuras).
+pub fn tablas_red_con_metrado(red: &crate::red::Red, r: &ResultadoRed) -> Vec<Tabla> {
+    let mut v = tablas_red(r);
+    let met = crate::red::metrado(red);
+    if red.nodos.iter().any(|n| n.estructura != Default::default()) {
+        let mut tb = Tabla::nueva("Metrado", &["Ítem", "Código", "Unidad", "Cantidad"]);
+        tb.filas.extend(met.iter().map(|m| vec![t(m.item.clone()), t(m.codigo.clone()), t(m.unidad.clone()), n(m.cantidad)]));
+        v.insert(3, tb);
+    }
+    v
+}
+
 /// Hojas de PresuCraft (`presucraft.presupuesto.excel`).
 pub fn tablas_presupuesto(r: &ResultadoPresupuesto) -> Vec<Tabla> {
     let mut res = Tabla::nueva("Resumen", &[

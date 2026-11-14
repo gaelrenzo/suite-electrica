@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use eframe::egui;
 use egui_plot::{Legend, Line, Plot, PlotPoints, Points};
 use suite_motor::documento::metrado_presupuesto;
-use suite_motor::salidas::{escribir_excel, tablas_perfil, tablas_presupuesto, tablas_red, Celda, Tabla};
+use suite_motor::salidas::{escribir_excel, tablas_perfil, tablas_presupuesto, tablas_red_con_metrado, Celda, Tabla};
 use suite_motor::tin::es_mayor;
 use suite_motor::{dxf, pdf, presupuesto, red};
 
@@ -252,7 +252,7 @@ impl ModuloJson {
                     g("M.D. total (kW)"),
                     r.alertas.len()
                 );
-                self.tablas = tablas_red(&r);
+                self.tablas = tablas_red_con_metrado(&rd, &r);
                 self.red = Some((rd, r));
             }
             Tipo::Presu => {
@@ -272,7 +272,7 @@ impl ModuloJson {
         match self.tipo {
             Tipo::Grid => {
                 let (rd, r) = self.red.as_ref().ok_or("Calcule primero")?;
-                let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &tablas_red(r))?];
+                let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &tablas_red_con_metrado(rd, r))?];
                 if let Some(d) = dxf::plano_red(&c.join("plano_red.dxf"), rd, r, 2.0)? {
                     out.push(d);
                 }
@@ -323,19 +323,46 @@ fn modulo(app: &mut App, tipo: Tipo) -> &mut ModuloJson {
     }
 }
 
-fn metrado_a_presupuesto(app: &mut App) {
-    let Some(c) = &app.calculo else {
-        app.error = Some("Calcule primero la línea en LineCraft".into());
-        return;
+/// Reemplaza en `metrado.csv` las filas del rubro por las nuevas (conserva los demás rubros).
+fn fusionar_metrado(destino: &Path, nuevo: &str, rubro: &str) -> Result<(), String> {
+    let mut lineas: Vec<String> = vec!["rubro,uc,cantidad".into()];
+    if let Ok(t) = std::fs::read_to_string(destino) {
+        lineas.extend(
+            t.lines()
+                .skip_while(|l| l.starts_with('#') || l.trim().is_empty())
+                .skip(1)
+                .filter(|l| !l.trim().is_empty() && l.split(',').next().map(str::trim) != Some(rubro))
+                .map(String::from),
+        );
+    }
+    lineas.extend(nuevo.lines().skip(1).map(String::from));
+    std::fs::write(destino, lineas.join("
+") + "
+").map_err(|e| format!("{}: {e}", destino.display()))
+}
+
+fn metrado_a_presupuesto(app: &mut App, de_red: bool) {
+    let (csv, rubro, origen) = if de_red {
+        let Some((rd, _)) = &app.grid.red else {
+            app.error = Some("Calcule primero la red en GridCraft".into());
+            return;
+        };
+        (suite_motor::red::metrado_presupuesto(&red::metrado(rd), "RS"), "RS", "GridCraft")
+    } else {
+        let Some(c) = &app.calculo else {
+            app.error = Some("Calcule primero la línea en LineCraft".into());
+            return;
+        };
+        (metrado_presupuesto(&c.metrado, "LP"), "LP", "LineCraft")
     };
     let Some(ruta) = app.presu.ruta.clone() else {
         app.error = Some("Abra o cree primero un presupuesto".into());
         return;
     };
     let destino = ruta.parent().unwrap_or(Path::new(".")).join("metrado.csv");
-    let r = std::fs::write(&destino, metrado_presupuesto(&c.metrado, "LP")).map_err(|e| e.to_string()).and_then(|_| app.presu.calcular());
+    let r = fusionar_metrado(&destino, &csv, rubro).and_then(|_| app.presu.calcular());
     if let Some(m) = app.intentar(r) {
-        app.estado = format!("Metrado de LineCraft escrito en {} — {m}", destino.display());
+        app.estado = format!("Metrado de {origen} (rubro {rubro}) escrito en {} — {m}", destino.display());
     }
 }
 
@@ -387,8 +414,11 @@ pub fn panel_json(app: &mut App, ui: &mut egui::Ui, tipo: Tipo) {
                     abrir_externo(d);
                 }
             }
-            if tipo == Tipo::Presu && ui.button("Metrado desde LineCraft").clicked() {
-                metrado_a_presupuesto(app);
+            if tipo == Tipo::Presu && ui.button("Metrado desde LineCraft").on_hover_text("Rubro LP de metrado.csv").clicked() {
+                metrado_a_presupuesto(app, false);
+            }
+            if tipo == Tipo::Presu && ui.button("Metrado desde GridCraft").on_hover_text("Rubro RS de metrado.csv").clicked() {
+                metrado_a_presupuesto(app, true);
             }
         });
         let m = modulo(app, tipo);

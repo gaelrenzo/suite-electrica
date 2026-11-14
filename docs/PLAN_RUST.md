@@ -258,6 +258,21 @@ resultados de referencia. Si un cambio los altera a propósito, se explica aquí
   formación sin conductor de alumbrado tiene K_AP = 0 (la lámpara no carga la fase).
   `tests/red_fases.rs` fija el modo con una red sintética calculada a mano. Los datos de REDCAD
   no se distribuyen: se exportan en local (`C:\esolutions\_comparacion\redcad`).
+* **Metrado de GridCraft (criterio de REDCAD).** El CSV de nodos admite columnas opcionales
+  (descritas en la plantilla `red_nodos.csv`): armado, soporte, puesta a tierra, caja, pastoral,
+  retenidas, conectores y acometidas. `red::metrado` cuenta:
+  - armados, expandiendo multiplicadores y sumas («2E3/S», «E3+E3/S»);
+  - soportes, PAT, retenidas, cajas, pastorales y puntos de iluminación;
+  - conectores, por tipo y por servicio particular o alumbrado;
+  - acometidas: cortas, largas y extra largas, 1φ o 3φ, y muretes;
+  - conductor en km por formación (suma de vanos sin recargo).
+
+  La planilla de GridCraft agrega la hoja «Metrado» y PresuCraft tiene «Metrado desde GridCraft»
+  (rubro RS). Los dos botones de metrado reemplazan solo las filas de su rubro en `metrado.csv`.
+  **Validación:** `comparar-redcad PlanillaRS.xls MetradoRS.xls --metrado` arma los nodos desde
+  la «Planilla de Redes Secundarias» de REDCAD y compara con su «Metrado de Redes Secundarias»:
+  **33 de 33 renglones iguales** (12 armados, soportes, PAT, retenidas BT/MT, cajas, pastorales,
+  iluminación, 3 conectores, 5 acometidas y 5 conductores en km). Prueba: `tests/red_metrado.rs`.
 
 ## Cómo continuar
 

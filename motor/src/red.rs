@@ -17,6 +17,112 @@ pub struct Nodo {
     pub lamparas: f64,
     pub este: Option<f64>,
     pub norte: Option<f64>,
+    /// Estructura del nodo para el metrado (opcional).
+    pub estructura: EstructuraBt,
+}
+
+/// Datos de la estructura de un nodo para el metrado (columnas opcionales del CSV de nodos).
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct EstructuraBt {
+    /// Armado: `E1/S`, `2E3/S` (2 unidades), `E3+E3/S` (uno de cada).
+    pub armado: String,
+    pub soporte: String,
+    pub n_soportes: f64,
+    pub pat: String,
+    pub caja: String,
+    pub pastoral: String,
+    pub retenida: String,
+    pub n_retenidas: f64,
+    /// (tipo, cantidad, servicio particular) — `false` = alumbrado público.
+    pub conectores: Vec<(String, f64, bool)>,
+    /// Acometidas: `C`/`L`/`X` (corta, larga, extra larga) + `3` si es trifásica + `M` con murete.
+    pub acometidas: Vec<String>,
+}
+
+/// Renglón del metrado de la red.
+#[derive(Clone, Debug, PartialEq)]
+pub struct FilaMetradoRed {
+    pub item: String,
+    pub codigo: String,
+    pub unidad: String,
+    pub cantidad: f64,
+}
+
+/// Armado con multiplicador y suma: `2E3/S` -> [(2, E3/S)], `E3+E3/S` -> [(1, E3), (1, E3/S)].
+pub fn partes_armado(a: &str) -> Vec<(f64, String)> {
+    a.split('+')
+        .map(str::trim)
+        .filter(|t| !t.is_empty() && *t != "-")
+        .map(|t| {
+            let d: String = t.chars().take_while(|c| c.is_ascii_digit()).collect();
+            if d.is_empty() || d.len() == t.len() { (1.0, t.to_string()) } else { (d.parse().unwrap_or(1.0), t[d.len()..].to_string()) }
+        })
+        .collect()
+}
+
+/// Metrado de la red (como el «Metrado de Redes Secundarias» de REDCAD): armados, soportes,
+/// puestas a tierra, retenidas, cajas, pastorales, puntos de iluminación, conectores,
+/// acometidas y conductor (km por formación, suma de vanos sin recargo).
+pub fn metrado(red: &Red) -> Vec<FilaMetradoRed> {
+    use std::collections::BTreeMap;
+    let mut grupos: Vec<(&str, &str, BTreeMap<String, f64>)> = ["Armado", "Soporte", "Puesta a tierra", "Retenida", "Caja de derivación",
+        "Pastoral", "Punto de iluminación", "Conector", "Acometida", "Conductor"]
+        .iter()
+        .map(|g| (*g, if *g == "Conductor" { "km" } else { "und" }, BTreeMap::new()))
+        .collect();
+    let mut sumar = |g: usize, k: &str, v: f64| {
+        let k = k.trim();
+        if !k.is_empty() && k != "-" && v != 0.0 {
+            *grupos[g].2.entry(k.to_string()).or_default() += v;
+        }
+    };
+    for n in &red.nodos {
+        let e = &n.estructura;
+        for (m, c) in partes_armado(&e.armado) {
+            sumar(0, &c, m);
+        }
+        sumar(1, &e.soporte, if e.n_soportes > 0.0 { e.n_soportes } else { 1.0 });
+        sumar(2, &e.pat, 1.0);
+        sumar(3, &e.retenida, if e.n_retenidas > 0.0 { e.n_retenidas } else { 1.0 });
+        sumar(4, &e.caja, 1.0);
+        sumar(5, &e.pastoral, 1.0);
+        sumar(6, "Puntos de iluminación", n.lamparas);
+        for (t, q, sp) in &e.conectores {
+            sumar(7, &format!("{t}-{}", if *sp { "SP" } else { "AP" }), *q);
+        }
+        for a in &e.acometidas {
+            let a = a.to_uppercase();
+            let largo = match a.chars().next() {
+                Some('L') => "Largas",
+                Some('X') => "Extra Largas",
+                _ => "Cortas",
+            };
+            sumar(8, &format!("Acometidas {largo}"), 1.0);
+            sumar(8, if a.contains('3') { "Acometidas 3φ" } else { "Acometidas 1φ" }, 1.0);
+            if a.contains('M') {
+                sumar(8, &format!("Muretes en acometidas {}", largo.to_lowercase()), 1.0);
+            }
+        }
+        if !n.padre.is_empty() && n.longitud_m > 0.0 {
+            sumar(9, &n.conductor, n.longitud_m / 1000.0);
+        }
+    }
+    grupos
+        .into_iter()
+        .flat_map(|(g, u, m)| m.into_iter().map(move |(k, v)| FilaMetradoRed { item: g.into(), codigo: k, unidad: u.into(), cantidad: v }))
+        .collect()
+}
+
+/// Metrado de GridCraft -> `rubro, uc, cantidad` para PresuCraft.
+pub fn metrado_presupuesto(filas: &[FilaMetradoRed], rubro: &str) -> String {
+    let mut out = String::from("rubro,uc,cantidad
+");
+    for f in filas {
+        let uc = if f.codigo.contains(',') || f.codigo.contains('"') { format!("\"{}\"", f.codigo.replace('"', "\"\"")) } else { f.codigo.clone() };
+        out.push_str(&format!("{rubro},{uc},{}
+", f.cantidad));
+    }
+    out
 }
 
 /// Conductor de la red (Ω/km, A).
@@ -416,6 +522,27 @@ pub fn leer_tablas(nodos_csv: &str, conductores_csv: &str) -> Result<(Vec<Nodo>,
             lamparas: num(f, "lamparas").unwrap_or(0.0),
             este: num(f, "este"),
             norte: num(f, "norte"),
+            estructura: EstructuraBt {
+                armado: txt(f, "armado"),
+                soporte: txt(f, "soporte"),
+                n_soportes: num(f, "n_soportes").unwrap_or(0.0),
+                pat: txt(f, "pat"),
+                caja: txt(f, "caja"),
+                pastoral: txt(f, "pastoral"),
+                retenida: txt(f, "retenida"),
+                n_retenidas: num(f, "n_retenidas").unwrap_or(0.0),
+                // "CFF35-16:3:SP; CNN25-25:1:AP"
+                conectores: txt(f, "conectores")
+                    .split(';')
+                    .filter_map(|c| {
+                        let p: Vec<&str> = c.split(':').map(str::trim).collect();
+                        (!p[0].is_empty()).then(|| {
+                            (p[0].to_string(), p.get(1).and_then(|q| q.parse().ok()).unwrap_or(1.0), p.get(2).map_or(true, |s| !s.eq_ignore_ascii_case("AP")))
+                        })
+                    })
+                    .collect(),
+                acometidas: txt(f, "acometidas").split(';').map(|a| a.trim().to_string()).filter(|a| !a.is_empty()).collect(),
+            },
         })
         .collect();
     let cond = leer_csv(conductores_csv)?

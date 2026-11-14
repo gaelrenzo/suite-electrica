@@ -2,7 +2,8 @@
 //! Planilla de Caída de Tensión, exportada a `.xls`). No se distribuyen datos de REDCAD.
 //!
 //! ```text
-//! comparar-redcad CaidaTension.xls
+//! comparar-redcad CaidaTension.xls                           # caída de tensión
+//! comparar-redcad PlanillaRS.xls MetradoRS.xls --metrado     # metrado de redes secundarias
 //! ```
 //!
 //! Por subestación arma una red de GridCraft con los datos de entrada del reporte (longitud,
@@ -13,7 +14,7 @@
 use std::collections::{BTreeMap, HashMap};
 
 use calamine::{Data, Reader};
-use suite_motor::red::{calcular, ConductorRed, Nodo, Red};
+use suite_motor::red::{calcular, metrado, ConductorRed, EstructuraBt, Nodo, Red};
 
 fn num(d: &Data) -> f64 {
     match d {
@@ -108,7 +109,164 @@ struct Comparacion {
     errores: Vec<f64>,
 }
 
+/// Clave de comparación: minúsculas, sin acentos ni símbolos ("Acometidas 1ø" = "acometidas 1φ").
+fn clave(t: &str) -> String {
+    t.to_lowercase()
+        .replace(['ø', 'φ', 'Ø'], "f")
+        .replace("acom.", "acometidas")
+        .chars()
+        .map(|c| match c {
+            'á' => 'a',
+            'é' => 'e',
+            'í' => 'i',
+            'ó' => 'o',
+            'ú' => 'u',
+            c => c,
+        })
+        .filter(|c| c.is_alphanumeric() || "/'+-.".contains(*c))
+        .collect()
+}
+
+/// Metrado: nodos desde «Planilla de Redes Secundarias» (hoja PlanRSFormato2), metrado de
+/// GridCraft y comparación con «Metrado de Redes Secundarias» (MetradoRS-1de4 … 4de4).
+fn comparar_metrado(planilla: &str, met: &str) -> Result<(), String> {
+    let mut wb = calamine::open_workbook_auto(planilla).map_err(|e| format!("{planilla}: {e}"))?;
+    let r = wb.worksheet_range("PlanRSFormato2").map_err(|e| e.to_string())?;
+    let f: Vec<Vec<Data>> = r.rows().map(|x| x.to_vec()).collect();
+    let enc: Vec<String> = f[0].iter().map(texto).collect();
+    let col = |n: &str| enc.iter().position(|c| c == n).ok_or(format!("falta la columna {n}"));
+    let (ce, ca, cp, ccon, cv) = (col("N° Estructura")?, col("Armado")?, col("PAT")?, col("Conductor")?, col("Vano-m")?);
+    let (cs, cn, cc, cct, ccq) = (col("Soporte")?, col("Cantidad de Soportes")?, col("Caja Derv.")?, col("Conector-Tipo")?, col("Conector-Cantidad")?);
+    let (csp, cpi, cpa, cr) = (col("Conector-¿Es SP?")?, col("Punto de iluminación")?, col("Pastoral")?, col("Retenida")?);
+    let (acc, acl, acx, ac3) = (col("Acometida Corta")?, col("Acometida Larga")?, col("Acometida Extra Larga")?, col("Acometida 3ø")?);
+    let (mc, ml, mx) = (col("Murete en acom. Corta")?, col("Murete en acom. Larga")?, col("Murete en acom. Extra Larga")?);
+    let mut nodos: Vec<Nodo> = Vec::new();
+    let es = |d: &Data| !matches!(d, Data::Empty) && texto(d) != "-";
+    for fila in &f[1..] {
+        let g = |j: usize| fila.get(j).cloned().unwrap_or(Data::Empty);
+        if es(&g(ca)) {
+            // fila principal de la estructura; las siguientes sin armado la completan
+            let est = texto(&g(ce));
+            let rp = est.starts_with("RP");
+            nodos.push(Nodo {
+                nodo: est,
+                padre: if rp { String::new() } else { "x".into() },
+                longitud_m: num(&g(cv)).max(0.0),
+                conductor: texto(&g(ccon)),
+                lamparas: if es(&g(cpi)) { 1.0 } else { 0.0 },
+                estructura: EstructuraBt {
+                    armado: texto(&g(ca)),
+                    soporte: texto(&g(cs)),
+                    n_soportes: num(&g(cn)).max(0.0),
+                    // nombres de REDCAD en el metrado: PAT y pastoral por material del soporte
+                    pat: if es(&g(cp)) { "PAT-Concreto".into() } else { String::new() },
+                    caja: texto(&g(cc)),
+                    pastoral: if es(&g(cpa)) { "Pastorales-Concreto".into() } else { String::new() },
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        }
+        let Some(n) = nodos.last_mut() else { continue };
+        let rp = n.nodo.starts_with("RP");
+        let e = &mut n.estructura;
+        if es(&g(cr)) {
+            // retenida en estructura de red primaria (RP..) = RI-MT
+            if e.retenida.is_empty() {
+                e.retenida = if rp { "RI-MT".into() } else { "RI-BT".into() };
+            }
+            e.n_retenidas += 1.0;
+        }
+        if es(&g(cct)) {
+            e.conectores.push((texto(&g(cct)), num(&g(ccq)).max(0.0), num(&g(csp)) == 1.0));
+        }
+        for (c_, letra, cm) in [(acc, 'C', mc), (acl, 'L', ml), (acx, 'X', mx)] {
+            let k = num(&g(c_));
+            for _ in 0..(if k.is_nan() { 0 } else { k.max(0.0) as usize }) {
+                let mut a = letra.to_string();
+                if num(&g(ac3)) >= 1.0 {
+                    a.push('3');
+                }
+                if num(&g(cm)) >= 1.0 {
+                    a.push('M');
+                }
+                e.acometidas.push(a);
+            }
+        }
+    }
+    let red = Red { nodos, ..red_vacia() };
+    let gc = metrado(&red);
+    // metrado de REDCAD: fila 0 encabezados, fila 1 cantidades, en 4 hojas
+    let mut wb = calamine::open_workbook_auto(met).map_err(|e| format!("{met}: {e}"))?;
+    let mut rc: Vec<(String, f64)> = Vec::new();
+    for h in wb.sheet_names().to_vec() {
+        let r = wb.worksheet_range(&h).map_err(|e| e.to_string())?;
+        let x: Vec<Vec<Data>> = r.rows().map(|f| f.to_vec()).collect();
+        let desde = if h.ends_with("1de4") { 2 } else { 0 };
+        for j in desde..x[0].len() {
+            let v = num(x.get(1).and_then(|f| f.get(j)).unwrap_or(&Data::Empty));
+            if !v.is_nan() {
+                rc.push((texto(&x[0][j]), v));
+            }
+        }
+    }
+    let rc_de = |k: &str| rc.iter().filter(|x| clave(&x.0) == clave(k)).map(|x| x.1).reduce(|a, b| a + b);
+    println!("{:<22} {:<28} {:>11} {:>11}", "Ítem", "Código", "GridCraft", "REDCAD");
+    let (mut iguales, mut distintos) = (0, 0);
+    for m in &gc {
+        let r = rc_de(&m.codigo);
+        let ok = r.is_some_and(|r| (r - m.cantidad).abs() <= 1e-6 * r.abs().max(1.0));
+        if ok {
+            iguales += 1
+        } else {
+            distintos += 1
+        }
+        let rs = r.map_or("—".to_string(), |v| format!("{v:.5}"));
+        println!("{:<22} {:<28} {:>11.5} {:>11} {}", m.item, m.codigo, m.cantidad, rs, if ok { "" } else { "  ≠" });
+    }
+    let faltan: Vec<&(String, f64)> = rc.iter().filter(|x| x.1 != 0.0 && !gc.iter().any(|m| clave(&m.codigo) == clave(&x.0))).collect();
+    println!("\n{iguales} renglones iguales, {distintos} distintos; renglones de REDCAD no nulos sin equivalente: {}", faltan.len());
+    for (k, v) in faltan {
+        println!("  {k}: {v}");
+    }
+    Ok(())
+}
+
+fn red_vacia() -> Red {
+    Red {
+        nombre: String::new(),
+        sistema: "3F".into(),
+        tension_v: 380.0,
+        nodos: Vec::new(),
+        conductores: Vec::new(),
+        calificacion_kw_lote: 0.0,
+        fs_sp: 1.0,
+        fp_sp: 1.0,
+        fs_ce: 1.0,
+        kw_lampara: 0.0,
+        fs_ap: 1.0,
+        fp_ap: 1.0,
+        tension_ap_v: None,
+        tension_fn_v: None,
+        caida_max_pct: 0.0,
+        perdidas_max_pct: 0.0,
+        factor_carga: 0.0,
+        transformador_kva: 0.0,
+        factor_sobrecarga: 1.0,
+        tabla_fs: Vec::new(),
+        fuentes: HashMap::new(),
+    }
+}
+
 fn main() {
+    let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.len() == 3 && args[2] == "--metrado" {
+        if let Err(e) = comparar_metrado(&args[0], &args[1]) {
+            eprintln!("Error: {e}");
+            std::process::exit(1);
+        }
+        return;
+    }
     let Some(ruta) = std::env::args().nth(1) else {
         eprintln!("uso: comparar-redcad CaidaTension.xls");
         std::process::exit(1);
@@ -186,8 +344,7 @@ fn main() {
                 lotes: carga(v[2]),
                 kw_ce: carga(v[5]),
                 lamparas: carga(v[16]),
-                este: None,
-                norte: None,
+                ..Default::default()
             });
         }
         let tablero = filas.iter().find(|f| f.id == "Tablero").unwrap();
