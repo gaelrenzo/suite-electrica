@@ -204,6 +204,19 @@ Antes de borrar `suite_electrica/`, hay que:
 Desde `python-referencia-v1`, las funciones nuevas se escriben solo en Rust y no cambian los
 resultados de referencia. Si un cambio los altera a propósito, se explica aquí.
 
+- **GridCraft gráfico (editor en planta, como REDCAD):** la red se dibuja y edita en la app, sin
+  preparar CSV a mano.
+  - Herramientas: seleccionar/mover (el vano se recalcula con las coordenadas), agregar poste
+    (cuelga del seleccionado; el primero es la SED) y eliminar (Supr; no borra postes con
+    derivaciones). Deshacer con Ctrl+Z.
+  - Panel de propiedades: nombre, padre, conductor, vano, lotes, cargas, coordenadas y estructura
+    del metrado (armado, soporte, PAT, caja, pastoral, retenida, acometidas); parámetros de la red y
+    tabla de conductores.
+  - Fondo: un DXF (LINE/POLYLINE/LWPOLYLINE, `entrada::lineas_dxf`) y/o la topografía del proyecto.
+  - Tramos coloreados por %ΔV (verde ≤ 60 % del límite, ámbar ≤ límite, rojo si lo excede).
+  - `red::guardar` escribe el JSON (conserva claves que no conoce) y los CSV de nodos y conductores;
+    `suite-electrica.exe red.json` abre la red directo en GridCraft. Prueba: `tests/red_guardar.rs`.
+
 * **Elección de poste por momento de vuelco** (`catalogos::elegir_poste_mrn`, la usan «Ubicar
   automático» y «Asignar catálogos»). Cuando el poste tiene geometría (diámetros, empotramiento
   y MOR o carga nominal), se elige el de menor momento resistente en la línea de tierra que

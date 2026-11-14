@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use eframe::egui;
 use egui_plot::{Legend, Line, Plot, PlotPoints, Points};
 use suite_motor::documento::metrado_presupuesto;
-use suite_motor::salidas::{escribir_excel, tablas_perfil, tablas_presupuesto, tablas_red_con_metrado, Celda, Tabla};
+use suite_motor::salidas::{escribir_excel, tablas_perfil, tablas_presupuesto, Celda, Tabla};
 use suite_motor::tin::es_mayor;
 use suite_motor::{dxf, pdf, presupuesto, red};
 
@@ -199,7 +199,6 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Tipo {
-    Grid,
     Presu,
 }
 
@@ -209,15 +208,9 @@ pub struct ModuloJson {
     tablas: Vec<Tabla>,
     resumen: String,
     hoja: usize,
-    red: Option<(red::Red, red::ResultadoRed)>,
     presu: Option<presupuesto::ResultadoPresupuesto>,
 }
 
-const PLANTILLAS_GRID: [(&str, &str); 3] = [
-    ("red.json", include_str!("../../../suite_electrica/plantillas/red_proyecto.json")),
-    ("nodos.csv", include_str!("../../../suite_electrica/plantillas/red_nodos.csv")),
-    ("conductores_bt.csv", include_str!("../../../suite_electrica/plantillas/conductores_bt.csv")),
-];
 const PLANTILLAS_PRESU: [(&str, &str); 5] = [
     ("presupuesto.json", include_str!("../../../suite_electrica/plantillas/presu_presupuesto.json")),
     ("suministros.csv", include_str!("../../../suite_electrica/plantillas/presu_suministros.csv")),
@@ -228,12 +221,11 @@ const PLANTILLAS_PRESU: [(&str, &str); 5] = [
 
 impl ModuloJson {
     pub fn nuevo(tipo: Tipo) -> Self {
-        ModuloJson { tipo, ruta: None, tablas: Vec::new(), resumen: String::new(), hoja: 0, red: None, presu: None }
+        ModuloJson { tipo, ruta: None, tablas: Vec::new(), resumen: String::new(), hoja: 0, presu: None }
     }
 
     fn archivo(&self) -> &'static str {
         match self.tipo {
-            Tipo::Grid => "red.json",
             Tipo::Presu => "presupuesto.json",
         }
     }
@@ -241,20 +233,6 @@ impl ModuloJson {
     fn calcular(&mut self) -> Result<String, String> {
         let ruta = self.ruta.clone().ok_or("Abra o cree un proyecto")?;
         match self.tipo {
-            Tipo::Grid => {
-                let rd = red::cargar(&ruta)?;
-                let r = red::calcular(&rd)?;
-                let g = |k: &str| r.resumen.iter().find(|x| x.0 == k).map_or(f64::NAN, |x| x.1);
-                self.resumen = format!(
-                    "{} — %ΔV máx. {:.2} %, M.D. {:.2} kW, {} alerta(s)",
-                    if r.alertas.is_empty() { "CUMPLE" } else { "NO CUMPLE" },
-                    g("%ΔV máx."),
-                    g("M.D. total (kW)"),
-                    r.alertas.len()
-                );
-                self.tablas = tablas_red_con_metrado(&rd, &r);
-                self.red = Some((rd, r));
-            }
             Tipo::Presu => {
                 let p = presupuesto::cargar(&ruta)?;
                 let r = presupuesto::calcular(&p)?;
@@ -270,14 +248,6 @@ impl ModuloJson {
 
     fn exportar(&self, c: &Path) -> Result<Vec<PathBuf>, String> {
         match self.tipo {
-            Tipo::Grid => {
-                let (rd, r) = self.red.as_ref().ok_or("Calcule primero")?;
-                let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &tablas_red_con_metrado(rd, r))?];
-                if let Some(d) = dxf::plano_red(&c.join("plano_red.dxf"), rd, r, 2.0)? {
-                    out.push(d);
-                }
-                Ok(out)
-            }
             Tipo::Presu => {
                 let r = self.presu.as_ref().ok_or("Calcule primero")?;
                 Ok(vec![escribir_excel(&c.join("presupuesto.xlsx"), &tablas_presupuesto(r))?])
@@ -289,7 +259,6 @@ impl ModuloJson {
     fn crear(&self, carpeta: &Path) -> Result<PathBuf, String> {
         std::fs::create_dir_all(carpeta).map_err(|e| e.to_string())?;
         let lista: &[(&str, &str)] = match self.tipo {
-            Tipo::Grid => &PLANTILLAS_GRID,
             Tipo::Presu => &PLANTILLAS_PRESU,
         };
         for (n, t) in lista {
@@ -318,7 +287,6 @@ fn miles(x: f64) -> String {
 
 fn modulo(app: &mut App, tipo: Tipo) -> &mut ModuloJson {
     match tipo {
-        Tipo::Grid => &mut app.grid,
         Tipo::Presu => &mut app.presu,
     }
 }
@@ -336,15 +304,13 @@ fn fusionar_metrado(destino: &Path, nuevo: &str, rubro: &str) -> Result<(), Stri
         );
     }
     lineas.extend(nuevo.lines().skip(1).map(String::from));
-    std::fs::write(destino, lineas.join("
-") + "
-").map_err(|e| format!("{}: {e}", destino.display()))
+    std::fs::write(destino, lineas.join("\n") + "\n").map_err(|e| format!("{}: {e}", destino.display()))
 }
 
 fn metrado_a_presupuesto(app: &mut App, de_red: bool) {
     let (csv, rubro, origen) = if de_red {
-        let Some((rd, _)) = &app.grid.red else {
-            app.error = Some("Calcule primero la red en GridCraft".into());
+        let Some(rd) = &app.red.red else {
+            app.error = Some("Abra o dibuje primero la red en GridCraft".into());
             return;
         };
         (suite_motor::red::metrado_presupuesto(&red::metrado(rd), "RS"), "RS", "GridCraft")
@@ -368,7 +334,6 @@ fn metrado_a_presupuesto(app: &mut App, de_red: bool) {
 
 pub fn panel_json(app: &mut App, ui: &mut egui::Ui, tipo: Tipo) {
     egui::Panel::top(match tipo {
-        Tipo::Grid => "grid_barra",
         Tipo::Presu => "presu_barra",
     })
     .show(ui, |ui| {

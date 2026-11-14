@@ -640,3 +640,98 @@ pub fn cargar(ruta: &std::path::Path) -> Result<Red, String> {
         fuentes: fuentes_json(&cfg),
     })
 }
+
+/// Guarda la red: actualiza el JSON (parámetros; conserva las claves que no conoce) y reescribe
+/// el CSV de nodos (con las columnas de estructura) y el de conductores. Los comentarios `#` de
+/// los CSV no se conservan.
+pub fn guardar(red: &Red, ruta: &std::path::Path) -> Result<(), String> {
+    use serde_json::{json, Map, Value};
+    let mut cfg: Map<String, Value> = std::fs::read_to_string(ruta)
+        .ok()
+        .and_then(|t| serde_json::from_str::<Value>(&t).ok())
+        .and_then(|v| v.as_object().cloned())
+        .unwrap_or_default();
+    let nombre = |k: &str, d: &str| cfg.get(k).and_then(|v| v.as_str()).unwrap_or(d).to_string();
+    let (f_nodos, f_cond) = (nombre("nodos", "nodos.csv"), nombre("conductores", "conductores_bt.csv"));
+    let opt = |v: Option<f64>| v.map_or(Value::Null, |x| json!(x));
+    for (k, v) in [
+        ("nombre", json!(red.nombre)),
+        ("nodos", json!(f_nodos)),
+        ("conductores", json!(f_cond)),
+        ("sistema", json!(red.sistema)),
+        ("tension_V", json!(red.tension_v)),
+        ("calificacion_kw_lote", json!(red.calificacion_kw_lote)),
+        ("fs_sp", json!(red.fs_sp)),
+        ("tabla_fs", json!(red.tabla_fs.iter().map(|(a, b)| json!([a, b])).collect::<Vec<_>>())),
+        ("fp_sp", json!(red.fp_sp)),
+        ("fs_ce", json!(red.fs_ce)),
+        ("kw_lampara", json!(red.kw_lampara)),
+        ("fs_ap", json!(red.fs_ap)),
+        ("fp_ap", json!(red.fp_ap)),
+        ("tension_ap_V", opt(red.tension_ap_v)),
+        ("tension_fn_V", opt(red.tension_fn_v)),
+        ("caida_max_pct", json!(red.caida_max_pct)),
+        ("perdidas_max_pct", json!(red.perdidas_max_pct)),
+        ("factor_carga", json!(red.factor_carga)),
+        ("transformador_kva", json!(red.transformador_kva)),
+        ("factor_sobrecarga", json!(red.factor_sobrecarga)),
+        ("fuentes", Value::Object(red.fuentes.iter().map(|(k, v)| (k.clone(), json!(v))).collect())),
+    ] {
+        if v.is_null() {
+            cfg.remove(k);
+        } else {
+            cfg.insert(k.into(), v);
+        }
+    }
+    let base = ruta.parent().unwrap_or(std::path::Path::new("."));
+    let num = |x: f64| if x.is_nan() { String::new() } else { x.to_string() };
+    let on = |x: Option<f64>| x.map(num).unwrap_or_default();
+    let mut w = csv::Writer::from_writer(Vec::new());
+    let err = |e: csv::Error| e.to_string();
+    w.write_record([
+        "nodo", "padre", "longitud_m", "conductor", "lotes", "kw_ce", "lamparas", "este", "norte", "armado", "soporte", "n_soportes",
+        "pat", "caja", "pastoral", "retenida", "n_retenidas", "conectores", "acometidas",
+    ])
+    .map_err(err)?;
+    for n in &red.nodos {
+        let e = &n.estructura;
+        let conectores = e
+            .conectores
+            .iter()
+            .map(|(t, q, sp)| format!("{t}:{}:{}", num(*q), if *sp { "SP" } else { "AP" }))
+            .collect::<Vec<_>>()
+            .join(";");
+        let nz = |x: f64| if x == 0.0 { String::new() } else { num(x) };
+        w.write_record([
+            n.nodo.clone(), n.padre.clone(), if n.padre.is_empty() { String::new() } else { num(n.longitud_m) }, n.conductor.clone(),
+            num(n.lotes), num(n.kw_ce), num(n.lamparas), on(n.este), on(n.norte), e.armado.clone(), e.soporte.clone(),
+            nz(e.n_soportes), e.pat.clone(), e.caja.clone(), e.pastoral.clone(), e.retenida.clone(), nz(e.n_retenidas), conectores,
+            e.acometidas.join(";"),
+        ])
+        .map_err(err)?;
+    }
+    let nodos = w.into_inner().map_err(|e| e.to_string())?;
+    let mut w = csv::Writer::from_writer(Vec::new());
+    w.write_record(["formacion", "k_ohm_km", "r_ohm_km", "x_ohm_km", "k_ap_ohm_km", "r_ap_ohm_km", "corriente_max_A", "fases", "fuente"])
+        .map_err(err)?;
+    for c in &red.conductores {
+        w.write_record([
+            c.formacion.clone(), on(c.k_ohm_km), on(c.r_ohm_km), on(c.x_ohm_km), on(c.k_ap_ohm_km), on(c.r_ap_ohm_km),
+            on(c.corriente_max_a), on(c.fases), c.fuente.clone(),
+        ])
+        .map_err(err)?;
+    }
+    let cond = w.into_inner().map_err(|e| e.to_string())?;
+    let escribir = |n: &str, b: &[u8]| std::fs::write(base.join(n), b).map_err(|e| format!("{n}: {e}"));
+    escribir(&f_nodos, &nodos)?;
+    escribir(&f_cond, &cond)?;
+    let texto = serde_json::to_string_pretty(&Value::Object(cfg)).map_err(|e| e.to_string())?;
+    std::fs::write(ruta, texto + "\n").map_err(|e| format!("{}: {e}", ruta.display()))
+}
+
+/// Longitud del tramo padre -> nodo según las coordenadas (m), si ambos las tienen.
+pub fn longitud_plano(red: &Red, i: usize) -> Option<f64> {
+    let n = &red.nodos[i];
+    let p = red.nodos.iter().find(|x| x.nodo == n.padre)?;
+    Some((n.este? - p.este?).hypot(n.norte? - p.norte?))
+}

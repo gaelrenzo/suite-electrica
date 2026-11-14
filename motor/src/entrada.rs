@@ -388,6 +388,26 @@ fn polilineas(ents: &[EntidadDxf]) -> Vec<(&'static str, String, Vec<[f64; 3]>, 
     out
 }
 
+/// Líneas de un DXF para usar como fondo (LINE, POLYLINE y LWPOLYLINE; las cerradas se cierran).
+pub fn lineas_dxf(ruta: &Path) -> Result<Vec<Vec<[f64; 2]>>, String> {
+    let ents = entidades_dxf(ruta)?;
+    let mut out: Vec<Vec<[f64; 2]>> = ents
+        .iter()
+        .filter(|e| e.tipo == "LINE")
+        .filter_map(|e| Some(vec![[num(e, 10)?, num(e, 20)?], [num(e, 11)?, num(e, 21)?]]))
+        .collect();
+    for (_, _, v, cerrada) in polilineas(&ents) {
+        let mut xy: Vec<[f64; 2]> = v.iter().map(|p| [p[0], p[1]]).collect();
+        if cerrada && !xy.is_empty() {
+            xy.push(xy[0]);
+        }
+        if xy.len() >= 2 {
+            out.push(xy);
+        }
+    }
+    Ok(out)
+}
+
 /// Puntos 3D de POINT y vértices de POLYLINE/LWPOLYLINE (en ese orden, como ezdxf).
 pub fn leer_puntos_dxf(ruta: &Path, capa_filtro: Option<&str>) -> Result<Vec<[f64; 3]>, String> {
     let ents = entidades_dxf(ruta)?;

@@ -9,6 +9,7 @@
 
 mod linea;
 mod otros;
+mod red;
 
 use std::path::{Path, PathBuf};
 
@@ -35,7 +36,7 @@ pub struct App {
     /// Datos cambiados desde el último cálculo.
     pub obsoleto: bool,
     pub linea: linea::EstadoLinea,
-    pub grid: otros::ModuloJson,
+    pub red: red::EstadoRed,
     pub presu: otros::ModuloJson,
     cerrar: Option<bool>,
     titulo: String,
@@ -51,7 +52,7 @@ impl App {
             calculo: None,
             obsoleto: false,
             linea: linea::EstadoLinea::default(),
-            grid: otros::ModuloJson::nuevo(otros::Tipo::Grid),
+            red: red::EstadoRed::default(),
             presu: otros::ModuloJson::nuevo(otros::Tipo::Presu),
             cerrar: None,
             titulo: String::new(),
@@ -188,7 +189,7 @@ impl App {
         if f6 {
             linea::calcular(self);
         }
-        if z && self.pestana == Pestana::Linea {
+        if z && self.pestana == Pestana::Linea && !ui.ctx().egui_wants_keyboard_input() {
             linea::deshacer(self);
         }
     }
@@ -277,7 +278,7 @@ impl eframe::App for App {
         match self.pestana {
             Pestana::Topo => otros::panel_topo(self, ui),
             Pestana::Linea => linea::panel(self, ui),
-            Pestana::Grid => otros::panel_json(self, ui, otros::Tipo::Grid),
+            Pestana::Grid => red::panel(self, ui),
             Pestana::Presu => otros::panel_json(self, ui, otros::Tipo::Presu),
         }
         self.dialogos(&ctx);
@@ -338,11 +339,23 @@ pub fn num(ui: &mut egui::Ui, etiqueta: &str, v: &mut f64, velocidad: f64, sufij
 }
 
 fn main() -> eframe::Result {
-    // `suite-electrica proyecto.sel` abre el proyecto
-    let doc = std::env::args().nth(1).map(PathBuf::from).and_then(|r| Documento::abrir(&r).ok()).unwrap_or_default();
+    // `suite-electrica proyecto.sel` abre el proyecto; `suite-electrica red.json`, la red en GridCraft
+    let arg = std::env::args().nth(1).map(PathBuf::from);
+    let es_json = arg.as_ref().is_some_and(|r| r.extension().is_some_and(|e| e.eq_ignore_ascii_case("json")));
+    let doc = arg.as_ref().filter(|_| !es_json).and_then(|r| Documento::abrir(r).ok()).unwrap_or_default();
     let opciones = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([1200.0, 760.0]).with_min_inner_size([900.0, 600.0]).with_maximized(true),
         ..Default::default()
     };
-    eframe::run_native("Suite Eléctrica", opciones, Box::new(|_cc| Ok(Box::new(App::new(doc)))))
+    let mut app = App::new(doc);
+    if let Some(r) = arg.filter(|_| es_json) {
+        match app.red.abrir(&r) {
+            Ok(()) => {
+                app.pestana = Pestana::Grid;
+                app.estado = format!("Red abierta: {}", r.display());
+            }
+            Err(e) => app.error = Some(e),
+        }
+    }
+    eframe::run_native("Suite Eléctrica", opciones, Box::new(|_cc| Ok(Box::new(app))))
 }
