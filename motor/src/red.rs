@@ -30,6 +30,8 @@ pub struct ConductorRed {
     pub r_ap_ohm_km: Option<f64>,
     pub corriente_max_a: Option<f64>,
     pub fuente: String,
+    /// Fases del tramo (1, 2 o 3). Si se indica, cada tramo se calcula con sus fases (como REDCAD).
+    pub fases: Option<f64>,
 }
 
 /// Datos de una red radial.
@@ -49,6 +51,8 @@ pub struct Red {
     pub fs_ap: f64,
     pub fp_ap: f64,
     pub tension_ap_v: Option<f64>,
+    /// Tensión fase-neutro para tramos de 1 fase (por defecto V/√3; 220 V en 440/220 V).
+    pub tension_fn_v: Option<f64>,
     pub caida_max_pct: f64,
     pub perdidas_max_pct: f64,
     pub factor_carga: f64,
@@ -233,6 +237,22 @@ pub fn calcular(red: &Red) -> Result<ResultadoRed, String> {
     } else {
         red.tension_v
     });
+    // fases por tramo (REDCAD): todos los conductores usados deben declararlas
+    let por_tramo = red.conductores.iter().any(|c| c.fases.is_some());
+    if por_tramo {
+        let mut sin: Vec<&str> = n
+            .iter()
+            .filter(|x| !x.padre.is_empty() && cat[x.conductor.as_str()].fases.is_none())
+            .map(|x| x.conductor.as_str())
+            .collect();
+        sin.sort();
+        sin.dedup();
+        if !sin.is_empty() {
+            return Err(format!("Conductores sin 'fases' (si una formación las declara, todas deben): {sin:?}"));
+        }
+    }
+    let v_fn = red.tension_fn_v.filter(|&v| v > 0.0).unwrap_or(red.tension_v / 3f64.sqrt());
+    let v_ap = if por_tramo { red.tension_ap_v.filter(|&v| v != 0.0).unwrap_or(v_fn) } else { v_ap };
     let ap_sep = |f: &str| cat.get(f).is_some_and(|c| c.k_ap_ohm_km.is_some() || c.r_ap_ohm_km.is_some());
 
     let pos: HashMap<&str, usize> = n.iter().enumerate().map(|(i, x)| (x.nodo.as_str(), i)).collect();
@@ -258,19 +278,37 @@ pub fn calcular(red: &Red) -> Result<ResultadoRed, String> {
         let l = n[i].longitud_m / 1000.0;
         let sep = ap_sep(&n[i].conductor);
         let p = acum_sp[i] + if sep { 0.0 } else { acum_ap[i] };
-        let corr = p * 1e3 / (k_i * red.tension_v * red.fp_sp);
         let k = factor_k(c, &red.sistema, red.fp_sp, false)
             .ok_or_else(|| format!("Conductor {}: falta k_ohm_km o r_ohm_km", c.formacion))?;
-        let dv = k * corr * l;
-        let perd = c.r_ohm_km.map_or(f64::NAN, |r| n_f * corr * corr * r * l);
+        // ponytail: en modo por tramo la caída se acumula en V fase-neutro (%ΔV sobre V fase-neutro)
+        // corriente con la tensión real en el extremo emisor del tramo (como REDCAD)
+        let caida = if por_tramo { (v_fn - dv_sp[padre]) / v_fn } else { 1.0 };
+        let (corr, dv, nf) = match c.fases.filter(|_| por_tramo).map(|f| f.round() as i64) {
+            Some(1) => {
+                let i = p * 1e3 / (v_fn * caida * red.fp_sp);
+                (i, k * i * l, 1.0)
+            }
+            Some(f) => {
+                let ki = if f == 3 { 3f64.sqrt() } else { 1.0 };
+                let i = p * 1e3 / (ki * red.tension_v * caida * red.fp_sp);
+                (i, k * i * l * v_fn / red.tension_v, f as f64)
+            }
+            None => {
+                let i = p * 1e3 / (k_i * red.tension_v * red.fp_sp);
+                (i, k * i * l, n_f)
+            }
+        };
+        let perd = c.r_ohm_km.map_or(f64::NAN, |r| nf * corr * corr * r * l);
         let acum = dv_sp[padre] + dv;
         dv_sp.insert(nodo, acum);
         let ap = if sep {
-            let i_ap = acum_ap[i] * 1e3 / (v_ap * red.fp_ap);
+            let v_ap_emisor = if por_tramo { v_ap - dv_ap[padre] } else { v_ap };
+            let i_ap = acum_ap[i] * 1e3 / (v_ap_emisor * red.fp_ap);
             let k_ap = factor_k(c, &red.sistema, red.fp_ap, true).unwrap_or(f64::NAN);
             let a = dv_ap[padre] + k_ap * i_ap * l;
             dv_ap.insert(nodo, a);
-            let perd_ap = c.r_ap_ohm_km.map_or(f64::NAN, |r| rd(2.0 * i_ap * i_ap * r * l, 2));
+            let n_ap = if por_tramo { 1.0 } else { 2.0 };
+            let perd_ap = c.r_ap_ohm_km.map_or(f64::NAN, |r| rd(n_ap * i_ap * i_ap * r * l, 2));
             Some((rd(acum_ap[i], 3), rd(i_ap, 2), rd(100.0 * a / v_ap, 3), perd_ap))
         } else {
             let a = dv_ap[padre];
@@ -289,7 +327,7 @@ pub fn calcular(red: &Red) -> Result<ResultadoRed, String> {
             i_a: rd(corr, 2),
             dv_tramo_v: rd(dv, 3),
             dv_acum_v: rd(acum, 3),
-            dv_pct: rd(100.0 * acum / red.tension_v, 3),
+            dv_pct: rd(100.0 * acum / if por_tramo { v_fn } else { red.tension_v }, 3),
             perdidas_w: rd(perd, 2),
             i_max_a: c.corriente_max_a,
             ap,
@@ -391,6 +429,7 @@ pub fn leer_tablas(nodos_csv: &str, conductores_csv: &str) -> Result<(Vec<Nodo>,
             r_ap_ohm_km: num(f, "r_ap_ohm_km"),
             corriente_max_a: num(f, "corriente_max_A"),
             fuente: txt(f, "fuente"),
+            fases: num(f, "fases"),
         })
         .collect();
     Ok((nodos, cond))
@@ -432,6 +471,7 @@ pub fn cargar(ruta: &std::path::Path) -> Result<Red, String> {
         fs_ap: f("fs_ap", Some(1.0))?,
         fp_ap: f("fp_ap", Some(1.0))?,
         tension_ap_v: cfg.get("tension_ap_V").and_then(|v| v.as_f64()),
+        tension_fn_v: cfg.get("tension_fn_V").and_then(|v| v.as_f64()),
         caida_max_pct: f("caida_max_pct", Some(0.0))?,
         perdidas_max_pct: f("perdidas_max_pct", Some(0.0))?,
         factor_carga: f("factor_carga", Some(0.0))?,

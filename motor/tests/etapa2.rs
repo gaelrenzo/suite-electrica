@@ -75,6 +75,7 @@ fn comparar_red(texto: &str) {
         fs_ap: g("fs_ap"),
         fp_ap: g("fp_ap"),
         tension_ap_v: Some(g("tension_ap_V")).filter(|&v| v != 0.0),
+        tension_fn_v: None,
         caida_max_pct: g("caida_max_pct"),
         perdidas_max_pct: g("perdidas_max_pct"),
         factor_carga: g("factor_carga"),

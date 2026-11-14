@@ -232,6 +232,32 @@ resultados de referencia. Si un cambio los altera a propósito, se explica aquí
   `tests/armados_dge.rs` comprueba la elección, que cada armado tenga geometría y materiales, y
   el cálculo completo con una línea 1Φ, una 2Φ con neutro y una 3Φ con neutro. **Pendiente:**
   biposte en H (láminas 027-030), porque el modelo verifica un solo poste por estructura.
+* **GridCraft con fases por tramo (criterio de REDCAD).** El catálogo de conductores admite una
+  columna nueva, `fases` (1, 2 o 3), y el JSON de la red un parámetro nuevo, `tension_fn_V`
+  (220 V en 440/220 V; por defecto V/√3). Si alguna formación declara fases, todas deben
+  hacerlo, y cada tramo se calcula con las suyas:
+  - corriente: I = P/(√3·V_ff), P/V_ff o P/V_fn, con la tensión real del extremo emisor;
+  - caída: ΔV = K·I·L, acumulada en V fase-neutro, con %ΔV sobre la tensión fase-neutro;
+  - pérdidas: fases·I²·R·L, y en alumbrado I²·R·L con su propia tensión.
+
+  Sin la columna, el cálculo es el anterior (paridad con Python).
+
+  **Validación:** `comparar-redcad CaidaTension.xls` (binario `motor/src/bin/comparar-redcad.rs`)
+  lee la «Planilla de Caída de Tensión» exportada de REDCAD 2023. El ejemplo «Urbano-Rural» tiene
+  4 subestaciones (380/220 V trifásica y 440/220 V) y 106 tramos con formaciones 3x16, 2x16 y
+  1x16, con y sin conductor de alumbrado. El programa reconstruye el árbol por las tensiones y
+  compara nodo por nodo:
+  - potencia acumulada (SP y AP): diferencia 0;
+  - corriente: ≤ 0,05 A (REDCAD redondea a 0,1 A);
+  - caída por tramo: ≤ 0,019 V;
+  - tensión: ≤ 0,037 V;
+  - %ΔV: ≤ 0,06 % (REDCAD redondea a 0,1 %);
+  - pérdidas: ≤ 0,33 W.
+
+  Dos criterios de REDCAD que el comparador refleja: la fila «Tablero» muestra totales, y una
+  formación sin conductor de alumbrado tiene K_AP = 0 (la lámpara no carga la fase).
+  `tests/red_fases.rs` fija el modo con una red sintética calculada a mano. Los datos de REDCAD
+  no se distribuyen: se exportan en local (`C:\esolutions\_comparacion\redcad`).
 
 ## Cómo continuar
 
