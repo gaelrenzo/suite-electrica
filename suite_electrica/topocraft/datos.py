@@ -127,6 +127,10 @@ class ReporteLimpieza:
     nombres_repetidos: list[str] = field(default_factory=list)
     atipicos: list[str] = field(default_factory=list)
     """Cotas atípicas detectadas (eliminadas solo si se pidió)."""
+    fuera_zona: list[str] = field(default_factory=list)
+    """Coordenadas fuera del rango UTM (eliminadas)."""
+    cotas_fuera_rango: list[str] = field(default_factory=list)
+    """Cotas fuera del rango terrestre −500…7000 m: ¿mm, cm o pies? (solo aviso)."""
 
     def resumen(self) -> str:
         """Texto breve para consola."""
@@ -140,6 +144,8 @@ class ReporteLimpieza:
             fila("conflictos de cota (mismo E,N)", self.conflictos),
             fila("nombres repetidos", self.nombres_repetidos),
             fila("cotas atípicas", self.atipicos),
+            fila("fuera de zona UTM", self.fuera_zona),
+            fila("cotas fuera de rango (¿unidades?)", self.cotas_fuera_rango),
         ])
 
 
@@ -183,6 +189,20 @@ def detectar_atipicos(
     return np.array(sorted(hallados), dtype=int)
 
 
+RANGO_ESTE = (100_000.0, 900_000.0)
+"""Este UTM válido (m); fuera de él el punto no pertenece a la zona."""
+RANGO_NORTE = (0.0, 10_000_000.0)
+RANGO_COTA = (-500.0, 7_000.0)
+"""Cotas terrestres plausibles (m); fuera de rango sugiere mm, cm o pies."""
+
+
+def validar_unidades(d: pd.DataFrame) -> None:
+    """Error si las coordenadas parecen geográficas (grados) en lugar de UTM (m)."""
+    if len(d) and ((d["este"].abs() <= 180) & (d["norte"].abs() <= 90)).mean() > 0.5:
+        raise ValueError("Las coordenadas parecen geográficas (grados): importe el archivo como KML/GPX "
+                         "o conviértalas a UTM WGS84 (m)")
+
+
 def limpiar(
     df: pd.DataFrame,
     tol_xy: float = 0.001,
@@ -204,6 +224,11 @@ def limpiar(
     malos = d[["este", "norte", "cota"]].isna().any(axis=1)
     rep.invalidos = d.loc[malos, "punto"].tolist()
     d = d[~malos].reset_index(drop=True)
+    validar_unidades(d)
+    fuera = ~(d["este"].between(*RANGO_ESTE) & d["norte"].between(*RANGO_NORTE))
+    rep.fuera_zona = d.loc[fuera, "punto"].tolist()
+    d = d[~fuera].reset_index(drop=True)
+    rep.cotas_fuera_rango = d.loc[~d["cota"].between(*RANGO_COTA), "punto"].tolist()
 
     rep.nombres_repetidos = sorted(set(d.loc[d["punto"].duplicated(), "punto"]))
 

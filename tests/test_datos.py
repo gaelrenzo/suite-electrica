@@ -26,8 +26,8 @@ def test_csv_punto_y_coma_coma_decimal_sin_encabezado(tmp_path):
 def test_limpieza_duplicados_conflictos_invalidos():
     df = pd.DataFrame({
         "punto": ["1", "2", "3", "4", "1"],
-        "este": [0.0, 0.0, 0.0004, 10.0, 20.0],
-        "norte": [0.0, 0.0, 0.0, 0.0, 0.0],
+        "este": [390000.0, 390000.0, 390000.0004, 390010.0, 390020.0],
+        "norte": [8248000.0] * 5,
         "cota": [100.0, 100.0, 101.0, np.nan, 100.0],
         "descripcion": "",
     })
@@ -85,3 +85,18 @@ def test_csv_pnezd_estacion_total(tmp_path):
     df = datos.leer_csv(p)
     assert df["este"].tolist() == [797638.292, 797656.193]
     assert df["norte"].iloc[0] == 8437165.837
+
+
+def test_unidades_y_zona():
+    import pytest
+    df = st.malla(st.plano_inclinado(), 50)
+    df.loc[0, ["este", "norte"]] = [39000.0, 8248000.0]  # este con un dígito de menos
+    df.loc[1, "norte"] = -5.0
+    df.loc[2, "cota"] = 3820000.0  # mm
+    limpio, rep = datos.limpiar(df)
+    assert rep.fuera_zona == [df.punto[0], df.punto[1]]
+    assert rep.cotas_fuera_rango == [df.punto[2]]
+    assert len(limpio) == len(df) - 2 and "fuera de zona UTM: 2" in rep.resumen()
+    geo = df.assign(este=-70.0 + df.este * 1e-6, norte=-15.8 + df.norte * 1e-8)
+    with pytest.raises(ValueError, match="geográficas"):
+        datos.limpiar(geo)
