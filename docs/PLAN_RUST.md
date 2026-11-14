@@ -425,7 +425,7 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 3. **Cimentaciones:** excavación y concreto por poste para el metrado y el presupuesto. Los
    parámetros (empotramiento, dimensiones de la excavación) van en la plantilla con su fuente o
    marcados PENDIENTE/EJEMPLO; la suite no inventa valores normativos.
-4. **Release:** actualizar `v0.1.0-rust` con el build actual (editor de GridCraft, editores de
+4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
 5. **Otras brechas con ESOLUTIONS:** biposte en H, transporte por rutas (PRESIO), terminal con
    retenida a media línea, autodiseño BT, redes primarias, SRTM/catastro en TopoCraft.
