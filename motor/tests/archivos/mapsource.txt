@@ -1,0 +1,21 @@
+Grid	UTM
+Datum	WGS 84
+
+Header	Name	Description	Type	Position	Altitude
+
+Waypoint	P1	TN	User Waypoint	18 L 389997 8247998	3800 m	
+Waypoint	P2	TN	User Waypoint	18 L 390002 8248016	3800 m	
+Waypoint	P3	TN	User Waypoint	18 L 389997 8248029	3799 m	
+Waypoint	P4	TN	User Waypoint	18 L 390000 8248042	3799 m	
+Waypoint	P5	TN	User Waypoint	18 L 390002 8248057	3799 m	
+Waypoint	P6	TN	User Waypoint	18 L 389999 8248075	3799 m	
+Waypoint	P7	TN	User Waypoint	18 L 389999 8248091	3799 m	
+Waypoint	P8	TN	User Waypoint	18 L 390002 8248109	3799 m	
+Waypoint	P9	TN	User Waypoint	18 L 389998 8248121	3798 m	
+Waypoint	P10	TN	User Waypoint	18 L 390002 8248133	3798 m	
+Waypoint	P11	TN	User Waypoint	18 L 389996 8248154	3797 m	
+Waypoint	P12	TN	User Waypoint	18 L 389998 8248164	3797 m	
+Waypoint	P13	TN	User Waypoint	18 L 390018 8248001	3801 m	
+Waypoint	P14	TN	User Waypoint	18 L 390015 8248017	3800 m	
+Waypoint	P15	TN	User Waypoint	18 L 390011 8248032	3800 m	
+Waypoint	SA	sin altitud	User Waypoint	18 L 390500 8248500		

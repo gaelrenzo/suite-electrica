@@ -1,0 +1,7 @@
+<?xml version="1.0"?><gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1">
+<wpt lat="-15.8" lon="-70.0"><ele>3850.5</ele><name>AN-0</name><cmt>poste</cmt></wpt>
+<wpt lat="-15.801" lon="-70.0005"><name>SinEle</name><desc>sin cota</desc></wpt>
+<rte><name>R1</name><rtept lat="-15.8" lon="-70.0"><ele>3850</ele></rtept>
+<rtept lat="-15.81" lon="-70.0"><ele>3860</ele></rtept></rte>
+<trk><name>T1</name><trkseg><trkpt lat="-15.805" lon="-70.001"><ele>3855</ele></trkpt>
+<trkpt lat="-15.806" lon="-70.002"/></trkseg></trk></gpx>

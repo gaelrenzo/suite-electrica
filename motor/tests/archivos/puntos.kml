@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><Folder>
+<Placemark><name>V-0</name><Point><coordinates>-70.0012,-15.8015,3850.5</coordinates></Point></Placemark>
+<Placemark><name>SinCota</name><Point><coordinates>-70.0020,-15.8010,0</coordinates></Point></Placemark>
+<Placemark><name>Ruta1,AB</name><LineString><coordinates>
+ -70.0,-15.8,0 -70.001,-15.801,0 -70.002,-15.8005,3851
+</coordinates></LineString></Placemark>
+<Placemark><name>Ruta2</name><LineString><coordinates>-70.003,-15.802 -70.004,-15.803</coordinates></LineString></Placemark>
+</Folder></Document></kml>
