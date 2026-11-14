@@ -129,8 +129,14 @@ impl EstadoRed {
     fn exportar(&self, c: &Path) -> Result<Vec<PathBuf>, String> {
         let (rd, r) = (self.red.as_ref().ok_or("No hay red")?, self.resultado.as_ref().ok_or("Calcule primero")?);
         let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &tablas_red_con_metrado(rd, r))?];
-        if let Some(d) = dxf::plano_red(&c.join("plano_red.dxf"), rd, r, 2.0)? {
-            out.push(d);
+        if let Some(mut d) = dxf::construir_plano_red(rd, r, 2.0)? {
+            d.lamina(&dxf::Cajetin {
+                proyecto: rd.nombre.clone(),
+                titulo: "RED SECUNDARIA - CAÍDA DE TENSIÓN".into(),
+                lamina: "RS-01".into(),
+                ..Default::default()
+            });
+            out.push(d.guardar(&c.join("plano_red.dxf"))?);
         }
         Ok(out)
     }

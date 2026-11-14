@@ -57,15 +57,27 @@ fn procesar(app: &mut App) {
 fn exportar_topo(app: &mut App) {
     let Some(c) = elegir_carpeta("Carpeta de salida (TopoCraft)", app.doc.ruta.as_deref().and_then(Path::parent)) else { return };
     let nombre = app.doc.nombre.clone();
+    let caj = |titulo: &str, lamina: &str, nota: &str| dxf::Cajetin {
+        proyecto: app.doc.nombre.clone(),
+        titulo: titulo.into(),
+        autor: app.doc.autor.clone(),
+        lamina: lamina.into(),
+        nota: nota.into(),
+    };
+    let (c_plano, c_perfil) = (caj("PLANO TOPOGRÁFICO", "PT-01", ""), caj("PERFIL LONGITUDINAL DEL EJE", "PT-02", "EXAG. V 10x"));
     let (eq, mayor) = (app.doc.topo.equidistancia, app.doc.topo.mayor_cada);
     let eje = app.doc.eje.clone();
     let r = app.doc.topografia().and_then(|t| {
-        let mut out = vec![dxf::plano_topo(&c.join("plano.dxf"), &t.puntos, Some(&t.tin), &t.curvas, eq, mayor, eje.as_deref(), 1.0)?];
+        let mut d = dxf::construir_plano_topo(&t.puntos, Some(&t.tin), &t.curvas, eq, mayor, eje.as_deref(), 1.0);
+        d.lamina(&c_plano);
+        let mut out = vec![d.guardar(&c.join("plano.dxf"))?];
         if let Some(p) = &t.perfil {
             pdf::perfil_pdf(&c.join("perfil.pdf"), p, None, None, "PERFIL LONGITUDINAL")?;
             out.push(c.join("perfil.pdf"));
             out.push(escribir_excel(&c.join("perfil.xlsx"), &tablas_perfil(p, &[("Proyecto".into(), Celda::Txt(nombre))]))?);
-            out.push(dxf::perfil_topo(&c.join("perfil.dxf"), p, 10.0)?);
+            let mut d = dxf::construir_perfil_topo(p, 10.0);
+            d.lamina(&c_perfil);
+            out.push(d.guardar(&c.join("perfil.dxf"))?);
         }
         Ok(out)
     });

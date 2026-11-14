@@ -204,6 +204,12 @@ Antes de borrar `suite_electrica/`, hay que:
 Desde `python-referencia-v1`, las funciones nuevas se escriben solo en Rust y no cambian los
 resultados de referencia. Si un cambio los altera a propósito, se explica aquí.
 
+- **Planos de entrega (DXF):** los DXF exportados desde la app llevan lámina en la capa LAMINA:
+  marco ISO A3 (o A1 si en A3 pasaría de 1:5000), margen de encuadernación y cajetín (proyecto,
+  plano, autor, escala, formato, fecha y código de lámina PT-01, PT-02, PP-01, RS-01), a la escala
+  normalizada que encuadra el dibujo. `dxf::construir_*` devuelve el dibujo sin guardar; las
+  funciones de siempre (`plano_topo`, `perfil_linea`…) siguen dando la salida igual a Python.
+  Prueba: `dxf::prueba_lamina` (escala, formato, encuadre y fecha).
 - **Vista en planta de LineCraft:** selector «Perfil | Planta». La planta muestra curvas de nivel,
   puntos, eje y estructuras; clic selecciona, doble clic agrega una estructura en la progresiva del
   punto proyectado sobre el eje y arrastrar la mueve a lo largo del eje (`geo::proyectar_en_eje`,

@@ -99,9 +99,18 @@ fn exportar(app: &mut App) {
     let Some(c) = &app.calculo else { return };
     let Some(dir) = elegir_carpeta("Carpeta de salida (LineCraft)", app.doc.ruta.as_deref().and_then(std::path::Path::parent)) else { return };
     let (r, p) = (&c.resultado, &c.proyecto);
+    let caj = dxf::Cajetin {
+        proyecto: app.doc.nombre.clone(),
+        titulo: "PERFIL LONGITUDINAL Y UBICACIÓN DE ESTRUCTURAS".into(),
+        autor: app.doc.autor.clone(),
+        lamina: "PP-01".into(),
+        nota: "EXAG. V 10x".into(),
+    };
     let res = (|| {
+        let mut d = dxf::construir_perfil_linea(r, p, 10.0);
+        d.lamina(&caj);
         Ok::<_, String>(vec![
-            dxf::perfil_linea(&dir.join("perfil_linea.dxf"), r, p, 10.0)?,
+            d.guardar(&dir.join("perfil_linea.dxf"))?,
             escribir_excel(&dir.join("planilla_estructuras.xlsx"), &tablas_linea(r, p, &c.extras()))?,
             pdf::memoria_pdf(&dir.join("memoria_calculo.pdf"), r, p, &c.extras())?,
         ])
