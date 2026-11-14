@@ -392,3 +392,46 @@ python generar_referencia.py     # regenerar referencias si cambia la versión P
 
 Al portar un módulo: (1) leer el `.py` vigente, (2) portarlo sin cambiar fórmulas, (3) generar
 casos de referencia en Python, (4) prueba Rust que los reproduzca, (5) actualizar esta tabla.
+
+### Compilar y probar en Windows
+
+```powershell
+$env:Path = "$env:USERPROFILE\.cargo\bin;C:\mingw64\bin;" + $env:Path   # Rust GNU + MinGW-w64 portable
+cd motor
+cargo test --release                                  # todas las pruebas
+cargo build --release --bin suite-electrica           # target\release\suite-electrica.exe
+```
+
+Abrir directo un archivo: `suite-electrica.exe proyecto.sel`, `suite-electrica.exe red.json` o
+`suite-electrica.exe presupuesto.json` (red o presupuesto se distinguen por el contenido).
+
+Comparar con los programas comerciales (reportes exportados de ellos; no se suben al repositorio):
+
+```powershell
+.\target\release\comparar-redlin.exe  ...              # LineCraft vs REDLIN
+.\target\release\comparar-redcad.exe PlanillaRS.xls CaidaTension.xls          # caída de tensión
+.\target\release\comparar-redcad.exe PlanillaRS.xls MetradoRS.xls --metrado   # metrado
+.\target\release\comparar-redcad.exe PlanillaRS.xls PlanillaMateriales.xlsx --materiales
+.\target\release\comparar-presio.exe ... --apu | --fp                          # PRESIO
+```
+
+### Pendientes (en este orden)
+
+1. **Cruces en la app:** la verificación pasa `tests/cruces.rs`, pero falta revisarla en pantalla
+   (ventana «Cruces y distancias de seguridad…», marcas en el perfil, hoja «Cruces»).
+2. **GridCraft:**
+   - asignar la misma estructura (armado, soporte, PAT, retenida…) a varios postes a la vez;
+   - simbología en el plano y en el DXF: luminarias, retenidas y tipo de poste.
+3. **Cimentaciones:** excavación y concreto por poste para el metrado y el presupuesto. Los
+   parámetros (empotramiento, dimensiones de la excavación) van en la plantilla con su fuente o
+   marcados PENDIENTE/EJEMPLO; la suite no inventa valores normativos.
+4. **Release:** actualizar `v0.1.0-rust` con el build actual (editor de GridCraft, editores de
+   tablas, planta de LineCraft, láminas, interfaz y cruces).
+5. **Otras brechas con ESOLUTIONS:** biposte en H, transporte por rutas (PRESIO), terminal con
+   retenida a media línea, autodiseño BT, redes primarias, SRTM/catastro en TopoCraft.
+6. **Retirar Python:** solo después de probar el `.exe` en otra PC sin Python y con confirmación
+   explícita del autor; antes mover las plantillas a `data/plantillas`.
+
+Reglas que se mantienen: no copiar datos de software comercial (los reportes de REDLIN, REDCAD y
+PRESIO solo se usan localmente para comparar); todo valor normativo lleva su fuente; cada función
+nueva deja una prueba que falle si se rompe; `git pull` antes de editar y commits cortos en español.
