@@ -305,17 +305,31 @@ resultados de referencia. Si un cambio los altera a propósito, se explica aquí
   «s.req.» ni el poste. `red::materiales` multiplica el metrado de armados por esa tabla (E'n usa
   los de En), y la planilla de GridCraft agrega la hoja «Materiales».
 
+  La plantilla incluye también las láminas 007, 008, 012, 014, 015 y 016, con códigos del
+  metrado como claves:
+  - acometidas corta y larga;
+  - puesta a tierra en poste de concreto (PAT-Concreto);
+  - retenidas inclinada (RI-BT; RI-MT es la misma sobre poste de MT) y vertical (RV-BT);
+  - pastoral con luminaria (Pastorales-Concreto).
+
+  La lámina 013 (puesta a tierra en madera) no está en el PDF de la norma.
+
   **Validación:** `comparar-redcad PlanillaRS.xls PlanillaMateriales.xlsx --materiales`, contra
   la planilla de materiales de REDCAD (todas las estructuras del ejemplo).
-  - **6 de 9 materiales con cantidad fija coinciden exactos:** grapas de suspensión (59) y de
-    anclaje (73), pernos con gancho (59) y con ojal (57), tuercas ojal (16) y cajas de
-    derivación (7).
-  - **Difieren por reglas de REDCAD que no están en las láminas:** portalíneas (14 frente a 116)
-    y conductor N2XY (8,4 m frente a 53,4 m), que REDCAD también agrega en acometidas, alumbrado
-    y las variantes /S («según requerimiento»).
-  - **Fleje:** 7 frente a 2; no se identificó la regla.
-
-  Pendiente: materiales de retenidas, puesta a tierra, pastorales y acometidas (láminas 007-021).
+  - **18 de 22 materiales con cantidad fija coinciden exactos:**
+    - armados: grapas de suspensión (59) y de anclaje (73), pernos con gancho (59) y con ojal
+      (57), tuercas ojal (16) y cajas de derivación (7);
+    - retenidas: varillas, arandelas de anclaje, bloques, pernos angulares y conectores de doble
+      vía (58 de cada uno), mordazas (116) y alambre de entorchar (174 m);
+    - puesta a tierra: electrodos y conectores de bronce (23) y conductor de cobre de 16 mm²
+      (288 m);
+    - alumbrado: luminarias (25).
+  - **Difieren por reglas de REDCAD que no están en las láminas:**
+    - portalíneas (14 frente a 116) y conductor N2XY (8,4 m frente a 53,4 m), que REDCAD también
+      agrega en acometidas, alumbrado y las variantes /S («según requerimiento»);
+    - cable de acero (580 frente a 584 m; 4 m más, probablemente en la retenida sobre poste de MT);
+    - cajas portamedidor (87 frente a 3; REDCAD lleva las conexiones domiciliarias aparte);
+    - fleje (7 frente a 2): no se identificó la regla.
 * Lo que no se valida en PresuCraft: el transporte por
   ruta de PRESIO, que necesita los pesos y tarifas de su base de datos. PresuCraft sigue usando
   peso × flete por kg.

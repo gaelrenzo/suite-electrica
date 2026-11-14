@@ -116,17 +116,18 @@ pub fn metrado(red: &Red) -> Vec<FilaMetradoRed> {
 /// Materiales por armado de la Norma DGE RD 023-2003 (plantilla `materiales_bt.csv`).
 pub const MATERIALES_BT: &str = include_str!("../../suite_electrica/plantillas/materiales_bt.csv");
 
-/// Materiales de los armados del metrado (cantidad por armado × armados). `E'n` usa los de `En`.
+/// Materiales del metrado (cantidad por unidad × unidades): armados (`E'n` usa los de `En`),
+/// retenidas, puesta a tierra, pastorales y acometidas cuyo código esté en la tabla.
 /// Devuelve los materiales y los armados que no están en la tabla.
 pub fn materiales(metrado: &[FilaMetradoRed], tabla_csv: &str) -> Result<(Vec<FilaMetradoRed>, Vec<String>), String> {
     use std::collections::BTreeMap;
     let tabla = leer_csv(tabla_csv)?;
     let mut por: BTreeMap<(String, String), f64> = BTreeMap::new();
     let mut faltan = Vec::new();
-    for m in metrado.iter().filter(|m| m.item == "Armado") {
-        let base = m.codigo.replace('\'', "");
+    for m in metrado.iter().filter(|m| m.item != "Conductor") {
+        let base = if m.item == "Armado" { m.codigo.replace('\'', "") } else { m.codigo.clone() };
         let filas: Vec<_> = tabla.iter().filter(|f| f.get("armado").map(|a| a.trim()) == Some(base.as_str())).collect();
-        if filas.is_empty() {
+        if filas.is_empty() && m.item == "Armado" {
             faltan.push(m.codigo.clone());
         }
         for f in filas {

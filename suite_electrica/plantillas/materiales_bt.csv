@@ -3,6 +3,9 @@
 # Electrificación Rural" (RD 023-2003-EM/DGE), láminas 001-006. Solo cantidades fijas: los ítems
 # "s.req." (según requerimiento: conectores de perforación, pernos y portalíneas de las variantes /S)
 # y el poste (se mide aparte como soporte) no se incluyen. Variantes E'n = armado En sobre poste de MT.
+# Además (láminas 007, 008, 012, 014, 015 y 016): acometidas corta y larga, puesta a tierra en poste
+# de concreto, retenidas inclinada (RI-BT; RI-MT = la misma en poste de MT) y vertical, y pastoral con
+# luminaria en poste de concreto. Las claves son los códigos del metrado de GridCraft.
 armado,material,unidad,cantidad,fuente
 E1,Grapa de suspensión angular de aleación de aluminio,und,1,DGE RD 023-2003 lámina 001
 E1,Perno con gancho A°G° 16 mm,und,1,DGE RD 023-2003 lámina 001
@@ -100,3 +103,61 @@ E6/S,Tuerca ojal A°G° para perno de 16 mm,und,1,DGE RD 023-2003 lámina 006
 E6/S,Correa plástica de amarre color negro,und,6,DGE RD 023-2003 lámina 006
 E6/S,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,4,DGE RD 023-2003 lámina 006
 E6/S,Conector Al 25 mm2 neutro desnudo tipo cuña,und,1,DGE RD 023-2003 lámina 006
+RI-BT,Perno angular con ojal-guardacabo A°G° 16 mm,und,1,DGE RD 023-2003 lámina 014
+RI-BT,Cable de acero Siemens-Martin 10 mm 7 hilos,m,10,DGE RD 023-2003 lámina 014
+RI-BT,Varilla de anclaje de acero 16 mm x 2400 mm con ojal-guardacabo,und,1,DGE RD 023-2003 lámina 014
+RI-BT,Arandela de anclaje de acero 102x102x5 mm,und,1,DGE RD 023-2003 lámina 014
+RI-BT,Mordaza preformada de acero para cable de 10 mm,und,2,DGE RD 023-2003 lámina 014
+RI-BT,Conector doble vía bimetálico para cable de acero 10 mm y cobre 16 mm2,und,1,DGE RD 023-2003 lámina 014
+RI-BT,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 014
+RI-BT,Alambre de acero N° 12 para entorchado,m,3,DGE RD 023-2003 lámina 014
+RI-BT,"Bloque de concreto armado 0,40x0,40x0,15 m",und,1,DGE RD 023-2003 lámina 014
+RI-BT,Conector bimetálico forrado Al 25 mm2 y cobre 16 mm2 tipo cuña,und,1,DGE RD 023-2003 lámina 014
+RI-BT,Conductor de puesta a tierra de cobre recocido 16 mm2 7 hilos,m,1,DGE RD 023-2003 lámina 014
+RI-MT,Perno angular con ojal-guardacabo A°G° 16 mm,und,1,DGE RD 023-2003 lámina 014
+RI-MT,Cable de acero Siemens-Martin 10 mm 7 hilos,m,10,DGE RD 023-2003 lámina 014
+RI-MT,Varilla de anclaje de acero 16 mm x 2400 mm con ojal-guardacabo,und,1,DGE RD 023-2003 lámina 014
+RI-MT,Arandela de anclaje de acero 102x102x5 mm,und,1,DGE RD 023-2003 lámina 014
+RI-MT,Mordaza preformada de acero para cable de 10 mm,und,2,DGE RD 023-2003 lámina 014
+RI-MT,Conector doble vía bimetálico para cable de acero 10 mm y cobre 16 mm2,und,1,DGE RD 023-2003 lámina 014
+RI-MT,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 014
+RI-MT,Alambre de acero N° 12 para entorchado,m,3,DGE RD 023-2003 lámina 014
+RI-MT,"Bloque de concreto armado 0,40x0,40x0,15 m",und,1,DGE RD 023-2003 lámina 014
+RI-MT,Conector bimetálico forrado Al 25 mm2 y cobre 16 mm2 tipo cuña,und,1,DGE RD 023-2003 lámina 014
+RI-MT,Conductor de puesta a tierra de cobre recocido 16 mm2 7 hilos,m,1,DGE RD 023-2003 lámina 014
+RV-BT,Perno angular con ojal-guardacabo A°G° 16 mm,und,1,DGE RD 023-2003 lámina 015
+RV-BT,Cable de acero Siemens-Martin 10 mm 7 hilos,m,9,DGE RD 023-2003 lámina 015
+RV-BT,Varilla de anclaje de acero 16 mm x 2400 mm con ojal-guardacabo,und,1,DGE RD 023-2003 lámina 015
+RV-BT,Arandela de anclaje de acero 102x102x5 mm,und,1,DGE RD 023-2003 lámina 015
+RV-BT,Mordaza preformada de acero para cable de 10 mm,und,2,DGE RD 023-2003 lámina 015
+RV-BT,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 015
+RV-BT,Soporte de contrapunta 51 mm x 1000 mm con abrazadera partida,und,1,DGE RD 023-2003 lámina 015
+RV-BT,Alambre de acero N° 12 para entorchado,m,3,DGE RD 023-2003 lámina 015
+RV-BT,"Bloque de concreto armado 0,40x0,40x0,15 m",und,1,DGE RD 023-2003 lámina 015
+RV-BT,Conector doble vía bimetálico para cable de acero 10 mm y cobre 16 mm2,und,1,DGE RD 023-2003 lámina 015
+RV-BT,Conector bimetálico Al 25 mm2/Cu 16 mm2 neutro desnudo tipo cuña,und,1,DGE RD 023-2003 lámina 015
+RV-BT,Conductor de puesta a tierra de cobre recocido 16 mm2 7 hilos,m,1,DGE RD 023-2003 lámina 015
+PAT-Concreto,Electrodo de acero recubierto con cobre 16 mm x 2400 mm,und,1,DGE RD 023-2003 lámina 012
+PAT-Concreto,Conector de bronce para electrodo de 16 mm y conductor de 16 mm2,und,1,DGE RD 023-2003 lámina 012
+PAT-Concreto,Conductor de puesta a tierra de cobre recocido 16 mm2 7 hilos,m,10,DGE RD 023-2003 lámina 012
+PAT-Concreto,Conector bimetálico Al 25 mm2/Cu 16 mm2 neutro desnudo tipo cuña,und,1,DGE RD 023-2003 lámina 012
+Pastorales-Concreto,Luminaria con lámpara de vapor de sodio de 50 W,und,1,DGE RD 023-2003 lámina 016
+Pastorales-Concreto,"Pastoral de tubo A°G° 38 mm, 500 mm de avance y 720 mm de altura",und,1,DGE RD 023-2003 lámina 016
+Pastorales-Concreto,Abrazadera A°G° para fijación de pastoral,und,2,DGE RD 023-2003 lámina 016
+Pastorales-Concreto,Conector bimetálico forrado Al 25 mm2/Cu 4-10 mm2 fase aislada tipo perforación,und,1,DGE RD 023-2003 lámina 016
+Pastorales-Concreto,Portafusible unipolar 220 V 5 A con fusible de 1 A,und,1,DGE RD 023-2003 lámina 016
+Pastorales-Concreto,"Conductor de cobre recocido N2XY bipolar 2x2,5 mm2",m,1.5,DGE RD 023-2003 lámina 016
+Pastorales-Concreto,Conector bimetálico Al 25 mm2/Cu 4-10 mm2 neutro desnudo tipo cuña,und,1,DGE RD 023-2003 lámina 016
+Acometidas Cortas,Conductor concéntrico de cobre 2x4 mm2 con aislamiento de PVC,m,15,DGE RD 023-2003 lámina 007
+Acometidas Cortas,"Tubo A°G° 19 mm x 1,5 m con codo",und,1,DGE RD 023-2003 lámina 007
+Acometidas Cortas,Templador A°G°,und,2,DGE RD 023-2003 lámina 007
+Acometidas Cortas,Armella tirafondo 10 mm x 64 mm,und,1,DGE RD 023-2003 lámina 007
+Acometidas Cortas,Tarugo de cedro 13 mm x 50 mm,und,1,DGE RD 023-2003 lámina 007
+Acometidas Cortas,Caja metálica portamedidor con interruptor termomagnético bipolar de 5 A,und,1,DGE RD 023-2003 lámina 007
+Acometidas Cortas,Medidor de energía activa 220 V 60 Hz monofásico,und,1,DGE RD 023-2003 lámina 007
+Acometidas Largas,Conductor concéntrico de cobre 2x4 mm2 con aislamiento de PVC,m,30,DGE RD 023-2003 lámina 008
+Acometidas Largas,"Tubo A°G° 19 mm x 1,5 m con codo",und,1,DGE RD 023-2003 lámina 008
+Acometidas Largas,Templador A°G°,und,2,DGE RD 023-2003 lámina 008
+Acometidas Largas,Caja metálica portamedidor con interruptor termomagnético bipolar de 5 A,und,1,DGE RD 023-2003 lámina 008
+Acometidas Largas,Medidor de energía activa 220 V 60 Hz monofásico,und,1,DGE RD 023-2003 lámina 008
+Acometidas Largas,Alambre galvanizado N° 12 AWG,m,2,DGE RD 023-2003 lámina 008

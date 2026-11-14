@@ -263,7 +263,7 @@ fn comparar_materiales(planilla: &str, mats: &str) -> Result<(), String> {
         })
         .collect();
     // material de la norma -> filtro sobre la descripción de REDCAD
-    let reglas: [(&str, &dyn Fn(&str) -> bool); 9] = [
+    let reglas: [(&str, &dyn Fn(&str) -> bool); 22] = [
         ("Grapa de suspensión angular de aleación de aluminio", &|d| d.contains("grapa de suspensi")),
         ("Grapa de anclaje cónica de aleación de aluminio", &|d| d.contains("grapa de anclaje c")),
         ("Perno con gancho A°G° 16 mm", &|d| d.contains("perno con gancho")),
@@ -273,6 +273,21 @@ fn comparar_materiales(planilla: &str, mats: &str) -> Result<(), String> {
         ("Fleje de acero inoxidable 19 mm con hebilla", &|d| d.starts_with("fleje de acero")),
         ("Conductor de cobre recocido N2XY 10 mm2", &|d| d.contains("n2xy")),
         ("Portalínea unipolar A°G° con pin de 10 mm", &|d| d.starts_with("portalinea")),
+        ("Cable de acero Siemens-Martin 10 mm 7 hilos", &|d| d.starts_with("cable de acero")),
+        ("Varilla de anclaje de acero 16 mm x 2400 mm con ojal-guardacabo", &|d| d.starts_with("varilla de anclaje")),
+        ("Arandela de anclaje de acero 102x102x5 mm", &|d| d.starts_with("arandela de anclaje")),
+        ("Mordaza preformada de acero para cable de 10 mm", &|d| d.starts_with("mordaza preformada")),
+        ("Alambre de acero N° 12 para entorchado", &|d| d.starts_with("alambre de acero")),
+        ("Bloque de concreto armado 0,40x0,40x0,15 m", &|d| d.starts_with("bloque de concreto")),
+        ("Perno angular con ojal-guardacabo A°G° 16 mm", &|d| d.starts_with("perno angular")),
+        ("Conector doble vía bimetálico para cable de acero 10 mm y cobre 16 mm2", &|d| d.starts_with("conector doble via")),
+        ("Electrodo de acero recubierto con cobre 16 mm x 2400 mm", &|d| d.starts_with("electrodo")),
+        ("Conector de bronce para electrodo de 16 mm y conductor de 16 mm2", &|d| d.starts_with("conector de bronce")),
+        ("Conductor de puesta a tierra de cobre recocido 16 mm2 7 hilos", &|d| {
+            d.starts_with("conductor de cu desnudo") || d.starts_with("conductor de cobre recocido, cableado")
+        }),
+        ("Luminaria con lámpara de vapor de sodio de 50 W", &|d| d.starts_with("luminaria")),
+        ("Caja metálica portamedidor con interruptor termomagnético bipolar de 5 A", &|d| d.starts_with("cajas portamedidor")),
     ];
     println!("{:<52} {:>10} {:>10}", "Material (cantidad fija en la norma)", "GridCraft", "REDCAD");
     for (mat, filtro) in reglas {
