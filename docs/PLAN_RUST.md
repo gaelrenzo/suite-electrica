@@ -204,6 +204,14 @@ Antes de borrar `suite_electrica/`, hay que:
 Desde `python-referencia-v1`, las funciones nuevas se escriben solo en Rust y no cambian los
 resultados de referencia. Si un cambio los altera a propósito, se explica aquí.
 
+- **Interfaz:**
+  - Archivo → Abrir reciente (8 últimos `.sel`, redes y presupuestos; lista en
+    `%APPDATA%\SuiteElectrica\recientes.txt`) y Guardar todo. Abrir acepta también JSON (red o
+    presupuesto, según el contenido).
+  - Ctrl+S y F6 actúan sobre la pestaña activa (proyecto, red o presupuesto).
+  - Ayuda → Guía rápida (flujo de trabajo, atajos y advertencia sobre valores normativos).
+  - Al cerrar se avisa de cambios sin guardar en el proyecto, la red y las tablas del presupuesto
+    (antes solo del proyecto: los cambios de la red se perdían sin aviso).
 - **Planos de entrega (DXF):** los DXF exportados desde la app llevan lámina en la capa LAMINA:
   marco ISO A3 (o A1 si en A3 pasaría de 1:5000), margen de encuadernación y cajetín (proyecto,
   plano, autor, escala, formato, fecha y código de lámina PT-01, PT-02, PP-01, RS-01), a la escala

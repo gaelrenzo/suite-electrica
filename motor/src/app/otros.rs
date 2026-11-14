@@ -305,7 +305,7 @@ impl ModuloJson {
     }
 
     /// Guarda las tablas y parámetros modificados; devuelve cuántos archivos escribió.
-    fn guardar_datos(&mut self) -> Result<usize, String> {
+    pub fn guardar_datos(&mut self) -> Result<usize, String> {
         let mut n = 0;
         for a in self.datos.iter_mut().filter(|a| a.modificado) {
             a.guardar()?;
@@ -321,7 +321,7 @@ impl ModuloJson {
         Ok(n)
     }
 
-    fn pendientes(&self) -> bool {
+    pub fn pendientes(&self) -> bool {
         self.params_mod || self.datos.iter().any(|a| a.modificado)
     }
 
@@ -343,7 +343,7 @@ impl ModuloJson {
     }
 
     /// Guarda lo editado, calcula y vuelve a leer las tablas.
-    fn calcular(&mut self) -> Result<String, String> {
+    pub fn calcular(&mut self) -> Result<String, String> {
         let ruta = self.ruta.clone().ok_or("Abra o cree un proyecto")?;
         self.guardar_datos()?;
         match self.tipo {

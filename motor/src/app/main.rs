@@ -41,7 +41,42 @@ pub struct App {
     pub presu: otros::ModuloJson,
     cerrar: Option<bool>,
     titulo: String,
+    /// Archivos abiertos o guardados hace poco (.sel, red.json, presupuesto.json).
+    recientes: Vec<PathBuf>,
+    /// Última ruta vista de cada módulo (documento, red, presupuesto), para registrar recientes.
+    vistos: [Option<PathBuf>; 3],
+    ayuda: bool,
 }
+
+const MAX_RECIENTES: usize = 8;
+
+fn ruta_recientes() -> Option<PathBuf> {
+    std::env::var_os("APPDATA").or_else(|| std::env::var_os("HOME")).map(|d| PathBuf::from(d).join("SuiteElectrica").join("recientes.txt"))
+}
+
+fn leer_recientes() -> Vec<PathBuf> {
+    let Some(t) = ruta_recientes().and_then(|r| std::fs::read_to_string(r).ok()) else { return Vec::new() };
+    t.lines().map(PathBuf::from).filter(|p| p.exists()).take(MAX_RECIENTES).collect()
+}
+
+const GUIA: &str = "\
+FLUJO DE TRABAJO
+1. TopoCraft: importar puntos (CSV, TXT, DXF, KML, GPX, Excel) y el eje; procesar (TIN, curvas, perfil).
+2. LineCraft: Calcular (F6) ubica las estructuras; editarlas en el perfil, la planta o la planilla;
+   revisar vanos, cargas, verificación y alertas; Exportar (perfil DXF con lámina, Excel, memoria PDF).
+3. GridCraft: Nueva red o abrir red.json; dibujar los postes en planta (Agregar poste cuelga del
+   seleccionado), completar sus datos en el panel derecho; Calcular colorea los tramos por %ΔV.
+4. PresuCraft: editar las tablas en «Datos»; traer el metrado de LineCraft (LP) o GridCraft (RS);
+   Calcular guarda y calcula; Exportar a Excel.
+
+ATAJOS
+Ctrl+N nuevo proyecto · Ctrl+O abrir · Ctrl+S guardar (el módulo de la pestaña activa)
+F6 calcular (pestaña activa) · Ctrl+Z deshacer (LineCraft y GridCraft) · Supr eliminar estructura/poste
+Rueda: zoom · Arrastrar: mueve el elemento (o la vista, si se desactiva «mover con el ratón»)
+
+VALORES NORMATIVOS
+Las plantillas traen valores marcados PENDIENTE o EJEMPLO: cite la fuente (CNE, normas DGE,
+cotizaciones) en «Fuentes» antes de usar los resultados en un proyecto real.";
 
 impl App {
     fn new(doc: Documento) -> Self {
@@ -57,6 +92,9 @@ impl App {
             presu: otros::ModuloJson::nuevo(otros::Tipo::Presu),
             cerrar: None,
             titulo: String::new(),
+            recientes: leer_recientes(),
+            vistos: [None, None, None],
+            ayuda: false,
         }
     }
 
@@ -79,17 +117,114 @@ impl App {
         self.linea = linea::EstadoLinea::default();
     }
 
+    /// Registra un archivo reciente (primero de la lista) y guarda la lista.
+    fn recordar(&mut self, r: &Path) {
+        let r = std::fs::canonicalize(r).unwrap_or_else(|_| r.to_path_buf());
+        let r = PathBuf::from(r.to_string_lossy().trim_start_matches(r"\\?\").to_string());
+        self.recientes.retain(|x| x != &r);
+        self.recientes.insert(0, r);
+        self.recientes.truncate(MAX_RECIENTES);
+        if let Some(f) = ruta_recientes() {
+            let _ = f.parent().map(std::fs::create_dir_all);
+            let t: Vec<String> = self.recientes.iter().map(|p| p.display().to_string()).collect();
+            let _ = std::fs::write(f, t.join("\n"));
+        }
+    }
+
+    /// Abre un `.sel` (LineCraft/TopoCraft), un presupuesto o una red (JSON) según su contenido.
+    pub fn abrir_ruta(&mut self, r: PathBuf) {
+        let es_json = r.extension().is_some_and(|e| e.eq_ignore_ascii_case("json"));
+        if !es_json {
+            if let Some(d) = self.intentar(Documento::abrir(&r)) {
+                self.poner_documento(d);
+                self.estado = format!("Abierto {}", r.display());
+            }
+        } else if std::fs::read_to_string(&r).is_ok_and(|t| t.contains("\"suministros\"")) {
+            otros::abrir_presu(self, otros::Tipo::Presu, r);
+            self.pestana = Pestana::Presu;
+        } else {
+            let res = self.red.abrir(&r);
+            if self.intentar(res).is_some() {
+                self.pestana = Pestana::Grid;
+                self.estado = format!("Red abierta: {}", r.display());
+            }
+        }
+    }
+
+    /// Hay cambios sin guardar en el proyecto, la red o el presupuesto.
+    fn hay_cambios(&self) -> bool {
+        self.doc.modificado || self.red.modificado || self.presu.pendientes()
+    }
+
+    /// Guarda todo lo modificado; `false` si algo falló o se canceló.
+    fn guardar_todo(&mut self) -> bool {
+        if self.red.modificado {
+            let r = self.red.guardar();
+            if self.intentar(r).is_none() {
+                return false;
+            }
+        }
+        if self.presu.pendientes() {
+            let r = self.presu.guardar_datos();
+            if self.intentar(r).is_none() {
+                return false;
+            }
+        }
+        !self.doc.modificado || self.guardar(false)
+    }
+
+    /// Ctrl+S: guarda el módulo de la pestaña activa.
+    fn guardar_activo(&mut self) {
+        match self.pestana {
+            Pestana::Grid if self.red.red.is_some() => {
+                let r = self.red.guardar();
+                if let Some(p) = self.intentar(r) {
+                    self.estado = format!("Red guardada en {}", p.display());
+                }
+            }
+            Pestana::Presu if self.presu.ruta.is_some() => {
+                let r = self.presu.guardar_datos();
+                if let Some(n) = self.intentar(r) {
+                    self.estado = format!("Presupuesto: {n} archivo(s) guardado(s)");
+                }
+            }
+            _ => {
+                self.guardar(false);
+            }
+        }
+    }
+
+    /// F6: calcula el módulo de la pestaña activa.
+    fn calcular_activo(&mut self) {
+        match self.pestana {
+            Pestana::Grid => {
+                let r = self.red.calcular();
+                if let Some(m) = self.intentar(r) {
+                    self.estado = m;
+                }
+            }
+            Pestana::Presu => {
+                let r = self.presu.calcular();
+                if let Some(m) = self.intentar(r) {
+                    self.estado = m;
+                }
+            }
+            _ => linea::calcular(self),
+        }
+    }
+
     fn nuevo(&mut self) {
         self.poner_documento(Documento::nuevo());
         self.estado = "Proyecto nuevo".into();
     }
 
     fn abrir(&mut self) {
-        if let Some(r) = rfd::FileDialog::new().add_filter("Proyecto Suite Eléctrica", &["sel"]).pick_file() {
-            if let Some(d) = self.intentar(Documento::abrir(&r)) {
-                self.poner_documento(d);
-                self.estado = format!("Abierto {}", r.display());
-            }
+        if let Some(r) = rfd::FileDialog::new()
+            .add_filter("Proyecto Suite Eléctrica", &["sel"])
+            .add_filter("Red de GridCraft o presupuesto (JSON)", &["json"])
+            .pick_file()
+        {
+            self.abrir_ruta(r);
         }
     }
 
@@ -137,9 +272,25 @@ impl App {
                     ui.close();
                     self.abrir();
                 }
-                if ui.button("Guardar (Ctrl+S)").clicked() {
+                ui.add_enabled_ui(!self.recientes.is_empty(), |ui| {
+                    ui.menu_button("Abrir reciente", |ui| {
+                        for r in self.recientes.clone() {
+                            if ui.button(r.display().to_string()).clicked() {
+                                ui.close();
+                                self.abrir_ruta(r);
+                            }
+                        }
+                    });
+                });
+                if ui.button("Guardar (Ctrl+S)").on_hover_text("Guarda el módulo de la pestaña activa").clicked() {
                     ui.close();
-                    self.guardar(false);
+                    self.guardar_activo();
+                }
+                if ui.button("Guardar todo").clicked() {
+                    ui.close();
+                    if self.guardar_todo() {
+                        self.estado = "Todo guardado".into();
+                    }
                 }
                 if ui.button("Guardar como…").clicked() {
                     ui.close();
@@ -165,6 +316,11 @@ impl App {
                 }
             });
             ui.menu_button("Ayuda", |ui| {
+                if ui.button("Guía rápida y atajos").clicked() {
+                    ui.close();
+                    self.ayuda = true;
+                }
+                ui.separator();
                 ui.label(format!("Suite Eléctrica {} (Rust)", env!("CARGO_PKG_VERSION")));
                 ui.label("Software libre (MIT). Los valores normativos deben citar su fuente.");
                 ui.hyperlink_to("Repositorio y documentación", REPO);
@@ -185,10 +341,10 @@ impl App {
             self.abrir();
         }
         if s {
-            self.guardar(false);
+            self.guardar_activo();
         }
         if f6 {
-            linea::calcular(self);
+            self.calcular_activo();
         }
         if z && self.pestana == Pestana::Linea && !ui.ctx().egui_wants_keyboard_input() {
             linea::deshacer(self);
@@ -196,6 +352,12 @@ impl App {
     }
 
     fn dialogos(&mut self, ctx: &egui::Context) {
+        if self.ayuda {
+            egui::Window::new("Guía rápida").open(&mut self.ayuda).default_width(720.0).show(ctx, |ui| {
+                egui::ScrollArea::vertical().show(ui, |ui| ui.label(egui::RichText::new(GUIA).monospace()));
+                ui.hyperlink_to("Documentación completa en el repositorio", REPO);
+            });
+        }
         if let Some(e) = self.error.clone() {
             let m = egui::Modal::new(egui::Id::unique("error")).show(ctx, |ui| {
                 ui.set_max_width(520.0);
@@ -211,7 +373,17 @@ impl App {
         if self.cerrar == Some(false) {
             let m = egui::Modal::new(egui::Id::unique("cerrar")).show(ctx, |ui| {
                 ui.heading("Hay cambios sin guardar");
-                ui.label(format!("¿Guardar «{}» antes de salir?", self.doc.nombre));
+                let mut que = Vec::new();
+                if self.doc.modificado {
+                    que.push(format!("el proyecto «{}»", self.doc.nombre));
+                }
+                if self.red.modificado {
+                    que.push("la red de GridCraft".to_string());
+                }
+                if self.presu.pendientes() {
+                    que.push("las tablas del presupuesto".to_string());
+                }
+                ui.label(format!("¿Guardar {} antes de salir?", que.join(", ")));
                 ui.horizontal(|ui| {
                     if ui.button("Guardar").clicked() {
                         return Some(1);
@@ -228,7 +400,7 @@ impl App {
             });
             match m.inner {
                 Some(1) => {
-                    if self.guardar(false) {
+                    if self.guardar_todo() {
                         self.cerrar = Some(true);
                         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                     }
@@ -248,7 +420,7 @@ impl App {
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
-        if ctx.input(|i| i.viewport().close_requested()) && self.doc.modificado && self.cerrar != Some(true) {
+        if ctx.input(|i| i.viewport().close_requested()) && self.hay_cambios() && self.cerrar != Some(true) {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
             self.cerrar = Some(false);
         }
@@ -258,6 +430,13 @@ impl eframe::App for App {
             self.titulo = titulo;
         }
         self.atajos(ui);
+        let rutas = [self.doc.ruta.clone(), self.red.ruta.clone(), self.presu.ruta.clone()];
+        for (k, r) in rutas.into_iter().enumerate() {
+            if r.is_some() && r != self.vistos[k] {
+                self.recordar(r.as_deref().unwrap());
+                self.vistos[k] = r;
+            }
+        }
         egui::Panel::top("menu").show(ui, |ui| self.menus(ui));
         egui::Panel::top("pestanas").show(ui, |ui| {
             ui.horizontal(|ui| {
@@ -349,18 +528,8 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
     let mut app = App::new(doc);
-    let es_presu = |r: &PathBuf| std::fs::read_to_string(r).is_ok_and(|t| t.contains("\"suministros\""));
-    if let Some(r) = arg.clone().filter(|r| es_json && es_presu(r)) {
-        otros::abrir_presu(&mut app, otros::Tipo::Presu, r);
-        app.pestana = Pestana::Presu;
-    } else if let Some(r) = arg.filter(|_| es_json) {
-        match app.red.abrir(&r) {
-            Ok(()) => {
-                app.pestana = Pestana::Grid;
-                app.estado = format!("Red abierta: {}", r.display());
-            }
-            Err(e) => app.error = Some(e),
-        }
+    if let Some(r) = arg.filter(|_| es_json) {
+        app.abrir_ruta(r);
     }
     eframe::run_native("Suite Eléctrica", opciones, Box::new(|_cc| Ok(Box::new(app))))
 }

@@ -41,7 +41,7 @@ pub struct EstadoRed {
     conductor_nuevo: String,
     obsoleto: bool,
     pila: Vec<Vec<Nodo>>,
-    modificado: bool,
+    pub modificado: bool,
 }
 
 impl Default for EstadoRed {
@@ -119,7 +119,7 @@ impl EstadoRed {
         Ok(self.resumen.clone())
     }
 
-    fn guardar(&mut self) -> Result<PathBuf, String> {
+    pub fn guardar(&mut self) -> Result<PathBuf, String> {
         let (rd, ruta) = (self.red.as_ref().ok_or("No hay red")?, self.ruta.clone().ok_or("Sin archivo")?);
         red::guardar(rd, &ruta)?;
         self.modificado = false;
