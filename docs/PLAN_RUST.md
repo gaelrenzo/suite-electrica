@@ -204,6 +204,10 @@ Antes de borrar `suite_electrica/`, hay que:
 Desde `python-referencia-v1`, las funciones nuevas se escriben solo en Rust y no cambian los
 resultados de referencia. Si un cambio los altera a propósito, se explica aquí.
 
+- **Vista en planta de LineCraft:** selector «Perfil | Planta». La planta muestra curvas de nivel,
+  puntos, eje y estructuras; clic selecciona, doble clic agrega una estructura en la progresiva del
+  punto proyectado sobre el eje y arrastrar la mueve a lo largo del eje (`geo::proyectar_en_eje`,
+  con prueba unitaria).
 - **Editores de tablas en la app (sin tocar CSV a mano):** un mismo editor (`app/tablas.rs`) con
   búsqueda, edición de celdas, agregar/duplicar/eliminar filas y filas virtualizadas.
   - PresuCraft: pestañas «Datos» (parámetros y fuentes del JSON; suministros, unidades, montaje,

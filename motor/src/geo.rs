@@ -182,3 +182,33 @@ pub fn perfil_longitudinal(tin: &crate::tin::Tin, eje: &[[f64; 2]], paso: f64) -
     }
     Ok(p)
 }
+
+/// Progresiva del punto del eje más cercano a `p` y la distancia de `p` al eje (m).
+pub fn proyectar_en_eje(eje: &[[f64; 2]], p: [f64; 2]) -> (f64, f64) {
+    let acum = progresivas_eje(eje);
+    let mut mejor = (0.0, f64::INFINITY);
+    for (k, w) in eje.windows(2).enumerate() {
+        let (dx, dy) = (w[1][0] - w[0][0], w[1][1] - w[0][1]);
+        let l2 = dx * dx + dy * dy;
+        let t = if l2 > 0.0 { (((p[0] - w[0][0]) * dx + (p[1] - w[0][1]) * dy) / l2).clamp(0.0, 1.0) } else { 0.0 };
+        let d = (w[0][0] + t * dx - p[0]).hypot(w[0][1] + t * dy - p[1]);
+        if d < mejor.1 {
+            mejor = (acum[k] + t * l2.sqrt(), d);
+        }
+    }
+    mejor
+}
+
+#[cfg(test)]
+mod prueba_proyeccion {
+    #[test]
+    fn proyecta_sobre_el_tramo_mas_cercano() {
+        let eje = [[0.0, 0.0], [100.0, 0.0], [100.0, 50.0]];
+        assert_eq!(super::proyectar_en_eje(&eje, [40.0, 3.0]), (40.0, 3.0));
+        assert_eq!(super::proyectar_en_eje(&eje, [104.0, 20.0]), (120.0, 4.0));
+        assert_eq!(super::proyectar_en_eje(&eje, [-5.0, 0.0]).0, 0.0);
+        let s = 130.0;
+        let p = super::punto_en_progresiva(&eje, s);
+        assert!((super::proyectar_en_eje(&eje, p).0 - s).abs() < 1e-9);
+    }
+}

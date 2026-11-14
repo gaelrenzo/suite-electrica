@@ -30,6 +30,7 @@ pub struct EstadoLinea {
     cat_abierto: bool,
     cat_hoja: String,
     cat_filtro: String,
+    planta: bool,
 }
 
 impl Default for EstadoLinea {
@@ -45,6 +46,7 @@ impl Default for EstadoLinea {
             cat_abierto: false,
             cat_hoja: "armados".into(),
             cat_filtro: String::new(),
+            planta: false,
         }
     }
 }
@@ -517,12 +519,16 @@ pub fn panel(app: &mut App, ui: &mut egui::Ui) {
     });
     egui::CentralPanel::default().show(ui, |ui| {
         ui.horizontal(|ui| {
+            ui.selectable_value(&mut app.linea.planta, false, "Perfil");
+            ui.selectable_value(&mut app.linea.planta, true, "Planta");
+            ui.separator();
             ui.checkbox(&mut app.linea.mover_con_raton, "Mover estructuras con el ratón")
                 .on_hover_text("Desactívelo para desplazar la vista arrastrando. Rueda = zoom.");
             ui.label(egui::RichText::new("Clic: seleccionar · Doble clic: agregar · Clic derecho: menú · Supr: eliminar").small());
         });
         let alto = (ui.available_height() * 0.5).max(220.0);
-        match perfil(app, ui, alto) {
+        let accion = if app.linea.planta { planta(app, ui, alto) } else { perfil(app, ui, alto) };
+        match accion {
             Accion::Mover(i, s) => {
                 let r = app.doc.mover_estructura(i, s).map(|_| ());
                 editar(app, r);
@@ -581,4 +587,91 @@ fn ventana_catalogos(app: &mut App, ctx: &egui::Context) -> bool {
     });
     st.cat_abierto = abierto;
     cambio
+}
+
+/// Planta: topografía, eje y estructuras. Clic selecciona, doble clic agrega en la progresiva del
+/// punto proyectado sobre el eje y arrastrar mueve la estructura a lo largo del eje.
+fn planta(app: &mut App, ui: &mut egui::Ui, alto: f32) -> Accion {
+    use suite_motor::geo::{progresivas_eje, proyectar_en_eje, punto_en_progresiva};
+    let Some(eje) = app.doc.eje.clone().filter(|e| e.len() >= 2) else {
+        ui.centered_and_justified(|ui| ui.label("Importe el eje en TopoCraft para ver la planta."));
+        return Accion::Ninguna;
+    };
+    let topo = app.doc.topografia().ok().map(|t| {
+        (t.curvas.iter().map(|c| c.xy.clone()).collect::<Vec<_>>(), t.puntos.iter().map(|p| [p.este, p.norte]).collect::<Vec<_>>())
+    });
+    let est: Vec<(f64, String)> = match &app.calculo {
+        Some(c) => c.resultado.estructuras.iter().map(|e| (e.progresiva, e.codigo())).collect(),
+        None => app.doc.estructuras.iter().enumerate().map(|(i, e)| (e.progresiva_m, format!("E-{:02}", i + 1))).collect(),
+    };
+    let largo = *progresivas_eje(&eje).last().unwrap();
+    let st = &mut app.linea;
+    let tinta = ui.visuals().strong_text_color();
+    let mut accion = Accion::Ninguna;
+    Plot::new("planta_linea")
+        .legend(Legend::default())
+        .data_aspect(1.0)
+        .height(alto)
+        .x_axis_label("Este (m)")
+        .y_axis_label("Norte (m)")
+        .allow_drag(!st.mover_con_raton)
+        .allow_double_click_reset(false)
+        .show(ui, |pu| {
+            if let Some((curvas, puntos)) = &topo {
+                for (k, c) in curvas.iter().enumerate() {
+                    pu.line(Line::new(if k == 0 { "Curvas de nivel" } else { "" }, PlotPoints::from(c.clone())).color(egui::Color32::from_rgb(150, 110, 60)).width(0.5));
+                }
+                pu.points(egui_plot::Points::new("Puntos", puntos.clone()).radius(1.0).color(egui::Color32::from_gray(120)));
+            }
+            pu.line(Line::new("Eje", PlotPoints::from(eje.clone())).color(egui::Color32::from_rgb(70, 130, 220)).width(2.0));
+            for (i, (s0, cod)) in est.iter().enumerate() {
+                let s = match st.arrastre {
+                    Some((j, s)) if j == i => s,
+                    _ => *s0,
+                };
+                let p = punto_en_progresiva(&eje, s);
+                let sel = st.seleccion == Some(i);
+                let color = if sel { egui::Color32::from_rgb(230, 126, 34) } else { tinta };
+                pu.points(egui_plot::Points::new("", vec![p]).radius(if sel { 6.0 } else { 4.0 }).color(color).filled(true));
+                pu.text(Text::new("", PlotPoint::new(p[0], p[1]), egui::RichText::new(cod).small()).anchor(egui::Align2::LEFT_BOTTOM).color(color));
+            }
+            let resp = pu.response().clone();
+            let puntero = pu.pointer_coordinate();
+            let cerca = |x: Option<PlotPoint>| -> Option<usize> {
+                let px = pu.transform().position_from_point(&x?);
+                est.iter()
+                    .enumerate()
+                    .map(|(i, (s, _))| {
+                        let p = punto_en_progresiva(&eje, *s);
+                        (i, pu.transform().position_from_point(&PlotPoint::new(p[0], p[1])).distance(px))
+                    })
+                    .filter(|(_, d)| *d < 12.0)
+                    .min_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+                    .map(|(i, _)| i)
+            };
+            let proy = |x: PlotPoint| proyectar_en_eje(&eje, [x.x, x.y]).0.clamp(0.0, largo);
+            if resp.clicked() {
+                st.seleccion = cerca(puntero);
+            }
+            if resp.double_clicked() {
+                if let Some(x) = puntero {
+                    accion = Accion::Agregar(proy(x));
+                }
+            }
+            if st.mover_con_raton {
+                if resp.drag_started() {
+                    st.arrastre = cerca(puntero).map(|i| (i, est[i].0));
+                    st.seleccion = st.arrastre.map(|a| a.0);
+                }
+                if let (true, Some((i, _)), Some(x)) = (resp.dragged(), st.arrastre, puntero) {
+                    st.arrastre = Some((i, proy(x)));
+                }
+                if resp.drag_stopped() {
+                    if let Some((i, s)) = st.arrastre.take() {
+                        accion = Accion::Mover(i, s);
+                    }
+                }
+            }
+        });
+    accion
 }
