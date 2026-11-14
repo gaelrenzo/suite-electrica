@@ -47,8 +47,8 @@ Nada se da por portado sin comparación numérica:
 | 2 | GridCraft (caída de tensión) y PresuCraft (presupuesto) | `red`, `presupuesto` | ✅ = Python (montos ±0,01 por orden de suma) |
 | 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `entrada`, `proyectos`, `utm`, `tin` | ✅ 14 archivos de prueba (válidos y problemáticos) = Python; `.sel` ida y vuelta Python↔Rust; `proyecto.json` → mismo cálculo |
 | 4 | Salidas: planillas Excel, planos DXF (perfil, red), memoria PDF | `salidas`, `dxf`, `pdf` | ✅ 5 casos: Excel = Python (2 698 celdas), DXF = Python (entidad a entidad, auditoría ezdxf sin errores), PDF con todo el texto de Python; diferencias en `docs/DIFERENCIAS_RUST.md` |
-| 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | binario `suite-electrica` | pendiente |
-| 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | pendiente |
+| 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | `documento`, binario `suite-electrica` | ✅ documento `.sel` = Python (flujo completo de la app, 230 líneas); `.exe` de 22 MB probado sin Python; falta probarlo en otra PC |
+| 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | ⏳ referencia congelada (`python-referencia-v1`); falta portar `comparar_redlin.py` y retirar Python |
 
 ## Criterios de aceptación por etapa
 
@@ -114,6 +114,82 @@ Archivos de prueba: `motor/tests/archivos/` (sintéticos, generados por
 distintas, el perfil de Rust tiene 258 puntos y el de Python 232; la cota del terreno sobre el eje
 difiere como máximo **8,5 cm** (muestreo cada 1 m), pero el resultado de ingeniería coincide: mismas
 estructuras en la misma progresiva (Δ = 0,000 m), mismos tipos y despejes con |Δ| ≤ **1,3 mm**.
+
+## Etapa 5: aplicación de escritorio
+
+`motor/src/documento.rs` es el port de `documento.py` (modelo de la app): el mismo `.sel`, la
+topografía en caché, el cálculo completo (ubicación automática, catálogos, verificación,
+metrado, alertas y avisos) y la edición de estructuras con deshacer. `tests/documento.rs`
+reproduce el flujo de `generar_referencia_documento.py`: calcular, agregar, mover, cambiar tipo
+y altura, quitar el poste, eliminar, deshacer y asignar catálogos. Coincide línea a línea.
+
+La interfaz (`motor/src/app/`, egui + egui_plot + rfd) tiene las cuatro pestañas de la versión
+PySide6:
+
+* **TopoCraft:** importar puntos y eje, parámetros, procesar, reporte de limpieza, planta
+  (puntos, curvas, eje) y perfil; exporta `plano.dxf`, `perfil.pdf`, `perfil.xlsx`, `perfil.dxf`.
+* **LineCraft:** parámetros, conductor, hipótesis y fuentes editables; Calcular (F6), ubicar
+  automático, estructuras mínimas, asignar catálogos, deshacer (Ctrl+Z). En el perfil: clic
+  selecciona, arrastrar mueve, doble clic agrega, clic derecho abre el menú y Supr elimina.
+  Planilla editable (tipo, armado, poste, altura, retenidas) y pestañas de resultados. Exporta
+  `perfil_linea.dxf`, `planilla_estructuras.xlsx` y `memoria_calculo.pdf`.
+* **GridCraft / PresuCraft:** abrir o crear desde plantillas (sin sobrescribir), calcular,
+  revisar hojas y exportar. «Metrado desde LineCraft» escribe `metrado.csv` del presupuesto.
+
+Compilar el ejecutable (Windows, toolchain GNU):
+
+```powershell
+cd motor
+$env:Path = "$env:USERPROFILE\.cargo\bin;C:\mingw64\bin;" + $env:Path
+cargo build --release --bin suite-electrica   # -> target\release\suite-electrica.exe
+```
+
+**Prueba sin herramientas de desarrollo (2026-11-14).** Windows Sandbox no existe en Windows 11
+Home (solo Pro/Enterprise), así que la PC limpia se aproximó así:
+
+1. **Dependencias del `.exe`** (`objdump -p`): solo DLL del sistema (kernel32, user32, gdi32,
+   dxgi, dwrite, opengl32, ole32, UCRT `api-ms-win-crt-*` incluida en Windows 10/11…). No hay
+   libgcc, libstdc++, vcruntime ni Python.
+2. **Ejecución aislada:** el `.exe` solo, copiado a una carpeta vacía y lanzado con
+   `PATH=C:\Windows\System32;C:\Windows`. Abre un `.sel`, calcula con F6 y muestra planta,
+   perfil y resultados. Los módulos cargados fuera de `C:\Windows` son el propio `.exe` y dos
+   *hooks* inyectados por programas de captura (OBS, TikTok LIVE Studio), que no son
+   dependencias.
+3. **Uso con ratón** (clics y arrastre automatizados): cambiar de pestaña, calcular y arrastrar
+   E-02 de 0+120.00 a 0+155.87 con recálculo.
+
+**Pendiente:** abrir el `.exe` en otra computadora sin Python (por ejemplo, una del laboratorio).
+El render usa wgpu (DirectX 12 / Vulkan); en equipos sin GPU, DirectX usa WARP.
+
+## Etapa 6: versión de referencia congelada
+
+La etiqueta git **`python-referencia-v1`** marca el último estado con la versión Python completa
+(sin cambios desde `c41525b`) y todos los casos de referencia. Los casos y resultados esperados
+están en `motor/tests/` y se generan con `motor/generar_referencia*.py`:
+
+| Referencia | Contenido |
+|---|---|
+| `referencia.txt` | mecánica del conductor: 674 casos |
+| `linea_*.txt`, `catalogos_auto.txt`, `alertas_auto.txt`, `flechado_*.txt`, `derivacion.txt` | cálculo de línea, catálogos, alertas, flechado y derivaciones |
+| `red_*.txt`, `presu_*.txt` | GridCraft y PresuCraft |
+| `utm.txt`, `tin.txt` | 243 puntos UTM; TIN, curvas y perfil |
+| `archivos/` + `archivos_esperado.txt` | 14 archivos de entrada (válidos y problemáticos) |
+| `archivos/proyecto_python.sel` | ida y vuelta del `.sel` |
+| `archivos/documento_irregular.sel` + `documento.txt` | flujo completo de la app |
+| `salidas_python/` | planillas, DXF y PDF de 5 casos |
+
+Las diferencias aceptadas están en «Diferencias aceptadas» (arriba) y en
+`docs/DIFERENCIAS_RUST.md`. **Regla:** `cargo test` debe pasar siempre. Si un cambio intencional
+altera un resultado, en el mismo commit se actualiza el archivo de referencia y se explica el
+motivo; los archivos de referencia ya no se regeneran con Python.
+
+Antes de borrar `suite_electrica/`, hay que:
+
+1. Mover `suite_electrica/plantillas/` (Rust las incluye con `include_str!`) a `data/plantillas/`.
+2. Portar `examples/validacion/comparar_redlin.py` (comparación con REDLIN) a un test o binario
+   Rust.
+3. Probar el `.exe` en otra PC.
+4. Confirmar con el autor.
 
 ## Cómo continuar
 

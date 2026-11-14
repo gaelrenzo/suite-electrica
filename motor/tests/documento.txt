@@ -1,0 +1,230 @@
+== calculo cumple=False
+est 0.00000000000000000e+00 FIN PTV-3 CAC_12/300 - 1.00000000000000000e+00
+est 1.20000000000000000e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 2.40000000000000000e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 3.07302999999999997e+02 ANGULO PA1-3 CAC_12/300 - 1.00000000000000000e+00
+est 4.27302999999999997e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 5.47302999999999997e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 5.93279999999999973e+02 FIN PTV-3 CAC_12/300 - 1.00000000000000000e+00
+res E-01 FIN 0.00000000000000000e+00 1.05999999999999996e+01 0.00000000000000000e+00
+res E-02 SUSPENSION 1.20000000000000000e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-03 SUSPENSION 2.40000000000000000e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-04 ANGULO 3.07302999999999997e+02 1.05999999999999996e+01 -5.86937364665875538e+00
+res E-05 SUSPENSION 4.27302999999999997e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-06 SUSPENSION 5.47302999999999997e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-07 FIN 5.93279999999999973e+02 1.05999999999999996e+01 0.00000000000000000e+00
+ver E-01 SÍ
+ver E-02 SÍ
+ver E-03 SÍ
+ver E-04 SÍ
+ver E-05 SÍ
+ver E-06 SÍ
+ver E-07 SÍ
+alerta E-02 S↑ inf
+alerta E-05 S↑ inf
+alerta E-06 S↑ inf
+met Poste|CAC 12/300|und|7.00000000000000000e+00
+met Armado|PA1-3|und|1.00000000000000000e+00
+met Armado|PS1-3|und|4.00000000000000000e+00
+met Armado|PTV-3|und|2.00000000000000000e+00
+met Retenida|RET 3/8|und|3.00000000000000000e+00
+met Material|a2 Aislador de porcelana tipo pin clase ANSI|und|1.80000000000000000e+01
+met Material|ag Grillete|und|6.00000000000000000e+00
+met Material|b1 Espiga para cabeza de poste|und|6.00000000000000000e+00
+met Material|c2 Perno maquinado A°G° 16 mm x 305 mm|und|9.00000000000000000e+00
+met Material|c3 Perno maquinado A°G° 16 mm x 356 mm|und|4.00000000000000000e+00
+met Material|c5 Perno maquinado A°G° 16 mm x 508 mm|und|2.00000000000000000e+00
+met Material|ca Alambre de amarre|m|4.50000000000000000e+01
+met Material|cs1 Soporte separador de vértice de poste A°G° 110 mm|und|2.00000000000000000e+00
+met Material|cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm|und|1.20000000000000000e+01
+met Material|d1 Arandela cuadrada plana A°G° 57x57x5 mm|und|1.60000000000000000e+01
+met Material|d2 Arandela cuadrada curva A°G° 57x57x5 mm|und|2.60000000000000000e+01
+met Material|dl Tubo espaciador A°G° 19 mm x 38 mm|und|2.00000000000000000e+00
+met Material|f1 Espiga para cruceta|und|8.00000000000000000e+00
+met Material|f1 Espiga para cruceta forjada 350 mm (pin ANSI 56-2)|und|4.00000000000000000e+00
+met Material|g1 Cruceta de madera tratada 90x115 mm 2.40 m|und|6.00000000000000000e+00
+met Material|hb Adaptador anillo-bola|und|6.00000000000000000e+00
+met Material|i1 Perno coche A°G° 13 mm x 152 mm|und|1.20000000000000000e+01
+met Material|j1 Tirafondo A°G° 13 mm x 102 mm|und|6.00000000000000000e+00
+met Material|k1 Aislador de porcelana tipo suspensión clase ANSI 52-3|und|1.20000000000000000e+01
+met Material|l1 Grapa de anclaje|und|6.00000000000000000e+00
+met Material|n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas|und|3.00000000000000000e+00
+met Material|o1 Perno ojo A°G° 16 mm x 305 mm|und|4.00000000000000000e+00
+met Material|oc Adaptador casquillo-ojo alargado|und|6.00000000000000000e+00
+met Material|vd Varilla de armar preformada doble|und|3.00000000000000000e+00
+met Material|vs Varilla de armar preformada simple|und|1.20000000000000000e+01
+met Conductor|AAAC 35|m|1.79250000000000000e+03
+met Conductor||kg|1.69400000000000006e+02
+aviso PENDIENTE_REVISION: 'hipotesis' -> PENDIENTE: citar CNE Suministro 2011 (zona de carga) para temperaturas, viento y hielo
+aviso PENDIENTE_REVISION: 'tiro_inicial_pct_rotura' -> PENDIENTE: citar norma DGE para el EDS
+aviso PENDIENTE_REVISION: 'tiro_maximo_pct_rotura' -> PENDIENTE: citar norma DGE para el tiro máximo
+aviso PENDIENTE_REVISION: 'distancia_minima_terreno_m' -> PENDIENTE: citar CNE Regla 232 (tipo de terreno/cruce)
+aviso PENDIENTE_REVISION: 'conductor' -> PENDIENTE: citar ficha técnica del fabricante
+aviso E-01: vano peso negativo (arrancamiento) en III_TEMP_MIN (-8.3 m)
+aviso E-02: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-271.1 m), II_HIELO (-41.0 m), III_TEMP_MIN (-365.6 m), IV_TEMP_MAX (-75.1 m), V_EDS (-171.1 m)
+aviso E-05: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-167.7 m), III_TEMP_MIN (-237.2 m), IV_TEMP_MAX (-23.5 m), V_EDS (-94.2 m)
+aviso E-06: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-82.5 m), III_TEMP_MIN (-122.5 m), V_EDS (-40.2 m)
+aviso PENDIENTE_REVISION: catálogo de postes sin fuente verificada (CAC 12/300, CAC 12/400, CAC 13/400)
+aviso PENDIENTE_REVISION: catálogo de retenidas sin fuente verificada (RET 3/8)
+aviso PENDIENTE_REVISION: 'factor_seguridad_poste' -> PENDIENTE: citar CNE / norma DGE
+aviso PENDIENTE_REVISION: 'factor_seguridad_retenida' -> PENDIENTE: citar CNE / norma DGE
+aviso PENDIENTE_REVISION: 'eds_max_pct' -> EJEMPLO: prueba
+agregar 1.80000000000000000e+02 2
+mover 2 1.87300000000000011e+02
+== editado cumple=False
+est 0.00000000000000000e+00 FIN PTV-3 CAC_12/300 - 1.00000000000000000e+00
+est 1.20000000000000000e+02 SUSPENSION PS1-3 - - -
+est 1.87300000000000011e+02 ANCLAJE - - 1.20000000000000000e+01 -
+est 2.40000000000000000e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 3.07302999999999997e+02 ANGULO PA1-3 CAC_12/300 - 1.00000000000000000e+00
+est 4.27302999999999997e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 5.47302999999999997e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 5.93279999999999973e+02 FIN PTV-3 CAC_12/300 - 1.00000000000000000e+00
+res E-01 FIN 0.00000000000000000e+00 1.05999999999999996e+01 0.00000000000000000e+00
+res E-02 SUSPENSION 1.20000000000000000e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-03 ANCLAJE 1.87300000000000011e+02 1.20000000000000000e+01 0.00000000000000000e+00
+res E-04 SUSPENSION 2.40000000000000000e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-05 ANGULO 3.07302999999999997e+02 1.05999999999999996e+01 -5.86937364665875538e+00
+res E-06 SUSPENSION 4.27302999999999997e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-07 SUSPENSION 5.47302999999999997e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-08 FIN 5.93279999999999973e+02 1.05999999999999996e+01 0.00000000000000000e+00
+ver E-01 SÍ
+ver E-02 NO
+ver E-03 NO
+ver E-04 SÍ
+ver E-05 SÍ
+ver E-06 SÍ
+ver E-07 SÍ
+ver E-08 SÍ
+alerta E-02 S↑ inf
+alerta E-06 S↑ inf
+alerta E-07 S↑ inf
+met Poste|CAC 12/300|und|6.00000000000000000e+00
+met Armado|PA1-3|und|1.00000000000000000e+00
+met Armado|PS1-3|und|4.00000000000000000e+00
+met Armado|PTV-3|und|2.00000000000000000e+00
+met Retenida|RET 3/8|und|4.00000000000000000e+00
+met Material|a2 Aislador de porcelana tipo pin clase ANSI|und|1.80000000000000000e+01
+met Material|ag Grillete|und|6.00000000000000000e+00
+met Material|b1 Espiga para cabeza de poste|und|6.00000000000000000e+00
+met Material|c2 Perno maquinado A°G° 16 mm x 305 mm|und|9.00000000000000000e+00
+met Material|c3 Perno maquinado A°G° 16 mm x 356 mm|und|4.00000000000000000e+00
+met Material|c5 Perno maquinado A°G° 16 mm x 508 mm|und|2.00000000000000000e+00
+met Material|ca Alambre de amarre|m|4.50000000000000000e+01
+met Material|cs1 Soporte separador de vértice de poste A°G° 110 mm|und|2.00000000000000000e+00
+met Material|cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm|und|1.20000000000000000e+01
+met Material|d1 Arandela cuadrada plana A°G° 57x57x5 mm|und|1.60000000000000000e+01
+met Material|d2 Arandela cuadrada curva A°G° 57x57x5 mm|und|2.60000000000000000e+01
+met Material|dl Tubo espaciador A°G° 19 mm x 38 mm|und|2.00000000000000000e+00
+met Material|f1 Espiga para cruceta|und|8.00000000000000000e+00
+met Material|f1 Espiga para cruceta forjada 350 mm (pin ANSI 56-2)|und|4.00000000000000000e+00
+met Material|g1 Cruceta de madera tratada 90x115 mm 2.40 m|und|6.00000000000000000e+00
+met Material|hb Adaptador anillo-bola|und|6.00000000000000000e+00
+met Material|i1 Perno coche A°G° 13 mm x 152 mm|und|1.20000000000000000e+01
+met Material|j1 Tirafondo A°G° 13 mm x 102 mm|und|6.00000000000000000e+00
+met Material|k1 Aislador de porcelana tipo suspensión clase ANSI 52-3|und|1.20000000000000000e+01
+met Material|l1 Grapa de anclaje|und|6.00000000000000000e+00
+met Material|n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas|und|3.00000000000000000e+00
+met Material|o1 Perno ojo A°G° 16 mm x 305 mm|und|4.00000000000000000e+00
+met Material|oc Adaptador casquillo-ojo alargado|und|6.00000000000000000e+00
+met Material|vd Varilla de armar preformada doble|und|3.00000000000000000e+00
+met Material|vs Varilla de armar preformada simple|und|1.20000000000000000e+01
+met Conductor|AAAC 35|m|1.79250000000000000e+03
+met Conductor||kg|1.69400000000000006e+02
+aviso PENDIENTE_REVISION: 'hipotesis' -> PENDIENTE: citar CNE Suministro 2011 (zona de carga) para temperaturas, viento y hielo
+aviso PENDIENTE_REVISION: 'tiro_inicial_pct_rotura' -> PENDIENTE: citar norma DGE para el EDS
+aviso PENDIENTE_REVISION: 'tiro_maximo_pct_rotura' -> PENDIENTE: citar norma DGE para el tiro máximo
+aviso PENDIENTE_REVISION: 'distancia_minima_terreno_m' -> PENDIENTE: citar CNE Regla 232 (tipo de terreno/cruce)
+aviso PENDIENTE_REVISION: 'conductor' -> PENDIENTE: citar ficha técnica del fabricante
+aviso E-01: vano peso negativo (arrancamiento) en III_TEMP_MIN (-8.8 m)
+aviso E-02: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-254.5 m), II_HIELO (-49.2 m), III_TEMP_MIN (-347.0 m), IV_TEMP_MAX (-79.3 m), V_EDS (-168.9 m)
+aviso E-03: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-21.7 m), III_TEMP_MIN (-51.8 m), V_EDS (-5.1 m)
+aviso E-06: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-161.3 m), III_TEMP_MIN (-241.0 m), IV_TEMP_MAX (-19.3 m), V_EDS (-94.2 m)
+aviso E-07: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-78.8 m), III_TEMP_MIN (-124.7 m), V_EDS (-40.2 m)
+aviso PENDIENTE_REVISION: catálogo de postes sin fuente verificada (CAC 12/300, CAC 12/400, CAC 13/400)
+aviso PENDIENTE_REVISION: catálogo de retenidas sin fuente verificada (RET 3/8)
+aviso PENDIENTE_REVISION: 'factor_seguridad_poste' -> PENDIENTE: citar CNE / norma DGE
+aviso PENDIENTE_REVISION: 'factor_seguridad_retenida' -> PENDIENTE: citar CNE / norma DGE
+aviso E-02: Sin poste asignado (ningún poste del catálogo cumple o falta asignar)
+aviso E-03: Sin poste asignado (ningún poste del catálogo cumple o falta asignar)
+aviso PENDIENTE_REVISION: 'eds_max_pct' -> EJEMPLO: prueba
+deshacer 8
+== asignado cumple=False
+est 0.00000000000000000e+00 FIN PTV-3 CAC_12/300 - 1.00000000000000000e+00
+est 1.20000000000000000e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 1.87300000000000011e+02 ANCLAJE PR3-3 CAC_13/400 1.20000000000000000e+01 -
+est 2.40000000000000000e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 3.07302999999999997e+02 ANGULO PA1-3 CAC_12/300 - 1.00000000000000000e+00
+est 4.27302999999999997e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 5.47302999999999997e+02 SUSPENSION PS1-3 CAC_12/300 - -
+est 5.93279999999999973e+02 FIN PTV-3 CAC_12/300 - 1.00000000000000000e+00
+res E-01 FIN 0.00000000000000000e+00 1.05999999999999996e+01 0.00000000000000000e+00
+res E-02 SUSPENSION 1.20000000000000000e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-03 ANCLAJE 1.87300000000000011e+02 1.20000000000000000e+01 0.00000000000000000e+00
+res E-04 SUSPENSION 2.40000000000000000e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-05 ANGULO 3.07302999999999997e+02 1.05999999999999996e+01 -5.86937364665875538e+00
+res E-06 SUSPENSION 4.27302999999999997e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-07 SUSPENSION 5.47302999999999997e+02 1.05999999999999996e+01 0.00000000000000000e+00
+res E-08 FIN 5.93279999999999973e+02 1.05999999999999996e+01 0.00000000000000000e+00
+ver E-01 SÍ
+ver E-02 SÍ
+ver E-03 SÍ
+ver E-04 SÍ
+ver E-05 SÍ
+ver E-06 SÍ
+ver E-07 SÍ
+ver E-08 SÍ
+alerta E-02 S↑ inf
+alerta E-06 S↑ inf
+alerta E-07 S↑ inf
+met Poste|CAC 12/300|und|7.00000000000000000e+00
+met Poste|CAC 13/400|und|1.00000000000000000e+00
+met Armado|PA1-3|und|1.00000000000000000e+00
+met Armado|PR3-3|und|1.00000000000000000e+00
+met Armado|PS1-3|und|4.00000000000000000e+00
+met Armado|PTV-3|und|2.00000000000000000e+00
+met Retenida|RET 3/8|und|4.00000000000000000e+00
+met Material|a2 Aislador de porcelana tipo pin clase ANSI|und|1.90000000000000000e+01
+met Material|aa Tuerca ojo A°G° forjada para perno de 16 mm|und|5.00000000000000000e+00
+met Material|ag Grillete|und|1.20000000000000000e+01
+met Material|b1 Espiga para cabeza de poste|und|7.00000000000000000e+00
+met Material|c2 Perno maquinado A°G° 16 mm x 305 mm|und|1.10000000000000000e+01
+met Material|c3 Perno maquinado A°G° 16 mm x 356 mm|und|4.00000000000000000e+00
+met Material|c5 Perno maquinado A°G° 16 mm x 508 mm|und|2.00000000000000000e+00
+met Material|ca Alambre de amarre|m|4.75000000000000000e+01
+met Material|cs1 Soporte separador de vértice de poste A°G° 110 mm|und|2.00000000000000000e+00
+met Material|cu1 Brazo soporte (riostra) angular A°G° 38x38x5 mm 710 mm|und|1.60000000000000000e+01
+met Material|d1 Arandela cuadrada plana A°G° 57x57x5 mm|und|2.60000000000000000e+01
+met Material|d2 Arandela cuadrada curva A°G° 57x57x5 mm|und|2.90000000000000000e+01
+met Material|dl Tubo espaciador A°G° 19 mm x 38 mm|und|2.00000000000000000e+00
+met Material|f1 Espiga para cruceta|und|8.00000000000000000e+00
+met Material|f1 Espiga para cruceta forjada 350 mm (pin ANSI 56-2)|und|4.00000000000000000e+00
+met Material|g1 Cruceta de madera tratada 90x115 mm 2.40 m|und|8.00000000000000000e+00
+met Material|hb Adaptador anillo-bola|und|1.20000000000000000e+01
+met Material|i1 Perno coche A°G° 13 mm x 152 mm|und|1.60000000000000000e+01
+met Material|j1 Tirafondo A°G° 13 mm x 102 mm|und|8.00000000000000000e+00
+met Material|k1 Aislador de porcelana tipo suspensión clase ANSI 52-3|und|2.40000000000000000e+01
+met Material|l1 Grapa de anclaje|und|1.20000000000000000e+01
+met Material|n1 Perno doble armado A°G° 16 mm x 508 mm con 4 tuercas|und|6.00000000000000000e+00
+met Material|o1 Perno ojo A°G° 16 mm x 305 mm|und|5.00000000000000000e+00
+met Material|oc Adaptador casquillo-ojo alargado|und|1.20000000000000000e+01
+met Material|p Grapa de doble vía|und|3.00000000000000000e+00
+met Material|vd Varilla de armar preformada doble|und|3.00000000000000000e+00
+met Material|vs Varilla de armar preformada simple|und|1.20000000000000000e+01
+met Conductor|AAAC 35|m|1.79250000000000000e+03
+met Conductor||kg|1.69400000000000006e+02
+aviso PENDIENTE_REVISION: 'hipotesis' -> PENDIENTE: citar CNE Suministro 2011 (zona de carga) para temperaturas, viento y hielo
+aviso PENDIENTE_REVISION: 'tiro_inicial_pct_rotura' -> PENDIENTE: citar norma DGE para el EDS
+aviso PENDIENTE_REVISION: 'tiro_maximo_pct_rotura' -> PENDIENTE: citar norma DGE para el tiro máximo
+aviso PENDIENTE_REVISION: 'distancia_minima_terreno_m' -> PENDIENTE: citar CNE Regla 232 (tipo de terreno/cruce)
+aviso PENDIENTE_REVISION: 'conductor' -> PENDIENTE: citar ficha técnica del fabricante
+aviso E-01: vano peso negativo (arrancamiento) en III_TEMP_MIN (-8.8 m)
+aviso E-02: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-254.5 m), II_HIELO (-49.2 m), III_TEMP_MIN (-347.0 m), IV_TEMP_MAX (-79.3 m), V_EDS (-168.9 m)
+aviso E-03: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-21.7 m), III_TEMP_MIN (-51.8 m), V_EDS (-5.1 m)
+aviso E-06: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-161.3 m), III_TEMP_MIN (-241.0 m), IV_TEMP_MAX (-19.3 m), V_EDS (-94.2 m)
+aviso E-07: vano peso negativo (arrancamiento) en I_VIENTO_MAX (-78.8 m), III_TEMP_MIN (-124.7 m), V_EDS (-40.2 m)
+aviso PENDIENTE_REVISION: catálogo de postes sin fuente verificada (CAC 12/300, CAC 12/400, CAC 13/400)
+aviso PENDIENTE_REVISION: catálogo de retenidas sin fuente verificada (RET 3/8)
+aviso PENDIENTE_REVISION: 'factor_seguridad_poste' -> PENDIENTE: citar CNE / norma DGE
+aviso PENDIENTE_REVISION: 'factor_seguridad_retenida' -> PENDIENTE: citar CNE / norma DGE
+aviso PENDIENTE_REVISION: 'eds_max_pct' -> EJEMPLO: prueba

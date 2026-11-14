@@ -8,6 +8,7 @@ pub mod alertas;
 pub mod catalogos;
 pub mod conductor;
 pub mod derivaciones;
+pub mod documento;
 pub mod entrada;
 pub mod flechado;
 pub mod geo;

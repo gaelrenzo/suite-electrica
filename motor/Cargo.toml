@@ -2,20 +2,33 @@
 name = "suite_motor"
 version = "0.1.0"
 edition = "2021"
-description = "Núcleo de cálculo de Suite Eléctrica (mecánica de conductores) en Rust"
+description = "Suite Eléctrica: TopoCraft, LineCraft, GridCraft y PresuCraft (motor y aplicación de escritorio)"
 license = "MIT"
 
 [lib]
 path = "src/lib.rs"
 
+[[bin]]
+name = "suite-electrica"
+path = "src/app/main.rs"
+
 [dependencies]
 calamine = "0.38.0"
 csv = "1"
+eframe = "0.37.0"
+egui_plot = "0.38.0"
 printpdf = { version = "0.12.9", default-features = false }
 quick-xml = "0.42.0"
+rfd = "0.18.0"
 rust_xlsxwriter = "0.102.0"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.154", features = ["preserve_order", "float_roundtrip"] }
 spade = "2"
 
 [dev-dependencies]
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 4
+strip = true
