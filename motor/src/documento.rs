@@ -276,6 +276,7 @@ pub struct Calculo {
     pub metrado: Vec<FilaMetrado>,
     pub alertas: Vec<Alerta>,
     pub flechado: Vec<FilaFlechado>,
+    pub cruces: Vec<FilaCruce>,
 }
 
 impl Calculo {
@@ -307,6 +308,8 @@ pub struct Documento {
     pub hipotesis: Vec<FilaHipotesis>,
     pub fuentes: Vec<(String, String)>,
     pub estructuras: Vec<FilaEstructura>,
+    /// Cruces y obstáculos bajo la línea (columnas `COLS_CRUCES`, texto como en la planilla).
+    pub cruces: Vec<Vec<String>>,
     pub catalogos: BTreeMap<String, TablaCatalogo>,
     pub ruta: Option<PathBuf>,
     pub modificado: bool,
@@ -386,6 +389,7 @@ impl Documento {
             hipotesis,
             fuentes,
             estructuras: Vec::new(),
+            cruces: Vec::new(),
             catalogos,
             ruta: None,
             modificado: false,
@@ -594,7 +598,21 @@ impl Documento {
             }
         }
         let fl = tabla_flechado(&r, &p, 20.0, 5.0)?;
-        Ok(Calculo { proyecto: p, resultado: r, verificacion: ver, metrado: met, alertas: al, flechado: fl })
+        let cr = verificar_cruces(&self.cruces, &r, &p)?;
+        let mut al = al;
+        for c in cr.iter().filter(|c| !c.cumple) {
+            al.push(Alerta {
+                elemento: format!("Cruce {}", c.descripcion),
+                codigo: "DISTANCIA_SEGURIDAD".into(),
+                exceso: c.minima_m - c.distancia_m,
+                detalle: format!("{:.2} m sobre el obstáculo < {:.2} m exigidos ({})", c.distancia_m, c.minima_m, crate::salidas::formato_progresiva(c.progresiva_m, 2)),
+                critica: true,
+            });
+        }
+        for c in cr.iter().filter(|c| pendiente(&c.fuente)) {
+            r.avisos.push(format!("PENDIENTE_REVISION: distancia mínima del cruce '{}' -> {}", c.descripcion, if c.fuente.is_empty() { "sin fuente" } else { &c.fuente }));
+        }
+        Ok(Calculo { proyecto: p, resultado: r, verificacion: ver, metrado: met, alertas: al, flechado: fl, cruces: cr })
     }
 
     /// Calcula la línea; si no hay estructuras, primero las ubica automáticamente.
@@ -833,6 +851,11 @@ impl Documento {
             "filas": self.puntos.iter().map(|p| json!([p.punto, num(p.este), num(p.norte), num(p.cota), p.descripcion])).collect::<Vec<_>>(),
         }));
         d.insert("eje".into(), self.eje.as_ref().map_or(Value::Null, |e| json!(e)));
+        if !self.cruces.is_empty() {
+            d.insert("cruces".into(), Value::Array(self.cruces.iter().map(|f| {
+                Value::Object(COLS_CRUCES.iter().zip(f).map(|(c, v)| (c.to_string(), json!(v))).collect())
+            }).collect()));
+        }
         d.insert("estructuras".into(), Value::Array(self.estructuras.iter().map(|e| json!({
             "progresiva_m": e.progresiva_m, "tipo": e.tipo, "altura_amarre_m": opt(e.altura_amarre_m),
             "armado": e.armado, "poste": e.poste, "retenidas": opt(e.retenidas),
@@ -971,6 +994,19 @@ impl Documento {
                     .collect()
             })
             .unwrap_or_default();
+        doc.cruces = d
+            .get("cruces")
+            .and_then(|x| x.as_array())
+            .map(|a| {
+                a.iter()
+                    .map(|r| COLS_CRUCES.iter().map(|c| match r.get(*c) {
+                        Some(Value::String(t)) => t.clone(),
+                        Some(Value::Number(x)) => x.to_string(),
+                        _ => String::new(),
+                    }).collect())
+                    .collect()
+            })
+            .unwrap_or_default();
         doc.ordenar();
         if let Some(cats) = d.get("catalogos").and_then(|x| x.as_object()) {
             for (n, cols) in COLS_CATALOGO {
@@ -1099,4 +1135,83 @@ pub fn metrado_presupuesto(metrado: &[FilaMetrado], rubro: &str) -> String {
         out.push_str(&format!("{rubro},{uc},{cant}\n"));
     }
     out
+}
+
+// ------------------------------------------------------------------ cruces y distancias de seguridad
+
+/// Columnas de la tabla de cruces. La distancia mínima la fija el usuario con su fuente (p. ej. la
+/// tabla del CNE Suministro que corresponda al cruce): la suite no trae valores propios.
+pub const COLS_CRUCES: [&str; 5] = ["progresiva_m", "descripcion", "altura_obstaculo_m", "distancia_minima_m", "fuente"];
+
+/// Verificación de un cruce: conductor a flecha máxima sobre el obstáculo.
+#[derive(Debug, Clone, PartialEq)]
+pub struct FilaCruce {
+    pub progresiva_m: f64,
+    pub descripcion: String,
+    pub cota_terreno: f64,
+    /// Cota de la parte superior del obstáculo (terreno + altura).
+    pub cota_obstaculo: f64,
+    pub cota_conductor: f64,
+    pub distancia_m: f64,
+    pub minima_m: f64,
+    pub cumple: bool,
+    pub fuente: String,
+}
+
+/// Verifica cada cruce con la curva del conductor de la hipótesis de flecha máxima.
+pub fn verificar_cruces(cruces: &[Vec<String>], r: &Resultado, p: &Proyecto) -> Result<Vec<FilaCruce>, String> {
+    if cruces.is_empty() {
+        return Ok(Vec::new());
+    }
+    let curvas = crate::salidas::curvas_vanos(r, p, 0.0);
+    let mut out = Vec::new();
+    for (k, f) in cruces.iter().enumerate() {
+        let txt = |i: usize| f.get(i).map(|x| x.trim()).unwrap_or("");
+        if f.iter().all(|x| x.trim().is_empty()) {
+            continue;
+        }
+        let num = |i: usize, que: &str| {
+            txt(i).replace(',', ".").parse::<f64>().map_err(|_| format!("Cruce {}: «{}» no es un número válido de {que}", k + 1, txt(i)))
+        };
+        let (s, alto, minima) = (num(0, "progresiva")?, num(2, "altura del obstáculo")?, num(3, "distancia mínima")?);
+        let curva = curvas
+            .iter()
+            .find(|(xs, _)| xs.first().is_some_and(|a| *a <= s) && xs.last().is_some_and(|b| s <= *b))
+            .ok_or(format!("Cruce {} ({}): la progresiva {} está fuera de la línea", k + 1, txt(1), crate::salidas::formato_progresiva(s, 2)))?;
+        let zc = crate::geo::interp(s, &curva.0, &curva.1);
+        let zt = p.perfil.cota_en(s);
+        let d = zc - (zt + alto);
+        out.push(FilaCruce {
+            progresiva_m: s,
+            descripcion: txt(1).into(),
+            cota_terreno: zt,
+            cota_obstaculo: zt + alto,
+            cota_conductor: zc,
+            distancia_m: d,
+            minima_m: minima,
+            cumple: d >= minima,
+            fuente: txt(4).into(),
+        });
+    }
+    Ok(out)
+}
+
+/// Hoja «Cruces» de la planilla.
+pub fn tabla_cruces(c: &[FilaCruce]) -> crate::salidas::Tabla {
+    use crate::salidas::Celda::{Num, Txt};
+    let r2 = |x: f64| Num((x * 100.0).round() / 100.0);
+    crate::salidas::Tabla {
+        nombre: "Cruces".into(),
+        columnas: ["Progresiva", "Cruce", "Cota terreno (m)", "Cota obstáculo (m)", "Cota conductor (m)", "Distancia (m)", "Mínima (m)", "Cumple", "Fuente"]
+            .iter()
+            .map(|x| x.to_string())
+            .collect(),
+        filas: c
+            .iter()
+            .map(|f| vec![
+                Txt(crate::salidas::formato_progresiva(f.progresiva_m, 2)), Txt(f.descripcion.clone()), r2(f.cota_terreno), r2(f.cota_obstaculo),
+                r2(f.cota_conductor), r2(f.distancia_m), r2(f.minima_m), Txt(if f.cumple { "SÍ" } else { "NO" }.into()), Txt(f.fuente.clone()),
+            ])
+            .collect(),
+    }
 }

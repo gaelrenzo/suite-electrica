@@ -31,6 +31,8 @@ pub struct EstadoLinea {
     cat_hoja: String,
     cat_filtro: String,
     planta: bool,
+    cruces_abierto: bool,
+    cruces_filtro: String,
 }
 
 impl Default for EstadoLinea {
@@ -47,6 +49,8 @@ impl Default for EstadoLinea {
             cat_hoja: "armados".into(),
             cat_filtro: String::new(),
             planta: false,
+            cruces_abierto: false,
+            cruces_filtro: String::new(),
         }
     }
 }
@@ -70,6 +74,9 @@ fn poner(app: &mut App, r: Result<suite_motor::documento::Calculo, String>, que:
             res.avisos.len()
         );
         app.linea.tablas = tablas_linea(res, &c.proyecto, &c.extras());
+        if !c.cruces.is_empty() {
+            app.linea.tablas.push(suite_motor::documento::tabla_cruces(&c.cruces));
+        }
         app.calculo = Some(c);
         app.obsoleto = false;
         if app.linea.seleccion.is_some_and(|i| i >= app.doc.estructuras.len()) {
@@ -111,7 +118,13 @@ fn exportar(app: &mut App) {
         d.lamina(&caj);
         Ok::<_, String>(vec![
             d.guardar(&dir.join("perfil_linea.dxf"))?,
-            escribir_excel(&dir.join("planilla_estructuras.xlsx"), &tablas_linea(r, p, &c.extras()))?,
+            escribir_excel(&dir.join("planilla_estructuras.xlsx"), &{
+                let mut t = tablas_linea(r, p, &c.extras());
+                if !c.cruces.is_empty() {
+                    t.push(suite_motor::documento::tabla_cruces(&c.cruces));
+                }
+                t
+            })?,
             pdf::memoria_pdf(&dir.join("memoria_calculo.pdf"), r, p, &c.extras())?,
         ])
     })();
@@ -215,6 +228,13 @@ fn datos(app: &mut App, ui: &mut egui::Ui) {
         app.linea.cat_abierto = true;
     }
     cambio |= ventana_catalogos(app, &ui.ctx().clone());
+    if ui.button(format!("Cruces y distancias de seguridad… ({})", app.doc.cruces.len()))
+        .on_hover_text("Caminos, cercos, ríos, otras líneas: el conductor a flecha máxima debe pasar a la distancia mínima que indique")
+        .clicked()
+    {
+        app.linea.cruces_abierto = true;
+    }
+    cambio |= ventana_cruces(app, &ui.ctx().clone());
     egui::CollapsingHeader::new("Conductor").show(ui, |ui| {
         let c = &mut app.doc.conductor;
         egui::ComboBox::from_id_salt("cond").selected_text(c.nombre.as_str()).show_ui(ui, |ui| {
@@ -338,6 +358,13 @@ fn perfil(app: &mut App, ui: &mut egui::Ui, alto: f32) -> Accion {
         .allow_double_click_reset(false);
     let resp = plot.show(ui, |pu| {
         pu.line(Line::new("Terreno", PlotPoints::from(terreno)).color(egui::Color32::from_rgb(90, 62, 27)).fill((zmin - 5.0) as f32).fill_alpha(0.35));
+        for (k, x) in c.cruces.iter().enumerate() {
+            let col = if x.cumple { egui::Color32::from_rgb(46, 160, 67) } else { egui::Color32::from_rgb(210, 40, 40) };
+            pu.line(Line::new(if k == 0 { "Cruces" } else { "" }, PlotPoints::from(vec![[x.progresiva_m, x.cota_terreno], [x.progresiva_m, x.cota_obstaculo]]))
+                .color(col).width(5.0));
+            pu.text(Text::new("", PlotPoint::new(x.progresiva_m, x.cota_obstaculo), egui::RichText::new(format!("{} ({:.2} m)", x.descripcion, x.distancia_m)).small())
+                .anchor(egui::Align2::CENTER_BOTTOM).color(col));
+        }
         for (k, ((s, z), (_, zd))) in cond.iter().zip(&desp).enumerate() {
             let pts = |zz: &Vec<f64>| PlotPoints::from(s.iter().zip(zz).map(|(a, b)| [*a, *b]).collect::<Vec<_>>());
             pu.line(Line::new(if k == 0 { format!("Conductor ({})", p.hip_flecha_maxima) } else { String::new() }, pts(z))
@@ -683,4 +710,25 @@ fn planta(app: &mut App, ui: &mut egui::Ui, alto: f32) -> Accion {
             }
         });
     accion
+}
+
+/// Ventana de la tabla de cruces (se guarda en el `.sel`).
+fn ventana_cruces(app: &mut App, ctx: &egui::Context) -> bool {
+    if !app.linea.cruces_abierto {
+        return false;
+    }
+    let mut abierto = true;
+    let mut cambio = false;
+    let (doc, st) = (&mut app.doc, &mut app.linea);
+    egui::Window::new("Cruces y distancias de seguridad").open(&mut abierto).default_size([860.0, 360.0]).show(ctx, |ui| {
+        ui.label(egui::RichText::new(
+            "Por cruce: progresiva (m), descripción, altura del obstáculo sobre el terreno (m), distancia vertical mínima \
+             del conductor a flecha máxima sobre el obstáculo (m) y su fuente (tabla del CNE Suministro que aplique). \
+             Se verifica al calcular (F6); los que no cumplen aparecen en Alertas y en rojo en el perfil.",
+        ).small());
+        let cols: Vec<String> = suite_motor::documento::COLS_CRUCES.iter().map(|c| c.to_string()).collect();
+        cambio |= crate::tablas::editar(ui, "cruces", &cols, &mut doc.cruces, &mut st.cruces_filtro);
+    });
+    st.cruces_abierto = abierto;
+    cambio
 }

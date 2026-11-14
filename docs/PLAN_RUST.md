@@ -204,6 +204,12 @@ Antes de borrar `suite_electrica/`, hay que:
 Desde `python-referencia-v1`, las funciones nuevas se escriben solo en Rust y no cambian los
 resultados de referencia. Si un cambio los altera a propósito, se explica aquí.
 
+- **Cruces y distancias de seguridad (LineCraft):** tabla de cruces en el `.sel` (clave `cruces`,
+  solo si hay; columnas progresiva, descripción, altura del obstáculo, distancia mínima y fuente).
+  Al calcular se compara la cota del conductor a flecha máxima con la del obstáculo; los que no
+  cumplen dan una alerta `DISTANCIA_SEGURIDAD` y se dibujan en rojo en el perfil; hoja «Cruces» en
+  la planilla y el Excel. La suite no trae distancias propias: el usuario cita la tabla del CNE que
+  aplique (sin fuente → aviso PENDIENTE_REVISION). Prueba: `tests/cruces.rs`.
 - **Interfaz:**
   - Archivo → Abrir reciente (8 últimos `.sel`, redes y presupuestos; lista en
     `%APPDATA%\SuiteElectrica\recientes.txt`) y Guardar todo. Abrir acepta también JSON (red o
