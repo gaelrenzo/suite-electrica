@@ -12,6 +12,8 @@ pub struct Suministro {
     pub precio: Option<f64>,
     pub peso_kg: Option<f64>,
     pub fuente: String,
+    /// Índice Unificado (INEI) para la fórmula polinómica.
+    pub iu: String,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -50,6 +52,11 @@ pub struct Presupuesto {
     pub igv_pct: f64,
     pub moneda: String,
     pub fuentes: HashMap<String, String>,
+    /// Análisis de precios unitarios: si una partida coincide con una UC de montaje, su precio sale del APU.
+    pub apu: Vec<crate::apu::PartidaApu>,
+    /// Fórmula polinómica: índice -> índice similar (agrupación preliminar) y grupo -> monomio.
+    pub fp_similar: BTreeMap<String, String>,
+    pub fp_monomio: BTreeMap<String, String>,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -109,6 +116,8 @@ pub struct ResultadoPresupuesto {
     pub montaje: Vec<FilaMontaje>,
     pub planilla_uc: Vec<FilaUc>,
     pub avisos: Vec<String>,
+    pub apu: Vec<crate::apu::ApuCalculado>,
+    pub formula: Option<crate::apu::FormulaPolinomica>,
 }
 
 fn rd(x: f64, d: i32) -> f64 {
@@ -174,6 +183,27 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
         }
     }
 
+    // APU: precio de montaje de las UC que tienen análisis
+    let mut apus: Vec<crate::apu::ApuCalculado> = Vec::new();
+    for a in &p.apu {
+        apus.push(crate::apu::calcular_apu(a, 8.0)?);
+    }
+    let montaje_ef: Vec<Montaje> = p
+        .montaje
+        .iter()
+        .map(|m| {
+            let mut m = m.clone();
+            if let Some(a) = apus.iter().find(|a| a.codigo == m.uc) {
+                if m.precio.is_some_and(|x| (x - a.total).abs() > 0.005) {
+                    avisos.push(format!("Montaje {}: precio {:.2} reemplazado por su APU {:.2}", m.uc, m.precio.unwrap(), a.total));
+                }
+                m.precio = Some(a.total);
+            }
+            m
+        })
+        .collect();
+    let p_montaje = &montaje_ef;
+
     // materiales por (rubro, suministro), ordenados como groupby de pandas
     let mut mat: BTreeMap<(String, String), f64> = BTreeMap::new();
     for m in &me {
@@ -202,7 +232,7 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
         .collect();
     let mut montaje = Vec::new();
     for m in &me {
-        for mo in p.montaje.iter().filter(|x| x.uc == m.uc) {
+        for mo in p_montaje.iter().filter(|x| x.uc == m.uc) {
             let q = m.cantidad.unwrap_or(0.0);
             montaje.push(FilaMontaje {
                 rubro: m.rubro.clone(),
@@ -225,7 +255,7 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
                 s += q * x.precio.unwrap_or(0.0);
                 w += q * x.peso_kg.unwrap_or(0.0);
             }
-            let mo: f64 = p.montaje.iter().filter(|x| x.uc == m.uc).map(|x| x.precio.unwrap_or(0.0)).sum();
+            let mo: f64 = p_montaje.iter().filter(|x| x.uc == m.uc).map(|x| x.precio.unwrap_or(0.0)).sum();
             let q = m.cantidad.unwrap_or(0.0);
             FilaUc {
                 rubro: m.rubro.clone(),
@@ -269,6 +299,45 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
             total: rd(sub + igv, 2),
         });
     }
+    // fórmula polinómica: suministros por su IU, montaje desglosado por los insumos de su APU,
+    // transporte (IU 32) y gastos generales + utilidad (IU 39)
+    let hay_iu = p.suministros.iter().any(|s| !s.iu.is_empty()) || !apus.is_empty();
+    let formula = if hay_iu {
+        use crate::apu::ElementoFp;
+        let mut el: Vec<ElementoFp> = Vec::new();
+        let (mut sin_iu, mut sin_apu) = (std::collections::BTreeSet::new(), std::collections::BTreeSet::new());
+        for x in &suministro {
+            let iu = sm[x.codigo.as_str()].iu.clone();
+            if iu.is_empty() {
+                sin_iu.insert(x.codigo.clone());
+            }
+            el.push(ElementoFp { iu: if iu.is_empty() { "?".into() } else { iu }, parcial: x.parcial, descripcion: x.descripcion.clone() });
+        }
+        for x in &montaje {
+            match apus.iter().find(|a| a.codigo == x.uc) {
+                Some(a) => el.extend(a.lineas.iter().map(|l| ElementoFp { iu: l.iu.clone(), parcial: l.parcial * x.cantidad, descripcion: l.descripcion.clone() })),
+                None => {
+                    sin_apu.insert(x.uc.clone());
+                    el.push(ElementoFp { iu: "?".into(), parcial: x.parcial, descripcion: x.partida.clone() });
+                }
+            }
+        }
+        let tot = resumen.last().unwrap();
+        el.push(ElementoFp { iu: "32".into(), parcial: tot.transporte, descripcion: "Flete terrestre".into() });
+        el.push(ElementoFp { iu: "39".into(), parcial: tot.gastos_generales + tot.utilidad, descripcion: "Gastos generales y utilidad".into() });
+        el.retain(|e| e.parcial != 0.0);
+        if !sin_iu.is_empty() {
+            avisos.push(format!("Fórmula polinómica: suministros sin índice unificado (iu): {}", sin_iu.into_iter().collect::<Vec<_>>().join(", ")));
+        }
+        if !sin_apu.is_empty() {
+            avisos.push(format!("Fórmula polinómica: montaje sin APU (índice desconocido): {}", sin_apu.into_iter().collect::<Vec<_>>().join(", ")));
+        }
+        let f = crate::apu::formula_polinomica(&el, &p.fp_similar, &p.fp_monomio);
+        avisos.extend(f.avisos.iter().map(|a| format!("Fórmula polinómica: {a}")));
+        Some(f)
+    } else {
+        None
+    };
     let suministro = suministro
         .into_iter()
         .map(|mut x| {
@@ -286,7 +355,7 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
             x
         })
         .collect();
-    Ok(ResultadoPresupuesto { resumen, suministro, montaje, planilla_uc, avisos })
+    Ok(ResultadoPresupuesto { resumen, suministro, montaje, planilla_uc, avisos, apu: apus, formula })
 }
 
 /// Tablas desde el texto de los cuatro CSV.
@@ -307,6 +376,7 @@ pub fn leer_tablas(
                 precio: num(f, "precio"),
                 peso_kg: num(f, "peso_kg"),
                 fuente: txt(f, "fuente"),
+                    iu: txt(f, "iu"),
             })
             .collect(),
         leer_csv(unidades)?
@@ -355,5 +425,55 @@ pub fn cargar(ruta: &std::path::Path) -> Result<Presupuesto, String> {
         igv_pct: f("igv_pct"),
         moneda: cfg.get("moneda").and_then(|v| v.as_str()).unwrap_or("S/").into(),
         fuentes: crate::red::fuentes_json(&cfg),
+        apu: match cfg.get("apu").and_then(|v| v.as_str()) {
+            Some(_) => leer_apu_csv(&leer("apu")?)?,
+            None => Vec::new(),
+        },
+        fp_similar: Default::default(),
+        fp_monomio: Default::default(),
     })
+    .and_then(|mut p| {
+        if cfg.get("fp_agrupacion").and_then(|v| v.as_str()).is_some() {
+            for f in leer_csv(&leer("fp_agrupacion")?)? {
+                let g = |k: &str| f.get(k).map(|s| s.trim().to_string()).unwrap_or_default();
+                if !g("similar").is_empty() {
+                    p.fp_similar.insert(g("iu"), g("similar"));
+                }
+                if !g("monomio").is_empty() {
+                    p.fp_monomio.insert(g("iu"), g("monomio"));
+                }
+            }
+        }
+        Ok(p)
+    })
+}
+
+/// APU desde CSV: `partida, descripcion, unidad, rendimiento, tipo (MO, MAT, EQ, MAQ, GV), insumo,
+/// unidad_insumo, cuadrilla, cantidad, precio, iu, base` (los datos de la partida en su primera fila;
+/// `unidad_insumo` `%mo` = % de mano de obra; `%` = % de lo anterior, o de `base` MO/MAT/EQ/MAQ/GV).
+pub fn leer_apu_csv(texto: &str) -> Result<Vec<crate::apu::PartidaApu>, String> {
+    use crate::apu::{Insumo, PartidaApu, TipoInsumo};
+    let mut out: Vec<PartidaApu> = Vec::new();
+    for f in leer_csv(texto)? {
+        let t = |k: &str| f.get(k).map(|s| s.trim().to_string()).unwrap_or_default();
+        let n = |k: &str| t(k).replace(',', ".").parse::<f64>().ok();
+        let cod = t("partida");
+        if out.last().map_or(true, |p| p.codigo != cod) {
+            out.push(PartidaApu { codigo: cod.clone(), descripcion: t("descripcion"), unidad: t("unidad"),
+                rendimiento: n("rendimiento").unwrap_or(f64::NAN), insumos: Vec::new() });
+        }
+        let p = out.last_mut().unwrap();
+        let tipo = TipoInsumo::desde_str(&t("tipo")).ok_or(format!("APU {cod}: tipo inválido {:?}", t("tipo")))?;
+        p.insumos.push(Insumo {
+            tipo,
+            descripcion: t("insumo"),
+            unidad: t("unidad_insumo"),
+            cuadrilla: n("cuadrilla"),
+            cantidad: n("cantidad"),
+            precio: n("precio").unwrap_or(0.0),
+            iu: t("iu"),
+            base_pct: TipoInsumo::desde_str(&t("base")),
+        });
+    }
+    Ok(out)
 }

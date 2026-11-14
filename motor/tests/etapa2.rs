@@ -144,6 +144,7 @@ fn comparar_presu(texto: &str) {
         igv_pct: n(&par["igv_pct"]),
         moneda: "S/".into(),
         fuentes: fue,
+        ..Default::default()
     };
     let out = presupuesto::calcular(&p).unwrap();
     let cuerpo: Vec<&str> = texto.lines().skip_while(|l| !l.starts_with("== resultados")).skip(1).collect();

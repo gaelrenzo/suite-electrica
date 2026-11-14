@@ -273,6 +273,35 @@ resultados de referencia. Si un cambio los altera a propósito, se explica aquí
   la «Planilla de Redes Secundarias» de REDCAD y compara con su «Metrado de Redes Secundarias»:
   **33 de 33 renglones iguales** (12 armados, soportes, PAT, retenidas BT/MT, cajas, pastorales,
   iluminación, 3 conectores, 5 acometidas y 5 conductores en km). Prueba: `tests/red_metrado.rs`.
+* **PresuCraft: APU y fórmula polinómica (criterio de PRESIO)** (`motor/src/apu.rs`).
+  - **APU:**
+    - cuadrilla: cantidad = cuadrilla · 8 h / rendimiento;
+    - parcial = cantidad · precio;
+    - `%mo` = % de la mano de obra;
+    - `%` = % de lo anterior de su sección, o de la base indicada;
+    - secciones: mano de obra, materiales, equipos, maquinaria y gastos varios;
+    - redondeo de Excel (la mitad hacia arriba) a 2 decimales.
+  - **Fórmula polinómica (DS 011-79-VC):**
+    - incidencias por Índice Unificado, redondeadas a 3 decimales;
+    - el residuo va al índice de mayor parcial;
+    - agrupación preliminar y monomios;
+    - avisos si hay más de 8 monomios, uno por debajo de 5 % o la suma no es 1.
+  - **Uso** (claves opcionales de `presupuesto.json`):
+    - `"apu": "apu.csv"`: si una partida coincide con una UC de montaje, su precio sale del APU;
+    - columna `iu` en suministros y `"fp_agrupacion": "fp_agrupacion.csv"` (columnas `iu`,
+      `similar`, `monomio`): la fórmula reparte suministro, montaje desglosado por insumo,
+      transporte (IU 32) y gastos generales con utilidad (IU 39);
+    - la planilla agrega las hojas «APU» y «FormulaPolinomica».
+
+  **Validación:** `comparar-presio` con los reportes del ejemplo de PRESIO 2023.
+  - `APU.xlsx --apu`: **102 de 102 partidas**, con 671 cantidades, 823 parciales, 386 subtotales y
+    102 totales iguales.
+  - `Presupuesto.xlsx --fp`: **las 3 fórmulas** (líneas primarias, redes primarias y redes
+    secundarias), con incidencias, grupos y coeficientes iguales.
+
+  Pruebas: unitarias en `apu.rs` y `tests/presu_apu.rs`. Lo que no se valida: el transporte por
+  ruta de PRESIO, que necesita los pesos y tarifas de su base de datos. PresuCraft sigue usando
+  peso × flete por kg.
 
 ## Cómo continuar
 

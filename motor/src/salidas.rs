@@ -397,7 +397,29 @@ pub fn tablas_presupuesto(r: &ResultadoPresupuesto) -> Vec<Tabla> {
         pl.filas.push(vec![t(f.rubro.clone()), t(f.uc.clone()), n(f.cantidad), r2(f.suministro_unit), r2(f.montaje_unit),
             rd(f.peso_unit, 3), r2(f.transporte_unit), r2(f.total)]);
     }
-    vec![res, su, mo, pl, Tabla::lista("Avisos", "Aviso", &r.avisos, "Sin avisos")]
+    let mut v = vec![res, su, mo, pl];
+    if !r.apu.is_empty() {
+        let mut tb = Tabla::nueva("APU", &["Partida", "Tipo", "Descripción", "Unidad", "Cantidad", "Precio", "Parcial", "IU"]);
+        for a in &r.apu {
+            for l in &a.lineas {
+                tb.filas.push(vec![t(a.codigo.clone()), t(format!("{:?}", l.tipo)), t(l.descripcion.clone()), t(l.unidad.clone()),
+                    n(l.cantidad), n(l.precio), rd(l.parcial, 2), t(l.iu.clone())]);
+            }
+            tb.filas.push(vec![t(a.codigo.clone()), t("TOTAL"), t(""), t(""), n(f64::NAN), n(f64::NAN), rd(a.total, 2), t("")]);
+        }
+        v.push(tb);
+    }
+    if let Some(f) = &r.formula {
+        let mut tb = Tabla::nueva("FormulaPolinomica", &["Monomio", "Coeficiente", "Grupo (IU)", "Incidencia", "Fracción en el monomio"]);
+        for m in &f.monomios {
+            for (g, x, fr) in &m.grupos {
+                tb.filas.push(vec![t(m.simbolo.clone()), n(m.coeficiente), t(g.clone()), n(*x), n(*fr)]);
+            }
+        }
+        v.push(tb);
+    }
+    v.push(Tabla::lista("Avisos", "Aviso", &r.avisos, "Sin avisos"));
+    v
 }
 
 fn r2(x: f64) -> Celda {
