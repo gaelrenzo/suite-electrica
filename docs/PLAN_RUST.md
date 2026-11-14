@@ -48,7 +48,7 @@ Nada se da por portado sin comparación numérica:
 | 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `entrada`, `proyectos`, `utm`, `tin` | ✅ 14 archivos de prueba (válidos y problemáticos) = Python; `.sel` ida y vuelta Python↔Rust; `proyecto.json` → mismo cálculo |
 | 4 | Salidas: planillas Excel, planos DXF (perfil, red), memoria PDF | `salidas`, `dxf`, `pdf` | ✅ 5 casos: Excel = Python (2 698 celdas), DXF = Python (entidad a entidad, auditoría ezdxf sin errores), PDF con todo el texto de Python; diferencias en `docs/DIFERENCIAS_RUST.md` |
 | 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | `documento`, binario `suite-electrica` | ✅ documento `.sel` = Python (flujo completo de la app, 230 líneas); `.exe` de 22 MB probado sin Python; falta probarlo en otra PC |
-| 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | ⏳ referencia congelada (`python-referencia-v1`); falta portar `comparar_redlin.py` y retirar Python |
+| 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | ⏳ referencia congelada (`python-referencia-v1`); `comparar-redlin` portado (= Python en los 5 modos); `.exe` publicado (release `v0.1.0-rust`); falta probarlo en otra PC y retirar Python |
 
 ## Criterios de aceptación por etapa
 
@@ -186,9 +186,17 @@ motivo; los archivos de referencia ya no se regeneran con Python.
 Antes de borrar `suite_electrica/`, hay que:
 
 1. Mover `suite_electrica/plantillas/` (Rust las incluye con `include_str!`) a `data/plantillas/`.
-2. Portar `examples/validacion/comparar_redlin.py` (comparación con REDLIN) a un test o binario
-   Rust.
-3. Probar el `.exe` en otra PC.
+2. ✅ Portar `examples/validacion/comparar_redlin.py`: binario `comparar-redlin`
+   (`motor/src/bin/comparar-redlin.rs`), mismos 5 modos y argumentos. Con los reportes del
+   ejemplo de REDLIN (`SER-ejemplo.len`, exportados en local; no se distribuyen) imprime **las
+   mismas cifras** que Python: catenaria (f y L con error 0,0000 m, vp ≤ 0,0098 m), tiro vs
+   temperatura (1280 puntos, mediana 0,001 %), estado final con creep, cargas (FT, FL, Fv) y
+   momentos/FS de postes.
+   `cargo run --release --bin comparar-redlin -- PlanillaEstTotal.xls` (ver los demás modos en el
+   archivo).
+3. Probar el `.exe` en otra PC: descargarlo del *release*
+   [`v0.1.0-rust`](https://github.com/gaelrenzo/suite-electrica/releases/tag/v0.1.0-rust)
+   (se incluye `SHA256SUMS.txt`).
 4. Confirmar con el autor.
 
 ## Cómo continuar
