@@ -42,6 +42,45 @@ Nada se da por portado sin comparación numérica:
 | 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | binario `suite-electrica` | pendiente |
 | 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | pendiente |
 
+## Criterios de aceptación por etapa
+
+**Etapa 3 (archivos).** Pruebas por formato (CSV, DXF, KML, GPX, MapSource, Excel RLT, TPG) con
+archivos de ejemplo válidos **y** casos problemáticos: duplicados, cotas atípicas, campos vacíos,
+unidades incorrectas (p. ej. grados en vez de metros, cotas en mm) y coordenadas fuera de zona.
+Para cada caso problemático se fija el comportamiento esperado (error claro o aviso) y Rust debe
+dar el mismo resultado que Python. Los proyectos `.sel` y `.json` deben conservar todos los datos
+al guardarse y volver a abrirse (prueba de ida y vuelta, también entre Python y Rust).
+
+**Etapa 4 (salidas).** Planillas Excel, planos DXF y memoria PDF comparados con las salidas de
+Python en contenido, unidades, capas, nombres de hojas y columnas, redondeos y avisos. Toda
+diferencia visual intencional (tipografía, maquetación del PDF, colores) se documenta en
+`docs/DIFERENCIAS_RUST.md`.
+
+**Etapa 5 (interfaz y .exe).** La interfaz se construye sobre los flujos completos de cada módulo
+(importar → calcular → revisar → exportar). El `.exe` se prueba en una computadora limpia, sin
+Python ni herramientas de desarrollo instaladas.
+
+**Etapa 6 (retiro de Python).** Antes de retirar Python se fija una **versión de referencia**:
+casos de entrada y resultados esperados congelados en `motor/tests/`, con las diferencias aceptadas
+registradas (ver abajo). Las versiones futuras de Rust deben mantener esos resultados; un cambio
+intencional en un resultado exige actualizar la referencia en el mismo commit y explicarlo.
+
+## Diferencias aceptadas y condiciones de las comparaciones
+
+* **Montos (PresuCraft):** ±0,01 cuando un total cae justo en medio céntimo; pandas suma por pares
+  y Rust en orden, y esa diferencia ínfima decide el redondeo.
+* **Triangulación (TIN):** la coincidencia exacta con qhull (triángulos, aristas, cotas, curvas y
+  perfil) está demostrada con la colina sintética de `generar_referencia_tin.py`: malla de 20 m
+  con desplazamiento aleatorio uniforme ±6 m (semilla 7), sin puntos cocirculares. En **mallas
+  regulares** (cuatro puntos cocirculares) la triangulación de Delaunay no es única: qhull y spade
+  pueden elegir diagonales distintas, ambas válidas; las cotas interpoladas pueden diferir en esas
+  celdas (no en superficies planas).
+* **UTM:** error < 10 µm frente a pyproj (PROJ) demostrado en 243 puntos generados por
+  `generar_referencia_utm.py`: para cada zona 17S, 18S y 19S, una grilla de 9 longitudes entre
+  meridiano central ±3,4° y 9 latitudes entre −18,5° y −0,2° (WGS84). Condiciones: pyproj con
+  `Transformer.from_crs(4326, 327xx, always_xy=True)`; Rust con series de Krüger hasta n⁶; además
+  la ida y vuelta (UTM → geográficas) reproduce lon/lat con error < 1e-9°.
+
 ## Cómo continuar
 
 ```bash
