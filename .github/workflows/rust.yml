@@ -1,0 +1,33 @@
+name: rust
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  motor:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: motor
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust estable
+        run: rustup toolchain install stable --profile minimal && rustup default stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            motor/target
+          key: rust-${{ hashFiles('motor/Cargo.lock') }}
+      - name: Pruebas (Rust = referencia Python)
+        run: cargo test --release
+      - name: Ejecutable
+        run: cargo build --release --bin suite-electrica --bin comparar-redlin
+      - uses: actions/upload-artifact@v4
+        with:
+          name: suite-electrica-windows
+          path: |
+            motor/target/release/suite-electrica.exe
+            motor/target/release/comparar-redlin.exe
