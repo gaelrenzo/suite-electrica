@@ -113,6 +113,35 @@ pub fn metrado(red: &Red) -> Vec<FilaMetradoRed> {
         .collect()
 }
 
+/// Materiales por armado de la Norma DGE RD 023-2003 (plantilla `materiales_bt.csv`).
+pub const MATERIALES_BT: &str = include_str!("../../suite_electrica/plantillas/materiales_bt.csv");
+
+/// Materiales de los armados del metrado (cantidad por armado × armados). `E'n` usa los de `En`.
+/// Devuelve los materiales y los armados que no están en la tabla.
+pub fn materiales(metrado: &[FilaMetradoRed], tabla_csv: &str) -> Result<(Vec<FilaMetradoRed>, Vec<String>), String> {
+    use std::collections::BTreeMap;
+    let tabla = leer_csv(tabla_csv)?;
+    let mut por: BTreeMap<(String, String), f64> = BTreeMap::new();
+    let mut faltan = Vec::new();
+    for m in metrado.iter().filter(|m| m.item == "Armado") {
+        let base = m.codigo.replace('\'', "");
+        let filas: Vec<_> = tabla.iter().filter(|f| f.get("armado").map(|a| a.trim()) == Some(base.as_str())).collect();
+        if filas.is_empty() {
+            faltan.push(m.codigo.clone());
+        }
+        for f in filas {
+            let q: f64 = f.get("cantidad").and_then(|x| x.trim().replace(',', ".").parse().ok()).unwrap_or(0.0);
+            let k = (f.get("material").cloned().unwrap_or_default(), f.get("unidad").cloned().unwrap_or_default());
+            *por.entry(k).or_default() += q * m.cantidad;
+        }
+    }
+    let filas = por
+        .into_iter()
+        .map(|((mat, u), q)| FilaMetradoRed { item: "Material".into(), codigo: mat, unidad: u, cantidad: crate::numerico::redondear(q, 3) })
+        .collect();
+    Ok((filas, faltan))
+}
+
 /// Metrado de GridCraft -> `rubro, uc, cantidad` para PresuCraft.
 pub fn metrado_presupuesto(filas: &[FilaMetradoRed], rubro: &str) -> String {
     let mut out = String::from("rubro,uc,cantidad

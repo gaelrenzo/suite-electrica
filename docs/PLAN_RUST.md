@@ -299,7 +299,24 @@ resultados de referencia. Si un cambio los altera a propósito, se explica aquí
   - `Presupuesto.xlsx --fp`: **las 3 fórmulas** (líneas primarias, redes primarias y redes
     secundarias), con incidencias, grupos y coeficientes iguales.
 
-  Pruebas: unitarias en `apu.rs` y `tests/presu_apu.rs`. Lo que no se valida: el transporte por
+  Pruebas: unitarias en `apu.rs` y `tests/presu_apu.rs`.
+* **Materiales de los armados BT (Norma DGE RD 023-2003, láminas 001-006).** La plantilla
+  `materiales_bt.csv` tiene E1 a E6 y sus variantes /S, solo con cantidades fijas: sin los ítems
+  «s.req.» ni el poste. `red::materiales` multiplica el metrado de armados por esa tabla (E'n usa
+  los de En), y la planilla de GridCraft agrega la hoja «Materiales».
+
+  **Validación:** `comparar-redcad PlanillaRS.xls PlanillaMateriales.xlsx --materiales`, contra
+  la planilla de materiales de REDCAD (todas las estructuras del ejemplo).
+  - **6 de 9 materiales con cantidad fija coinciden exactos:** grapas de suspensión (59) y de
+    anclaje (73), pernos con gancho (59) y con ojal (57), tuercas ojal (16) y cajas de
+    derivación (7).
+  - **Difieren por reglas de REDCAD que no están en las láminas:** portalíneas (14 frente a 116)
+    y conductor N2XY (8,4 m frente a 53,4 m), que REDCAD también agrega en acometidas, alumbrado
+    y las variantes /S («según requerimiento»).
+  - **Fleje:** 7 frente a 2; no se identificó la regla.
+
+  Pendiente: materiales de retenidas, puesta a tierra, pastorales y acometidas (láminas 007-021).
+* Lo que no se valida en PresuCraft: el transporte por
   ruta de PRESIO, que necesita los pesos y tarifas de su base de datos. PresuCraft sigue usando
   peso × flete por kg.
 

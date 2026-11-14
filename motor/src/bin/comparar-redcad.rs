@@ -4,6 +4,7 @@
 //! ```text
 //! comparar-redcad CaidaTension.xls                           # caída de tensión
 //! comparar-redcad PlanillaRS.xls MetradoRS.xls --metrado     # metrado de redes secundarias
+//! comparar-redcad PlanillaRS.xls PlanillaMateriales.xlsx --materiales  # materiales de los armados
 //! ```
 //!
 //! Por subestación arma una red de GridCraft con los datos de entrada del reporte (longitud,
@@ -14,7 +15,7 @@
 use std::collections::{BTreeMap, HashMap};
 
 use calamine::{Data, Reader};
-use suite_motor::red::{calcular, metrado, ConductorRed, EstructuraBt, Nodo, Red};
+use suite_motor::red::{calcular, materiales, metrado, ConductorRed, EstructuraBt, Nodo, Red, MATERIALES_BT};
 
 fn num(d: &Data) -> f64 {
     match d {
@@ -130,6 +131,12 @@ fn clave(t: &str) -> String {
 /// Metrado: nodos desde «Planilla de Redes Secundarias» (hoja PlanRSFormato2), metrado de
 /// GridCraft y comparación con «Metrado de Redes Secundarias» (MetradoRS-1de4 … 4de4).
 fn comparar_metrado(planilla: &str, met: &str) -> Result<(), String> {
+    let red = Red { nodos: nodos_planilla(planilla)?, ..red_vacia() };
+    comparar_metrado_red(&red, met)
+}
+
+/// Nodos de GridCraft desde la «Planilla de Redes Secundarias» de REDCAD (hoja PlanRSFormato2).
+fn nodos_planilla(planilla: &str) -> Result<Vec<Nodo>, String> {
     let mut wb = calamine::open_workbook_auto(planilla).map_err(|e| format!("{planilla}: {e}"))?;
     let r = wb.worksheet_range("PlanRSFormato2").map_err(|e| e.to_string())?;
     let f: Vec<Vec<Data>> = r.rows().map(|x| x.to_vec()).collect();
@@ -194,8 +201,11 @@ fn comparar_metrado(planilla: &str, met: &str) -> Result<(), String> {
             }
         }
     }
-    let red = Red { nodos, ..red_vacia() };
-    let gc = metrado(&red);
+    Ok(nodos)
+}
+
+fn comparar_metrado_red(red: &Red, met: &str) -> Result<(), String> {
+    let gc = metrado(red);
     // metrado de REDCAD: fila 0 encabezados, fila 1 cantidades, en 4 hojas
     let mut wb = calamine::open_workbook_auto(met).map_err(|e| format!("{met}: {e}"))?;
     let mut rc: Vec<(String, f64)> = Vec::new();
@@ -232,6 +242,50 @@ fn comparar_metrado(planilla: &str, met: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// Materiales de los armados (plantilla DGE RD 023) frente a la «Planilla de Materiales» de REDCAD
+/// (hoja EST-SUM-RS: materiales por estructura; se suman todas las estructuras). Solo los
+/// materiales con cantidad fija en la norma; REDCAD resuelve los «s.req.» con su base de datos.
+fn comparar_materiales(planilla: &str, mats: &str) -> Result<(), String> {
+    let red = Red { nodos: nodos_planilla(planilla)?, ..red_vacia() };
+    let (gc, faltan) = materiales(&metrado(&red), MATERIALES_BT)?;
+    let mut wb = calamine::open_workbook_auto(mats).map_err(|e| format!("{mats}: {e}"))?;
+    let r = wb.worksheet_range("EST-SUM-RS").map_err(|e| e.to_string())?;
+    let f: Vec<Vec<Data>> = r.rows().map(|x| x.to_vec()).collect();
+    // (descripción en minúsculas, unidad, suma por todas las estructuras)
+    let rc: Vec<(String, String, f64)> = f
+        .iter()
+        .skip(5)
+        .map(|x| {
+            let d = x.get(2).map(texto).unwrap_or_default().to_lowercase();
+            let u = x.get(3).map(texto).unwrap_or_default();
+            let q: f64 = x.iter().skip(4).map(num).filter(|v| !v.is_nan()).sum();
+            (d, u, q)
+        })
+        .collect();
+    // material de la norma -> filtro sobre la descripción de REDCAD
+    let reglas: [(&str, &dyn Fn(&str) -> bool); 9] = [
+        ("Grapa de suspensión angular de aleación de aluminio", &|d| d.contains("grapa de suspensi")),
+        ("Grapa de anclaje cónica de aleación de aluminio", &|d| d.contains("grapa de anclaje c")),
+        ("Perno con gancho A°G° 16 mm", &|d| d.contains("perno con gancho")),
+        ("Perno con ojal A°G° 16 mm", &|d| d.starts_with("perno ojo")),
+        ("Tuerca ojal A°G° para perno de 16 mm", &|d| d.starts_with("tuerca-ojo")),
+        ("Caja de derivación para acometidas", &|d| d.starts_with("caja de derivacion")),
+        ("Fleje de acero inoxidable 19 mm con hebilla", &|d| d.starts_with("fleje de acero")),
+        ("Conductor de cobre recocido N2XY 10 mm2", &|d| d.contains("n2xy")),
+        ("Portalínea unipolar A°G° con pin de 10 mm", &|d| d.starts_with("portalinea")),
+    ];
+    println!("{:<52} {:>10} {:>10}", "Material (cantidad fija en la norma)", "GridCraft", "REDCAD");
+    for (mat, filtro) in reglas {
+        let g = gc.iter().find(|m| m.codigo == mat).map_or(0.0, |m| m.cantidad);
+        let r: f64 = rc.iter().filter(|x| filtro(&x.0)).map(|x| x.2).sum();
+        println!("{mat:<52} {g:>10.2} {r:>10.2} {}", if (g - r).abs() < 0.01 { "" } else { "≠" });
+    }
+    if !faltan.is_empty() {
+        println!("Armados sin materiales en la plantilla: {}", faltan.join(", "));
+    }
+    Ok(())
+}
+
 fn red_vacia() -> Red {
     Red {
         nombre: String::new(),
@@ -260,6 +314,13 @@ fn red_vacia() -> Red {
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
+    if args.len() == 3 && args[2] == "--materiales" {
+        if let Err(e) = comparar_materiales(&args[0], &args[1]) {
+            eprintln!("Error: {e}");
+            std::process::exit(1);
+        }
+        return;
+    }
     if args.len() == 3 && args[2] == "--metrado" {
         if let Err(e) = comparar_metrado(&args[0], &args[1]) {
             eprintln!("Error: {e}");

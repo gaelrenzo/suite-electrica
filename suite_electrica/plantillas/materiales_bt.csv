@@ -1,0 +1,102 @@
+# Materiales por armado de red secundaria con conductores autoportantes (cantidad por armado), de la
+# Norma DGE "Especificaciones Técnicas de Soportes Normalizados para Líneas y Redes Secundarias para
+# Electrificación Rural" (RD 023-2003-EM/DGE), láminas 001-006. Solo cantidades fijas: los ítems
+# "s.req." (según requerimiento: conectores de perforación, pernos y portalíneas de las variantes /S)
+# y el poste (se mide aparte como soporte) no se incluyen. Variantes E'n = armado En sobre poste de MT.
+armado,material,unidad,cantidad,fuente
+E1,Grapa de suspensión angular de aleación de aluminio,und,1,DGE RD 023-2003 lámina 001
+E1,Perno con gancho A°G° 16 mm,und,1,DGE RD 023-2003 lámina 001
+E1,Caja de derivación para acometidas,und,1,DGE RD 023-2003 lámina 001
+E1,Perno A°G° 13 mm con tuerca y contratuerca,und,1,DGE RD 023-2003 lámina 001
+E1,Portalínea unipolar A°G° con pin de 10 mm,und,2,DGE RD 023-2003 lámina 001
+E1,Correa plástica de amarre color negro,und,4,DGE RD 023-2003 lámina 001
+E1,Conductor de cobre recocido N2XY 10 mm2,m,1.2,DGE RD 023-2003 lámina 001
+E1,Conector bimetálico Al 25/Cu 4-10 mm2 neutro tipo cuña,und,1,DGE RD 023-2003 lámina 001
+E1,Fleje de acero inoxidable 19 mm con hebilla,und,1,DGE RD 023-2003 lámina 001
+E1,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,1,DGE RD 023-2003 lámina 001
+E1/S,Grapa de suspensión angular de aleación de aluminio,und,1,DGE RD 023-2003 lámina 001
+E1/S,Perno con gancho A°G° 16 mm,und,1,DGE RD 023-2003 lámina 001
+E1/S,Correa plástica de amarre color negro,und,4,DGE RD 023-2003 lámina 001
+E1/S,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,1,DGE RD 023-2003 lámina 001
+E2,Grapa de anclaje cónica de aleación de aluminio,und,2,DGE RD 023-2003 lámina 002
+E2,Perno con ojal A°G° 16 mm,und,1,DGE RD 023-2003 lámina 002
+E2,Tuerca ojal A°G° para perno de 16 mm,und,1,DGE RD 023-2003 lámina 002
+E2,Conector bimetálico Al 25/Cu 4-10 mm2 neutro tipo cuña,und,1,DGE RD 023-2003 lámina 002
+E2,Caja de derivación para acometidas,und,1,DGE RD 023-2003 lámina 002
+E2,Portalínea unipolar A°G° con pin de 10 mm,und,2,DGE RD 023-2003 lámina 002
+E2,Perno A°G° 13 mm con tuerca y contratuerca,und,1,DGE RD 023-2003 lámina 002
+E2,Fleje de acero inoxidable 19 mm con hebilla,und,1,DGE RD 023-2003 lámina 002
+E2,Conductor de cobre recocido N2XY 10 mm2,m,1.2,DGE RD 023-2003 lámina 002
+E2,Correa plástica de amarre color negro,und,4,DGE RD 023-2003 lámina 002
+E2,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 002
+E2/S,Grapa de anclaje cónica de aleación de aluminio,und,2,DGE RD 023-2003 lámina 002
+E2/S,Perno con ojal A°G° 16 mm,und,1,DGE RD 023-2003 lámina 002
+E2/S,Tuerca ojal A°G° para perno de 16 mm,und,1,DGE RD 023-2003 lámina 002
+E2/S,Correa plástica de amarre color negro,und,4,DGE RD 023-2003 lámina 002
+E2/S,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 002
+E3,Grapa de anclaje cónica de aleación de aluminio,und,1,DGE RD 023-2003 lámina 003
+E3,Perno con ojal A°G° 16 mm,und,1,DGE RD 023-2003 lámina 003
+E3,Conector bimetálico Al 25/Cu 4-10 mm2 neutro tipo cuña,und,1,DGE RD 023-2003 lámina 003
+E3,Caja de derivación para acometidas,und,1,DGE RD 023-2003 lámina 003
+E3,Portalínea unipolar A°G° con pin de 10 mm,und,2,DGE RD 023-2003 lámina 003
+E3,Perno A°G° 13 mm con tuerca y contratuerca,und,1,DGE RD 023-2003 lámina 003
+E3,Fleje de acero inoxidable 19 mm con hebilla,und,1,DGE RD 023-2003 lámina 003
+E3,Correa plástica de amarre color negro,und,4,DGE RD 023-2003 lámina 003
+E3,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 003
+E3,Conductor de cobre recocido N2XY 10 mm2,m,1.2,DGE RD 023-2003 lámina 003
+E3/S,Grapa de anclaje cónica de aleación de aluminio,und,1,DGE RD 023-2003 lámina 003
+E3/S,Perno con ojal A°G° 16 mm,und,1,DGE RD 023-2003 lámina 003
+E3/S,Correa plástica de amarre color negro,und,4,DGE RD 023-2003 lámina 003
+E3/S,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 003
+E4,Grapa de anclaje cónica de aleación de aluminio,und,2,DGE RD 023-2003 lámina 004
+E4,Perno con ojal A°G° 16 mm,und,1,DGE RD 023-2003 lámina 004
+E4,Tuerca ojal A°G° para perno de 16 mm,und,1,DGE RD 023-2003 lámina 004
+E4,Conector bimetálico Al 25/Cu 4-10 mm2 neutro tipo cuña,und,1,DGE RD 023-2003 lámina 004
+E4,Caja de derivación para acometidas,und,1,DGE RD 023-2003 lámina 004
+E4,Portalínea unipolar A°G° con pin de 10 mm,und,2,DGE RD 023-2003 lámina 004
+E4,Perno A°G° 13 mm con tuerca y contratuerca,und,1,DGE RD 023-2003 lámina 004
+E4,Fleje de acero inoxidable 19 mm con hebilla,und,1,DGE RD 023-2003 lámina 004
+E4,Conductor de cobre recocido N2XY 10 mm2,m,1.2,DGE RD 023-2003 lámina 004
+E4,Correa plástica de amarre color negro,und,5,DGE RD 023-2003 lámina 004
+E4,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 004
+E4/S,Grapa de anclaje cónica de aleación de aluminio,und,2,DGE RD 023-2003 lámina 004
+E4/S,Perno con ojal A°G° 16 mm,und,1,DGE RD 023-2003 lámina 004
+E4/S,Tuerca ojal A°G° para perno de 16 mm,und,1,DGE RD 023-2003 lámina 004
+E4/S,Correa plástica de amarre color negro,und,5,DGE RD 023-2003 lámina 004
+E4/S,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,2,DGE RD 023-2003 lámina 004
+E5,Grapa de suspensión angular de aleación de aluminio,und,1,DGE RD 023-2003 lámina 005
+E5,Grapa de anclaje cónica de aleación de aluminio,und,1,DGE RD 023-2003 lámina 005
+E5,Perno con gancho A°G° 16 mm,und,1,DGE RD 023-2003 lámina 005
+E5,Perno con ojal A°G° 16 mm,und,1,DGE RD 023-2003 lámina 005
+E5,Caja de derivación para acometidas,und,1,DGE RD 023-2003 lámina 005
+E5,Portalínea unipolar A°G° con pin de 10 mm,und,2,DGE RD 023-2003 lámina 005
+E5,Perno A°G° 13 mm con tuerca y contratuerca,und,1,DGE RD 023-2003 lámina 005
+E5,Conector bimetálico Al 25/Cu 4-10 mm2 neutro tipo cuña,und,1,DGE RD 023-2003 lámina 005
+E5,Fleje de acero inoxidable 19 mm con hebilla,und,1,DGE RD 023-2003 lámina 005
+E5,Conductor de cobre recocido N2XY 10 mm2,m,1.2,DGE RD 023-2003 lámina 005
+E5,Correa plástica de amarre color negro,und,5,DGE RD 023-2003 lámina 005
+E5,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,3,DGE RD 023-2003 lámina 005
+E5/S,Grapa de suspensión angular de aleación de aluminio,und,1,DGE RD 023-2003 lámina 005
+E5/S,Grapa de anclaje cónica de aleación de aluminio,und,1,DGE RD 023-2003 lámina 005
+E5/S,Perno con gancho A°G° 16 mm,und,1,DGE RD 023-2003 lámina 005
+E5/S,Perno con ojal A°G° 16 mm,und,1,DGE RD 023-2003 lámina 005
+E5/S,Correa plástica de amarre color negro,und,5,DGE RD 023-2003 lámina 005
+E5/S,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,3,DGE RD 023-2003 lámina 005
+E6,Grapa de anclaje cónica de aleación de aluminio,und,3,DGE RD 023-2003 lámina 006
+E6,Perno con ojal A°G° 16 mm,und,2,DGE RD 023-2003 lámina 006
+E6,Tuerca ojal A°G° para perno de 16 mm,und,1,DGE RD 023-2003 lámina 006
+E6,Conector bimetálico Al 25/Cu 4-10 mm2 neutro tipo cuña,und,1,DGE RD 023-2003 lámina 006
+E6,Caja de derivación para acometidas,und,1,DGE RD 023-2003 lámina 006
+E6,Portalínea unipolar A°G° con pin de 10 mm,und,2,DGE RD 023-2003 lámina 006
+E6,Perno A°G° 13 mm con tuerca y contratuerca,und,1,DGE RD 023-2003 lámina 006
+E6,Fleje de acero inoxidable 19 mm con hebilla,und,1,DGE RD 023-2003 lámina 006
+E6,Conductor de cobre recocido N2XY 10 mm2,m,1.2,DGE RD 023-2003 lámina 006
+E6,Correa plástica de amarre color negro,und,6,DGE RD 023-2003 lámina 006
+E6,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,4,DGE RD 023-2003 lámina 006
+E6,Conector Al 25 mm2 neutro desnudo tipo cuña,und,1,DGE RD 023-2003 lámina 006
+E6/S,Grapa de anclaje cónica de aleación de aluminio,und,3,DGE RD 023-2003 lámina 006
+E6/S,Perno con ojal A°G° 16 mm,und,2,DGE RD 023-2003 lámina 006
+E6/S,Tuerca ojal A°G° para perno de 16 mm,und,1,DGE RD 023-2003 lámina 006
+E6/S,Correa plástica de amarre color negro,und,6,DGE RD 023-2003 lámina 006
+E6/S,Arandela cuadrada curva 57x57 mm agujero 18 mm,und,4,DGE RD 023-2003 lámina 006
+E6/S,Conector Al 25 mm2 neutro desnudo tipo cuña,und,1,DGE RD 023-2003 lámina 006

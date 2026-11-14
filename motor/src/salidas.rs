@@ -369,6 +369,14 @@ pub fn tablas_red_con_metrado(red: &crate::red::Red, r: &ResultadoRed) -> Vec<Ta
         let mut tb = Tabla::nueva("Metrado", &["Ítem", "Código", "Unidad", "Cantidad"]);
         tb.filas.extend(met.iter().map(|m| vec![t(m.item.clone()), t(m.codigo.clone()), t(m.unidad.clone()), n(m.cantidad)]));
         v.insert(3, tb);
+        if let Ok((mats, faltan)) = crate::red::materiales(&met, crate::red::MATERIALES_BT) {
+            let mut tm = Tabla::nueva("Materiales", &["Material", "Unidad", "Cantidad"]);
+            tm.filas.extend(mats.iter().map(|m| vec![t(m.codigo.clone()), t(m.unidad.clone()), n(m.cantidad)]));
+            if !faltan.is_empty() {
+                tm.filas.push(vec![t(format!("Armados sin materiales en la plantilla: {}", faltan.join(", "))), t(""), n(f64::NAN)]);
+            }
+            v.insert(4, tm);
+        }
     }
     v
 }
