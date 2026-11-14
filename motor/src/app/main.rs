@@ -10,6 +10,7 @@
 mod linea;
 mod otros;
 mod red;
+mod tablas;
 
 use std::path::{Path, PathBuf};
 
@@ -348,7 +349,11 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
     let mut app = App::new(doc);
-    if let Some(r) = arg.filter(|_| es_json) {
+    let es_presu = |r: &PathBuf| std::fs::read_to_string(r).is_ok_and(|t| t.contains("\"suministros\""));
+    if let Some(r) = arg.clone().filter(|r| es_json && es_presu(r)) {
+        otros::abrir_presu(&mut app, otros::Tipo::Presu, r);
+        app.pestana = Pestana::Presu;
+    } else if let Some(r) = arg.filter(|_| es_json) {
         match app.red.abrir(&r) {
             Ok(()) => {
                 app.pestana = Pestana::Grid;

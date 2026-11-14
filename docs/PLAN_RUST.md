@@ -204,6 +204,17 @@ Antes de borrar `suite_electrica/`, hay que:
 Desde `python-referencia-v1`, las funciones nuevas se escriben solo en Rust y no cambian los
 resultados de referencia. Si un cambio los altera a propósito, se explica aquí.
 
+- **Editores de tablas en la app (sin tocar CSV a mano):** un mismo editor (`app/tablas.rs`) con
+  búsqueda, edición de celdas, agregar/duplicar/eliminar filas y filas virtualizadas.
+  - PresuCraft: pestañas «Datos» (parámetros y fuentes del JSON; suministros, unidades, montaje,
+    metrado, APU y agrupación FP) y «Resultados». Calcular guarda lo editado; también Guardar y
+    Descartar cambios. Botones para crear las tablas de APU y de agrupación FP. Suministros
+    muestra la columna `iu` aunque el archivo no la tenga.
+  - `catalogos::ArchivoCsv` lee y escribe el CSV conservando los comentarios `#` (prueba unitaria
+    de ida y vuelta).
+  - LineCraft: ventana «Editar catálogos…» (postes, armados, retenidas, materiales), guardados en el
+    `.sel`.
+  - `suite-electrica.exe presupuesto.json` abre el presupuesto directo en PresuCraft.
 - **GridCraft gráfico (editor en planta, como REDCAD):** la red se dibuja y edita en la app, sin
   preparar CSV a mano.
   - Herramientas: seleccionar/mover (el vano se recalcula con las coordenadas), agregar poste

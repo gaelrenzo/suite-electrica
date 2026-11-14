@@ -604,3 +604,86 @@ pub fn metrado(
     agregar("Conductor", format!("{nom} — masa"), "kg", redondear(total * p.conductor.peso / G, 1), String::new());
     filas
 }
+
+/// CSV editable en la app: texto tal cual (sin recortar), con los comentarios `#` del archivo.
+/// ponytail: los comentarios se reescriben todos al inicio (en las plantillas ya están ahí).
+#[derive(Debug, Clone, Default)]
+pub struct ArchivoCsv {
+    pub nombre: String,
+    pub ruta: std::path::PathBuf,
+    pub comentarios: Vec<String>,
+    pub columnas: Vec<String>,
+    pub filas: Vec<Vec<String>>,
+    pub modificado: bool,
+    pub filtro: String,
+}
+
+impl ArchivoCsv {
+    pub fn desde_texto(nombre: &str, ruta: &std::path::Path, texto: &str) -> Result<Self, String> {
+        let texto = texto.trim_start_matches('\u{feff}');
+        let es_com = |l: &&str| l.trim_start().starts_with('#');
+        let comentarios = texto.lines().filter(es_com).map(String::from).collect();
+        let datos = texto.lines().filter(|l| !es_com(l)).collect::<Vec<_>>().join("\n");
+        let mut rd = csv::ReaderBuilder::new().flexible(true).from_reader(datos.as_bytes());
+        let err = |e: csv::Error| format!("{}: {e}", ruta.display());
+        let columnas: Vec<String> = rd.headers().map_err(err)?.iter().map(|c| c.trim().to_string()).collect();
+        let mut filas = Vec::new();
+        for r in rd.records() {
+            let mut f: Vec<String> = r.map_err(err)?.iter().map(String::from).collect();
+            f.resize(columnas.len(), String::new());
+            filas.push(f);
+        }
+        Ok(ArchivoCsv { nombre: nombre.into(), ruta: ruta.to_path_buf(), comentarios, columnas, filas, ..Default::default() })
+    }
+
+    pub fn abrir(nombre: &str, ruta: &std::path::Path) -> Result<Self, String> {
+        let t = std::fs::read_to_string(ruta).map_err(|e| format!("{}: {e}", ruta.display()))?;
+        Self::desde_texto(nombre, ruta, &t)
+    }
+
+    /// Agrega la columna (vacía) si no existe.
+    pub fn asegurar_columna(&mut self, c: &str) {
+        if !self.columnas.iter().any(|x| x == c) {
+            self.columnas.push(c.into());
+            for f in &mut self.filas {
+                f.resize(self.columnas.len(), String::new());
+            }
+        }
+    }
+
+    pub fn a_texto(&self) -> String {
+        let mut w = csv::Writer::from_writer(Vec::new());
+        let _ = w.write_record(&self.columnas);
+        for f in self.filas.iter().filter(|f| f.iter().any(|c| !c.trim().is_empty())) {
+            let _ = w.write_record(f);
+        }
+        let cuerpo = String::from_utf8(w.into_inner().unwrap_or_default()).unwrap_or_default();
+        self.comentarios.iter().map(|c| format!("{c}\n")).collect::<String>() + &cuerpo
+    }
+
+    pub fn guardar(&mut self) -> Result<(), String> {
+        std::fs::write(&self.ruta, self.a_texto()).map_err(|e| format!("{}: {e}", self.ruta.display()))?;
+        self.modificado = false;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod prueba_archivo_csv {
+    use super::*;
+
+    #[test]
+    fn ida_y_vuelta_conserva_datos_y_comentarios() {
+        let t = "# nota 1\n# nota 2\ncodigo,descripcion,precio\nA,\"Poste, 12 m\",10\nB,Cruceta,\n";
+        let mut a = ArchivoCsv::desde_texto("s", std::path::Path::new("x.csv"), t).unwrap();
+        assert_eq!(a.filas[0][1], "Poste, 12 m");
+        a.asegurar_columna("iu");
+        a.filas.push(vec![String::new(); 4]); // fila vacía: no se escribe
+        let b = ArchivoCsv::desde_texto("s", std::path::Path::new("x.csv"), &a.a_texto()).unwrap();
+        assert_eq!(b.comentarios, vec!["# nota 1", "# nota 2"]);
+        assert_eq!(b.columnas, vec!["codigo", "descripcion", "precio", "iu"]);
+        assert_eq!(b.filas, a.filas[..2].to_vec());
+        // lo que lee el motor es lo mismo
+        assert_eq!(leer_csv(&a.a_texto()).unwrap()[0]["descripcion"], "Poste, 12 m");
+    }
+}

@@ -27,6 +27,9 @@ pub struct EstadoLinea {
     mover_con_raton: bool,
     catalogo: BTreeMap<String, Conductor>,
     tablas: Vec<Tabla>,
+    cat_abierto: bool,
+    cat_hoja: String,
+    cat_filtro: String,
 }
 
 impl Default for EstadoLinea {
@@ -39,6 +42,9 @@ impl Default for EstadoLinea {
             mover_con_raton: true,
             catalogo: leer_catalogo_conductores(CONDUCTORES).unwrap_or_default(),
             tablas: Vec::new(),
+            cat_abierto: false,
+            cat_hoja: "armados".into(),
+            cat_filtro: String::new(),
         }
     }
 }
@@ -194,6 +200,10 @@ fn datos(app: &mut App, ui: &mut egui::Ui) {
         app.doc.catalogos = suite_motor::documento::Documento::nuevo().catalogos;
         cambio = true;
     }
+    if ui.button("Editar catálogos…").on_hover_text("Postes, armados, retenidas y materiales del proyecto").clicked() {
+        app.linea.cat_abierto = true;
+    }
+    cambio |= ventana_catalogos(app, &ui.ctx().clone());
     egui::CollapsingHeader::new("Conductor").show(ui, |ui| {
         let c = &mut app.doc.conductor;
         egui::ComboBox::from_id_salt("cond").selected_text(c.nombre.as_str()).show_ui(ui, |ui| {
@@ -546,4 +556,29 @@ pub fn panel(app: &mut App, ui: &mut egui::Ui) {
             ver_tabla(ui, &t, &format!("lc_{}", t.nombre));
         }
     });
+}
+
+/// Ventana de edición de los catálogos del proyecto (se guardan en el `.sel`).
+fn ventana_catalogos(app: &mut App, ctx: &egui::Context) -> bool {
+    if !app.linea.cat_abierto {
+        return false;
+    }
+    let mut abierto = true;
+    let mut cambio = false;
+    let (doc, st) = (&mut app.doc, &mut app.linea);
+    egui::Window::new("Catálogos del proyecto").open(&mut abierto).default_size([980.0, 560.0]).show(ctx, |ui| {
+        ui.horizontal(|ui| {
+            for n in doc.catalogos.keys() {
+                if ui.selectable_label(&st.cat_hoja == n, n).clicked() {
+                    st.cat_hoja = n.clone();
+                }
+            }
+        });
+        ui.label(egui::RichText::new("Se guardan con el proyecto (.sel). Tras editar, use «Asignar catálogos» y Calcular.").small());
+        if let Some(t) = doc.catalogos.get_mut(&st.cat_hoja) {
+            cambio |= crate::tablas::editar(ui, &format!("cat_{}", st.cat_hoja), &t.columnas, &mut t.filas, &mut st.cat_filtro);
+        }
+    });
+    st.cat_abierto = abierto;
+    cambio
 }

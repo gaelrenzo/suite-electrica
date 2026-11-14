@@ -9,7 +9,9 @@ use suite_motor::salidas::{escribir_excel, tablas_perfil, tablas_presupuesto, Ce
 use suite_motor::tin::es_mayor;
 use suite_motor::{dxf, pdf, presupuesto, red};
 
-use crate::{abrir_externo, elegir_carpeta, num, ver_tabla, App};
+use suite_motor::catalogos::ArchivoCsv;
+
+use crate::{abrir_externo, elegir_carpeta, num, tablas, ver_tabla, App};
 
 const FORMATOS_PUNTOS: &[&str] = &["csv", "txt", "dxf", "kml", "gpx", "xls", "xlsx"];
 const FORMATOS_EJE: &[&str] = &["dxf", "csv", "txt", "kml", "gpx", "xls", "xlsx"];
@@ -202,6 +204,13 @@ pub enum Tipo {
     Presu,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Ver {
+    Parametros,
+    Dato(usize),
+    Resultado,
+}
+
 pub struct ModuloJson {
     tipo: Tipo,
     pub ruta: Option<PathBuf>,
@@ -209,7 +218,23 @@ pub struct ModuloJson {
     resumen: String,
     hoja: usize,
     presu: Option<presupuesto::ResultadoPresupuesto>,
+    datos: Vec<ArchivoCsv>,
+    params: serde_json::Map<String, serde_json::Value>,
+    params_mod: bool,
+    ver: Ver,
 }
+
+/// Tablas del presupuesto editables en la app: (clave del JSON, título).
+const TABLAS_PRESU: [(&str, &str); 6] = [
+    ("suministros", "Suministros"),
+    ("unidades", "Unidades (UC)"),
+    ("montaje", "Montaje"),
+    ("metrado", "Metrado"),
+    ("apu", "APU"),
+    ("fp_agrupacion", "Agrupación FP"),
+];
+const CABECERA_APU: &str = "partida,descripcion,unidad,rendimiento,tipo,insumo,unidad_insumo,cuadrilla,cantidad,precio,iu,base";
+const CABECERA_FP: &str = "iu,similar,monomio";
 
 const PLANTILLAS_PRESU: [(&str, &str); 5] = [
     ("presupuesto.json", include_str!("../../../suite_electrica/plantillas/presu_presupuesto.json")),
@@ -221,7 +246,18 @@ const PLANTILLAS_PRESU: [(&str, &str); 5] = [
 
 impl ModuloJson {
     pub fn nuevo(tipo: Tipo) -> Self {
-        ModuloJson { tipo, ruta: None, tablas: Vec::new(), resumen: String::new(), hoja: 0, presu: None }
+        ModuloJson {
+            tipo,
+            ruta: None,
+            tablas: Vec::new(),
+            resumen: String::new(),
+            hoja: 0,
+            presu: None,
+            datos: Vec::new(),
+            params: Default::default(),
+            params_mod: false,
+            ver: Ver::Parametros,
+        }
     }
 
     fn archivo(&self) -> &'static str {
@@ -230,8 +266,74 @@ impl ModuloJson {
         }
     }
 
+    /// Lee el JSON y las tablas CSV que nombra (descarta lo no guardado).
+    fn cargar_datos(&mut self) -> Result<(), String> {
+        let ruta = self.ruta.clone().ok_or("Abra o cree un proyecto")?;
+        let t = std::fs::read_to_string(&ruta).map_err(|e| format!("{}: {e}", ruta.display()))?;
+        let v: serde_json::Value = serde_json::from_str(&t).map_err(|e| format!("{}: {e}", ruta.display()))?;
+        self.params = v.as_object().cloned().unwrap_or_default();
+        let base = ruta.parent().unwrap_or(Path::new("."));
+        self.datos.clear();
+        for (k, titulo) in TABLAS_PRESU {
+            if let Some(f) = self.params.get(k).and_then(|v| v.as_str()) {
+                let mut a = ArchivoCsv::abrir(titulo, &base.join(f))?;
+                if k == "suministros" {
+                    a.asegurar_columna("iu"); // índice unificado, para la fórmula polinómica
+                }
+                self.datos.push(a);
+            }
+        }
+        self.params_mod = false;
+        if let Ver::Dato(k) = self.ver {
+            if k >= self.datos.len() {
+                self.ver = Ver::Parametros;
+            }
+        }
+        Ok(())
+    }
+
+    /// Guarda las tablas y parámetros modificados; devuelve cuántos archivos escribió.
+    fn guardar_datos(&mut self) -> Result<usize, String> {
+        let mut n = 0;
+        for a in self.datos.iter_mut().filter(|a| a.modificado) {
+            a.guardar()?;
+            n += 1;
+        }
+        if self.params_mod {
+            let ruta = self.ruta.clone().ok_or("Sin proyecto")?;
+            let t = serde_json::to_string_pretty(&serde_json::Value::Object(self.params.clone())).map_err(|e| e.to_string())?;
+            std::fs::write(&ruta, t + "\n").map_err(|e| format!("{}: {e}", ruta.display()))?;
+            self.params_mod = false;
+            n += 1;
+        }
+        Ok(n)
+    }
+
+    fn pendientes(&self) -> bool {
+        self.params_mod || self.datos.iter().any(|a| a.modificado)
+    }
+
+    /// Crea una tabla vacía (solo cabecera) y la enlaza en el JSON.
+    fn crear_tabla(&mut self, clave: &str, archivo: &str, cabecera: &str) -> Result<(), String> {
+        let ruta = self.ruta.clone().ok_or("Sin proyecto")?;
+        let destino = ruta.parent().unwrap_or(Path::new(".")).join(archivo);
+        if !destino.exists() {
+            std::fs::write(&destino, format!("{cabecera}\n")).map_err(|e| format!("{}: {e}", destino.display()))?;
+        }
+        self.params.insert(clave.into(), serde_json::json!(archivo));
+        self.params_mod = true;
+        self.guardar_datos()?;
+        self.cargar_datos()?;
+        if let Some(k) = self.datos.iter().position(|a| a.ruta == destino) {
+            self.ver = Ver::Dato(k);
+        }
+        Ok(())
+    }
+
+    /// Guarda lo editado, calcula y vuelve a leer las tablas.
     fn calcular(&mut self) -> Result<String, String> {
         let ruta = self.ruta.clone().ok_or("Abra o cree un proyecto")?;
+        self.guardar_datos()?;
         match self.tipo {
             Tipo::Presu => {
                 let p = presupuesto::cargar(&ruta)?;
@@ -243,6 +345,7 @@ impl ModuloJson {
             }
         }
         self.hoja = self.hoja.min(self.tablas.len().saturating_sub(1));
+        self.cargar_datos()?;
         Ok(self.resumen.clone())
     }
 
@@ -326,7 +429,7 @@ fn metrado_a_presupuesto(app: &mut App, de_red: bool) {
         return;
     };
     let destino = ruta.parent().unwrap_or(Path::new(".")).join("metrado.csv");
-    let r = fusionar_metrado(&destino, &csv, rubro).and_then(|_| app.presu.calcular());
+    let r = app.presu.guardar_datos().and_then(|_| fusionar_metrado(&destino, &csv, rubro)).and_then(|_| app.presu.calcular());
     if let Some(m) = app.intentar(r) {
         app.estado = format!("Metrado de {origen} (rubro {rubro}) escrito en {} — {m}", destino.display());
     }
@@ -341,24 +444,33 @@ pub fn panel_json(app: &mut App, ui: &mut egui::Ui, tipo: Tipo) {
             let archivo = modulo(app, tipo).archivo();
             if ui.button(format!("Abrir {archivo}…")).clicked() {
                 if let Some(r) = rfd::FileDialog::new().add_filter("Proyecto", &["json"]).pick_file() {
-                    modulo(app, tipo).ruta = Some(r);
-                    let res = modulo(app, tipo).calcular();
-                    if let Some(m) = app.intentar(res) {
-                        app.estado = m;
-                    }
+                    abrir_presu(app, tipo, r);
                 }
             }
             if ui.button("Nuevo (carpeta con plantillas)…").clicked() {
                 if let Some(c) = elegir_carpeta("Carpeta del proyecto", None) {
                     let res = modulo(app, tipo).crear(&c);
                     if let Some(r) = app.intentar(res) {
-                        modulo(app, tipo).ruta = Some(r.clone());
-                        app.estado = format!("Plantillas creadas en {} — edite los CSV y el JSON (valores y fuentes) y pulse Calcular", c.display());
+                        abrir_presu(app, tipo, r);
+                        app.estado = format!("Plantillas creadas en {} — edite las tablas en «Datos» (valores y fuentes) y pulse Calcular", c.display());
                     }
                 }
             }
             let hay = modulo(app, tipo).ruta.is_some();
-            if ui.add_enabled(hay, egui::Button::new(egui::RichText::new("Calcular").strong())).clicked() {
+            let pend = modulo(app, tipo).pendientes();
+            if ui.add_enabled(pend, egui::Button::new("Guardar")).clicked() {
+                let res = modulo(app, tipo).guardar_datos();
+                if let Some(n) = app.intentar(res) {
+                    app.estado = format!("Guardados {n} archivo(s)");
+                }
+            }
+            if ui.add_enabled(pend, egui::Button::new("Descartar cambios")).clicked() {
+                let res = modulo(app, tipo).cargar_datos();
+                if app.intentar(res).is_some() {
+                    app.estado = "Cambios descartados".into();
+                }
+            }
+            if ui.add_enabled(hay, egui::Button::new(egui::RichText::new("Calcular").strong())).on_hover_text("Guarda lo editado y calcula").clicked() {
                 let res = modulo(app, tipo).calcular();
                 if let Some(m) = app.intentar(res) {
                     app.estado = m;
@@ -397,16 +509,124 @@ pub fn panel_json(app: &mut App, ui: &mut egui::Ui, tipo: Tipo) {
     });
     egui::CentralPanel::default().show(ui, |ui| {
         let m = modulo(app, tipo);
-        if m.tablas.is_empty() {
+        if m.ruta.is_none() {
             return;
         }
-        ui.horizontal(|ui| {
-            for (k, t) in m.tablas.iter().enumerate() {
-                ui.selectable_value(&mut m.hoja, k, &t.nombre);
+        ui.horizontal_wrapped(|ui| {
+            ui.label(egui::RichText::new("Datos:").strong());
+            ui.selectable_value(&mut m.ver, Ver::Parametros, if m.params_mod { "Parámetros *" } else { "Parámetros" });
+            for (k, a) in m.datos.iter().enumerate() {
+                ui.selectable_value(&mut m.ver, Ver::Dato(k), if a.modificado { format!("{} *", a.nombre) } else { a.nombre.clone() });
+            }
+            if !m.tablas.is_empty() {
+                ui.separator();
+                ui.label(egui::RichText::new("Resultados:").strong());
+                for (k, t) in m.tablas.iter().enumerate() {
+                    if ui.selectable_label(m.ver == Ver::Resultado && m.hoja == k, &t.nombre).clicked() {
+                        m.ver = Ver::Resultado;
+                        m.hoja = k;
+                    }
+                }
             }
         });
         ui.separator();
-        let id = format!("{}_{}", m.archivo(), m.hoja);
-        ver_tabla(ui, &m.tablas[m.hoja], &id);
+        let mut crear = None;
+        match m.ver {
+            Ver::Parametros => crear = parametros_presu(ui, m),
+            Ver::Dato(k) => {
+                let a = &mut m.datos[k];
+                ui.label(egui::RichText::new(a.ruta.display().to_string()).small());
+                if tablas::editar(ui, &format!("presu_dato_{k}"), &a.columnas, &mut a.filas, &mut a.filtro) {
+                    a.modificado = true;
+                }
+            }
+            Ver::Resultado => {
+                let id = format!("{}_{}", m.archivo(), m.hoja);
+                ver_tabla(ui, &m.tablas[m.hoja], &id);
+            }
+        }
+        if let Some((clave, archivo, cab)) = crear {
+            let res = modulo(app, tipo).crear_tabla(clave, archivo, cab);
+            app.intentar(res);
+        }
     });
+}
+
+pub fn abrir_presu(app: &mut App, tipo: Tipo, r: PathBuf) {
+    let m = modulo(app, tipo);
+    m.ruta = Some(r.clone());
+    m.tablas.clear();
+    m.presu = None;
+    m.resumen.clear();
+    let res = m.cargar_datos();
+    if app.intentar(res).is_none() {
+        return;
+    }
+    let res = modulo(app, tipo).calcular();
+    if let Some(msg) = app.intentar(res) {
+        modulo(app, tipo).ver = Ver::Resultado;
+        app.estado = format!("{} — {msg}", r.display());
+    }
+}
+
+/// Parámetros del presupuesto (claves del JSON). Devuelve una tabla a crear, si se pidió.
+fn parametros_presu(ui: &mut egui::Ui, m: &mut ModuloJson) -> Option<(&'static str, &'static str, &'static str)> {
+    use serde_json::json;
+    let mut cambio = false;
+    let mut crear = None;
+    egui::ScrollArea::vertical().id_salt("presu_param").show(ui, |ui| {
+        egui::Grid::new("presu_param_g").num_columns(2).show(ui, |ui| {
+            for (k, t) in [("nombre", "Nombre"), ("moneda", "Moneda")] {
+                let mut v = m.params.get(k).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                ui.label(t);
+                if ui.text_edit_singleline(&mut v).changed() {
+                    m.params.insert(k.into(), json!(v));
+                    cambio = true;
+                }
+                ui.end_row();
+            }
+            for (k, t, suf, vel) in [
+                ("flete_por_kg", "Flete por kg", "", 0.01),
+                ("gastos_generales_pct", "Gastos generales", " %", 0.1),
+                ("utilidad_pct", "Utilidad", " %", 0.1),
+                ("igv_pct", "IGV", " %", 0.1),
+            ] {
+                let mut x = m.params.get(k).and_then(|v| v.as_f64()).unwrap_or(0.0);
+                if num(ui, t, &mut x, vel, suf) {
+                    m.params.insert(k.into(), json!(x));
+                    cambio = true;
+                }
+            }
+        });
+        ui.separator();
+        ui.label(egui::RichText::new("Fuentes de los valores (cite la norma, cotización o estudio de mercado)").strong());
+        let mut fuentes = m.params.get("fuentes").and_then(|v| v.as_object()).cloned().unwrap_or_default();
+        egui::Grid::new("presu_fuentes").num_columns(2).show(ui, |ui| {
+            for k in ["flete_por_kg", "gastos_generales_pct", "utilidad_pct", "igv_pct"] {
+                let mut v = fuentes.get(k).and_then(|v| v.as_str()).unwrap_or("").to_string();
+                ui.label(k);
+                if ui.add(egui::TextEdit::singleline(&mut v).desired_width(420.0)).changed() {
+                    fuentes.insert(k.into(), json!(v));
+                    cambio = true;
+                }
+                ui.end_row();
+            }
+        });
+        if cambio {
+            m.params.insert("fuentes".into(), serde_json::Value::Object(fuentes));
+        }
+        ui.separator();
+        ui.horizontal(|ui| {
+            if !m.params.contains_key("apu") && ui.button("Crear tabla de APU").on_hover_text("apu.csv: análisis de precios unitarios (reemplazan el precio de montaje)").clicked() {
+                crear = Some(("apu", "apu.csv", CABECERA_APU));
+            }
+            if !m.params.contains_key("fp_agrupacion") && ui.button("Crear agrupación de la fórmula polinómica").on_hover_text("fp_agrupacion.csv: IU, similar y monomio").clicked() {
+                crear = Some(("fp_agrupacion", "fp_agrupacion.csv", CABECERA_FP));
+            }
+        });
+    });
+    if cambio {
+        m.params_mod = true;
+    }
+    crear
 }
