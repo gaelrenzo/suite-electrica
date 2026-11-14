@@ -30,6 +30,7 @@ pub fn leer_catalogo_conductores(texto: &str) -> Result<BTreeMap<String, Conduct
         out.insert(
             nombre.clone(),
             Conductor {
+                fuente: f.get("fuente").cloned().unwrap_or_default().trim().to_string(),
                 nombre,
                 seccion: n("seccion_mm2")? * 1e-6,
                 diametro: n("diametro_mm")? * 1e-3,

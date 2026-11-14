@@ -603,11 +603,7 @@ pub fn calcular(p: &Proyecto) -> Result<Resultado, String> {
     Ok(Resultado { estructuras: est, tramos, vanos, cargas, avisos })
 }
 
-/// Formato `{:g}` de Python para números "redondos".
+/// Formato `{:g}` de Python.
 pub fn fmt_g(x: f64) -> String {
-    if x == x.trunc() && x.abs() < 1e15 {
-        format!("{}", x as i64)
-    } else {
-        format!("{x}")
-    }
+    crate::numerico::formato_g(x)
 }

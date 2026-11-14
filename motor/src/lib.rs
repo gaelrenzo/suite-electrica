@@ -19,3 +19,6 @@ pub mod red;
 pub mod utm;
 pub mod tin;
 pub mod proyectos;
+pub mod salidas;
+pub mod dxf;
+pub mod pdf;

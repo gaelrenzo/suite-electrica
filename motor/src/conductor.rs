@@ -7,6 +7,8 @@ pub const G: f64 = 9.80665;
 #[derive(Clone, Debug, Default)]
 pub struct Conductor {
     pub nombre: String,
+    /// Fuente de los datos (catálogo).
+    pub fuente: String,
     /// Sección real (m²).
     pub seccion: f64,
     /// Diámetro exterior (m).

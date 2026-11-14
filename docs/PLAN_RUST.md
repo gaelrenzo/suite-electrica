@@ -31,6 +31,9 @@ Nada se da por portado sin comparación numérica:
   `csv`, `calamine` (leer Excel), `rust_xlsxwriter` (escribir Excel), `dxf`, `quick-xml`
   (KML/GPX), `spade` (TIN y curvas), `printpdf` (memoria PDF), `rfd` (diálogos). La conversión
   UTM se programa sin PROJ.
+* DXF de salida: escritor propio R12 (`dxf.rs`). PDF: `printpdf` sin funciones por defecto
+  (sin el motor HTML) y la fuente DejaVu Sans embebida (`motor/assets/fonts`, licencia libre en
+  `LICENSE_DEJAVU`).
 
 ## Etapas
 
@@ -43,7 +46,7 @@ Nada se da por portado sin comparación numérica:
 | 1e | Alertas, tabla de flechado, derivaciones | `alertas`, `flechado`, `derivaciones` | ✅ = Python |
 | 2 | GridCraft (caída de tensión) y PresuCraft (presupuesto) | `red`, `presupuesto` | ✅ = Python (montos ±0,01 por orden de suma) |
 | 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `entrada`, `proyectos`, `utm`, `tin` | ✅ 14 archivos de prueba (válidos y problemáticos) = Python; `.sel` ida y vuelta Python↔Rust; `proyecto.json` → mismo cálculo |
-| 4 | Salidas: planillas Excel, planos DXF (perfil, red), memoria PDF | `salidas` | ⏳ siguiente |
+| 4 | Salidas: planillas Excel, planos DXF (perfil, red), memoria PDF | `salidas`, `dxf`, `pdf` | ✅ 5 casos: Excel = Python (2 698 celdas), DXF = Python (entidad a entidad, auditoría ezdxf sin errores), PDF con todo el texto de Python; diferencias en `docs/DIFERENCIAS_RUST.md` |
 | 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | binario `suite-electrica` | pendiente |
 | 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | pendiente |
 

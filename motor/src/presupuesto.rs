@@ -329,3 +329,31 @@ pub fn leer_tablas(
             .collect(),
     ))
 }
+
+/// Lee `presupuesto.json` (parámetros + cuatro CSV con rutas relativas).
+pub fn cargar(ruta: &std::path::Path) -> Result<Presupuesto, String> {
+    let texto = std::fs::read_to_string(ruta).map_err(|e| format!("{}: {e}", ruta.display()))?;
+    let cfg: serde_json::Value = serde_json::from_str(&texto).map_err(|e| format!("{}: {e}", ruta.display()))?;
+    let base = ruta.parent().unwrap_or(std::path::Path::new("."));
+    let leer = |k: &str| -> Result<String, String> {
+        let r = cfg.get(k).and_then(|v| v.as_str()).ok_or(format!("presupuesto: falta '{k}'"))?;
+        std::fs::read(base.join(r)).map(|b| String::from_utf8_lossy(&b).into_owned()).map_err(|e| format!("{r}: {e}"))
+    };
+    let (suministros, unidades, montaje, metrado) =
+        leer_tablas(&leer("suministros")?, &leer("unidades")?, &leer("montaje")?, &leer("metrado")?)?;
+    let f = |k: &str| cfg.get(k).and_then(|v| v.as_f64()).unwrap_or(0.0);
+    Ok(Presupuesto {
+        nombre: cfg.get("nombre").and_then(|v| v.as_str()).map(String::from)
+            .unwrap_or_else(|| ruta.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default()),
+        suministros,
+        unidades,
+        montaje,
+        metrado,
+        flete_por_kg: f("flete_por_kg"),
+        gastos_generales_pct: f("gastos_generales_pct"),
+        utilidad_pct: f("utilidad_pct"),
+        igv_pct: f("igv_pct"),
+        moneda: cfg.get("moneda").and_then(|v| v.as_str()).unwrap_or("S/").into(),
+        fuentes: crate::red::fuentes_json(&cfg),
+    })
+}

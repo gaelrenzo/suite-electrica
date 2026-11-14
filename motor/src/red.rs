@@ -395,3 +395,51 @@ pub fn leer_tablas(nodos_csv: &str, conductores_csv: &str) -> Result<(Vec<Nodo>,
         .collect();
     Ok((nodos, cond))
 }
+
+fn leer_relativo(base: &std::path::Path, cfg: &serde_json::Value, k: &str) -> Result<String, String> {
+    let r = cfg.get(k).and_then(|v| v.as_str()).ok_or(format!("proyecto: falta '{k}'"))?;
+    let ruta = base.join(r);
+    std::fs::read(&ruta).map(|b| String::from_utf8_lossy(&b).into_owned()).map_err(|e| format!("{}: {e}", ruta.display()))
+}
+
+/// Texto → mapa de fuentes (`"fuentes": {...}` del JSON).
+pub(crate) fn fuentes_json(cfg: &serde_json::Value) -> HashMap<String, String> {
+    cfg.get("fuentes")
+        .and_then(|v| v.as_object())
+        .map(|m| m.iter().map(|(k, v)| (k.clone(), v.as_str().map(String::from).unwrap_or_else(|| v.to_string()))).collect())
+        .unwrap_or_default()
+}
+
+/// Lee una red `.json` (parámetros + `nodos` y `conductores` CSV con rutas relativas).
+pub fn cargar(ruta: &std::path::Path) -> Result<Red, String> {
+    let texto = std::fs::read_to_string(ruta).map_err(|e| format!("{}: {e}", ruta.display()))?;
+    let cfg: serde_json::Value = serde_json::from_str(&texto).map_err(|e| format!("{}: {e}", ruta.display()))?;
+    let base = ruta.parent().unwrap_or(std::path::Path::new("."));
+    let (nodos, conductores) = leer_tablas(&leer_relativo(base, &cfg, "nodos")?, &leer_relativo(base, &cfg, "conductores")?)?;
+    let f = |k: &str, d: Option<f64>| cfg.get(k).and_then(|v| v.as_f64()).or(d).ok_or(format!("proyecto: falta '{k}'"));
+    Ok(Red {
+        nombre: cfg.get("nombre").and_then(|v| v.as_str()).map(String::from)
+            .unwrap_or_else(|| ruta.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default()),
+        sistema: cfg.get("sistema").and_then(|v| v.as_str()).ok_or("proyecto: falta 'sistema'")?.into(),
+        tension_v: f("tension_V", None)?,
+        nodos,
+        conductores,
+        calificacion_kw_lote: f("calificacion_kw_lote", None)?,
+        fs_sp: f("fs_sp", None)?,
+        fp_sp: f("fp_sp", Some(0.9))?,
+        fs_ce: f("fs_ce", Some(1.0))?,
+        kw_lampara: f("kw_lampara", Some(0.0))?,
+        fs_ap: f("fs_ap", Some(1.0))?,
+        fp_ap: f("fp_ap", Some(1.0))?,
+        tension_ap_v: cfg.get("tension_ap_V").and_then(|v| v.as_f64()),
+        caida_max_pct: f("caida_max_pct", Some(0.0))?,
+        perdidas_max_pct: f("perdidas_max_pct", Some(0.0))?,
+        factor_carga: f("factor_carga", Some(0.0))?,
+        transformador_kva: f("transformador_kva", Some(0.0))?,
+        factor_sobrecarga: f("factor_sobrecarga", Some(1.0))?,
+        tabla_fs: cfg.get("tabla_fs").and_then(|v| v.as_array()).map(|a| {
+            a.iter().filter_map(|p| Some((p.get(0)?.as_f64()?, p.get(1)?.as_f64()?))).collect()
+        }).unwrap_or_default(),
+        fuentes: fuentes_json(&cfg),
+    })
+}

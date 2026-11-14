@@ -91,3 +91,39 @@ mod tests {
         assert!(brent(|x| x * x + 1.0, -1.0, 1.0, 1e-9).is_none());
     }
 }
+
+/// Formato `{x:g}` de Python (6 cifras significativas, sin ceros finales).
+pub fn formato_g(x: f64) -> String {
+    if x.is_nan() {
+        return "nan".into();
+    }
+    if x.is_infinite() {
+        return if x > 0.0 { "inf".into() } else { "-inf".into() };
+    }
+    if x == 0.0 {
+        return if x.is_sign_negative() { "-0".into() } else { "0".into() };
+    }
+    let e = format!("{x:.5e}"); // mantisa redondeada a 6 cifras
+    let (m, exp) = e.split_once('e').unwrap();
+    let exp: i32 = exp.parse().unwrap();
+    let quitar = |t: String| if t.contains('.') { t.trim_end_matches('0').trim_end_matches('.').to_string() } else { t };
+    if (-4..6).contains(&exp) {
+        quitar(format!("{x:.*}", (5 - exp) as usize))
+    } else {
+        format!("{}e{}{:02}", quitar(m.to_string()), if exp < 0 { '-' } else { '+' }, exp.abs())
+    }
+}
+
+#[cfg(test)]
+mod pruebas {
+    use super::formato_g;
+
+    #[test]
+    fn como_python() {
+        for (x, e) in [(18.0, "18"), (18.5, "18.5"), (-5.0, "-5"), (0.123456789, "0.123457"), (1234567.0, "1.23457e+06"),
+            (0.0001, "0.0001"), (0.00001, "1e-05"), (3402.5, "3402.5"), (100000.0, "100000"), (999999.5, "1e+06")]
+        {
+            assert_eq!(formato_g(x), e, "{x}");
+        }
+    }
+}

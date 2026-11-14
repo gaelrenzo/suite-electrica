@@ -21,6 +21,24 @@ pub struct ConfigAlertas {
     pub eds_max_pct: f64,
 }
 
+impl ConfigAlertas {
+    /// Desde el mapa `"alertas"` del proyecto (claves de Python; las que faltan valen 0).
+    pub fn desde_mapa(m: &std::collections::HashMap<String, f64>) -> Self {
+        let g = |k: &str| m.get(k).copied().unwrap_or(0.0);
+        ConfigAlertas {
+            fs_poste: g("fs_poste"),
+            fs_retenida: g("fs_retenida"),
+            tension_kv: g("tension_kV"),
+            sep_k_tension: g("sep_k_tension"),
+            sep_k_flecha: g("sep_k_flecha"),
+            angulo_salida_min: g("angulo_salida_min"),
+            angulo_salida_max: g("angulo_salida_max"),
+            tiro_max_espiga: g("tiro_max_espiga"),
+            eds_max_pct: g("eds_max_pct"),
+        }
+    }
+}
+
 /// Una alerta (`exceso` en %, ∞ si no hay magnitud permisible).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Alerta {
