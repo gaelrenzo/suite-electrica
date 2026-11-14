@@ -110,3 +110,75 @@ mod tests {
         assert!((p[0] - 100.0).abs() < 1e-12 && (p[1] - 50.0).abs() < 1e-12);
     }
 }
+
+/// Progresivas donde el eje cruza aristas del TIN.
+fn cruces_aristas(eje: &[[f64; 2]], tin: &crate::tin::Tin) -> Vec<f64> {
+    let acum = progresivas_eje(eje);
+    let seg = tin.segmentos_aristas();
+    let mut res = Vec::new();
+    for i in 0..eje.len().saturating_sub(1) {
+        let (p, q) = (eje[i], eje[i + 1]);
+        let r = [q[0] - p[0], q[1] - p[1]];
+        let largo = r[0].hypot(r[1]);
+        if largo == 0.0 {
+            continue;
+        }
+        let (lo, hi) = ([p[0].min(q[0]), p[1].min(q[1])], [p[0].max(q[0]), p[1].max(q[1])]);
+        for (a0, a1) in &seg {
+            if a0[0].max(a1[0]) < lo[0] || a0[1].max(a1[1]) < lo[1] || a0[0].min(a1[0]) > hi[0] || a0[1].min(a1[1]) > hi[1] {
+                continue;
+            }
+            let d = [a1[0] - a0[0], a1[1] - a0[1]];
+            let den = r[0] * d[1] - r[1] * d[0];
+            if den.abs() <= 1e-12 {
+                continue;
+            }
+            let w = [a0[0] - p[0], a0[1] - p[1]];
+            let t = (w[0] * d[1] - w[1] * d[0]) / den;
+            let u = (w[0] * r[1] - w[1] * r[0]) / den;
+            if (0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u) {
+                res.push(acum[i] + t * largo);
+            }
+        }
+    }
+    res
+}
+
+/// Perfil del terreno a lo largo del eje: vértices, estaciones cada `paso` y quiebres del TIN.
+pub fn perfil_longitudinal(tin: &crate::tin::Tin, eje: &[[f64; 2]], paso: f64) -> Result<Perfil, String> {
+    if eje.len() < 2 {
+        return Err("El eje necesita al menos 2 vértices".into());
+    }
+    if paso <= 0.0 {
+        return Err("El paso debe ser positivo".into());
+    }
+    let acum = progresivas_eje(eje);
+    let longitud = *acum.last().unwrap();
+    let prioridad = |t: char| match t {
+        VERTICE => 0,
+        ESTACION => 1,
+        _ => 2,
+    };
+    let mut s: Vec<(f64, char)> = acum.iter().map(|&a| (a, VERTICE)).collect();
+    let n_est = (longitud / paso).ceil() as usize; // np.arange(0, longitud, paso)
+    s.extend((0..n_est).map(|k| (k as f64 * paso, ESTACION)).filter(|x| x.0 < longitud));
+    s.extend(cruces_aristas(eje, tin).into_iter().map(|c| (c, QUIEBRE)));
+    s.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap().then(prioridad(a.1).cmp(&prioridad(b.1))));
+    let mut p = Perfil::default();
+    let mut anterior = f64::NEG_INFINITY;
+    for (k, (si, t)) in s.into_iter().enumerate() {
+        // como `np.diff(s) > 1e-6`: compara con el inmediato anterior (aunque se haya descartado)
+        let conservar = k == 0 || si - anterior > 1e-6;
+        anterior = si;
+        if !conservar {
+            continue; // conserva el de mayor prioridad en coincidencias
+        }
+        let xy = punto_en_progresiva(eje, si);
+        p.progresiva.push(si);
+        p.este.push(xy[0]);
+        p.norte.push(xy[1]);
+        p.cota.push(tin.cota(xy[0], xy[1]));
+        p.tipo.push(t);
+    }
+    Ok(p)
+}

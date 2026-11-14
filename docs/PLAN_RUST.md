@@ -37,7 +37,7 @@ Nada se da por portado sin comparación numérica:
 | 1d | Catálogos DGE, verificación con momentos de poste, metrado | `catalogos` | ✅ = Python |
 | 1e | Alertas, tabla de flechado, derivaciones | `alertas`, `flechado`, `derivaciones` | ✅ = Python |
 | 2 | GridCraft (caída de tensión) y PresuCraft (presupuesto) | `red`, `presupuesto` | ✅ = Python (montos ±0,01 por orden de suma) |
-| 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `io`, `utm`, `tin` | ⏳ siguiente |
+| 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `io`, `utm`, `tin` | ⏳ en curso: ✅ UTM (= pyproj < 10 µm), ✅ TIN, curvas y perfil (= qhull); falta lectura de archivos y limpieza |
 | 4 | Salidas: planillas Excel, planos DXF (perfil, red), memoria PDF | `salidas` | pendiente |
 | 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | binario `suite-electrica` | pendiente |
 | 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | pendiente |

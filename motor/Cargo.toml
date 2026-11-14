@@ -10,5 +10,6 @@ path = "src/lib.rs"
 
 [dependencies]
 csv = "1"
+spade = "2"
 
 [dev-dependencies]
