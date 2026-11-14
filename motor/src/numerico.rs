@@ -1,5 +1,14 @@
 //! Raíces de funciones escalares (sin dependencias externas).
 
+/// Redondeo a `d` decimales como `round()` de Python: sobre el valor binario exacto
+/// (formato decimal correctamente redondeado), no `(x·10^d).round()`.
+pub fn redondear(x: f64, d: usize) -> f64 {
+    if !x.is_finite() {
+        return x;
+    }
+    format!("{x:.d$}").parse().unwrap_or(x)
+}
+
 /// Raíz de `f` en `[a, b]` con `f(a)` y `f(b)` de signo opuesto (método de Brent).
 ///
 /// Devuelve `None` si el intervalo no encierra un cambio de signo.

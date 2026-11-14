@@ -341,7 +341,7 @@ pub fn verificar(
             tipo: e.tipo.como_str().into(),
             armado: if e.armado.is_empty() { "—".into() } else { e.armado.clone() },
             poste: if e.poste.is_empty() { "—".into() } else { e.poste.clone() },
-            f_horizontal: (fh * 10.0).round() / 10.0,
+            f_horizontal: redondear(fh, 1),
             cumple: true,
             ..Default::default()
         };
@@ -361,7 +361,7 @@ pub fn verificar(
                 }
             }
             if let Some((fs, det, m)) = peor {
-                f.mrn = Some((m.mrn * 10.0).round() / 10.0);
+                f.mrn = Some(redondear(m.mrn, 1));
                 f.fs_poste = Some(fs);
                 if fs < fs_poste {
                     f.cumple = false;
@@ -455,8 +455,7 @@ pub struct FilaMetrado {
 }
 
 fn redondear(x: f64, d: i32) -> f64 {
-    let k = 10f64.powi(d);
-    (x * k).round() / k
+    crate::numerico::redondear(x, d as usize)
 }
 
 /// Metrado: postes, armados, retenidas, materiales y conductor.

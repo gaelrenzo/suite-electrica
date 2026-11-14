@@ -37,11 +37,11 @@ fn exceso(evaluado: f64, permitido: f64) -> f64 {
 }
 
 fn r1(x: f64) -> f64 {
-    if x.is_finite() { (x * 10.0).round() / 10.0 } else { x }
+    crate::numerico::redondear(x, 1)
 }
 
 fn r2(x: f64) -> f64 {
-    (x * 100.0).round() / 100.0
+    crate::numerico::redondear(x, 2)
 }
 
 /// Ángulo (°) del conductor al salir del soporte hacia el vano (+ hacia arriba).

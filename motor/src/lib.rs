@@ -13,3 +13,5 @@ pub mod geo;
 pub mod linea;
 pub mod mecanica;
 pub mod numerico;
+pub mod presupuesto;
+pub mod red;

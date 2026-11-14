@@ -1,0 +1,397 @@
+//! GridCraft: red radial (MT/BT) por sumatoria de potencias. Port de `gridcraft/red.py`.
+
+use std::collections::HashMap;
+
+use crate::catalogos::leer_csv;
+use crate::linea::fmt_g;
+
+/// Nodo de la red: el tramo `padre → nodo` lleva su longitud y conductor.
+#[derive(Clone, Debug, Default)]
+pub struct Nodo {
+    pub nodo: String,
+    pub padre: String,
+    pub longitud_m: f64,
+    pub conductor: String,
+    pub lotes: f64,
+    pub kw_ce: f64,
+    pub lamparas: f64,
+    pub este: Option<f64>,
+    pub norte: Option<f64>,
+}
+
+/// Conductor de la red (Ω/km, A).
+#[derive(Clone, Debug, Default)]
+pub struct ConductorRed {
+    pub formacion: String,
+    pub k_ohm_km: Option<f64>,
+    pub r_ohm_km: Option<f64>,
+    pub x_ohm_km: Option<f64>,
+    pub k_ap_ohm_km: Option<f64>,
+    pub r_ap_ohm_km: Option<f64>,
+    pub corriente_max_a: Option<f64>,
+    pub fuente: String,
+}
+
+/// Datos de una red radial.
+#[derive(Clone, Debug)]
+pub struct Red {
+    pub nombre: String,
+    /// "3F" o "1F".
+    pub sistema: String,
+    pub tension_v: f64,
+    pub nodos: Vec<Nodo>,
+    pub conductores: Vec<ConductorRed>,
+    pub calificacion_kw_lote: f64,
+    pub fs_sp: f64,
+    pub fp_sp: f64,
+    pub fs_ce: f64,
+    pub kw_lampara: f64,
+    pub fs_ap: f64,
+    pub fp_ap: f64,
+    pub tension_ap_v: Option<f64>,
+    pub caida_max_pct: f64,
+    pub perdidas_max_pct: f64,
+    pub factor_carga: f64,
+    pub transformador_kva: f64,
+    pub factor_sobrecarga: f64,
+    /// `[(abonados, fs)]` escalonada.
+    pub tabla_fs: Vec<(f64, f64)>,
+    pub fuentes: HashMap<String, String>,
+}
+
+pub const PARAMETROS_NORMATIVOS: [&str; 4] = ["calificacion_kw_lote", "fs_sp", "caida_max_pct", "conductores"];
+
+impl Red {
+    pub fn fs_efectivo(&self) -> f64 {
+        let n = self.nodos.iter().map(|x| x.lotes).sum::<f64>().trunc();
+        let mut tabla = self.tabla_fs.clone();
+        tabla.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        let mut fs = self.fs_sp;
+        for (umbral, v) in tabla {
+            if n >= umbral {
+                fs = v;
+            }
+        }
+        fs
+    }
+
+    pub fn avisos_fuentes(&self) -> Vec<String> {
+        PARAMETROS_NORMATIVOS
+            .iter()
+            .filter_map(|k| {
+                let f = self.fuentes.get(*k).map(|s| s.trim().to_string()).unwrap_or_default();
+                let u = f.to_uppercase();
+                if f.is_empty() || u.contains("PENDIENTE") || u.contains("EJEMPLO") {
+                    Some(format!("PENDIENTE_REVISION: '{k}' -> {}", if f.is_empty() { "sin fuente" } else { &f }))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+}
+
+/// Fila por tramo (valores redondeados como en la planilla de Python).
+#[derive(Clone, Debug, Default)]
+pub struct FilaRed {
+    pub nodo: String,
+    pub padre: String,
+    pub longitud_m: f64,
+    pub formacion: String,
+    pub lotes: f64,
+    pub p_sp_kw: f64,
+    pub p_acum_kw: f64,
+    pub k_ohm_km: f64,
+    pub i_a: f64,
+    pub dv_tramo_v: f64,
+    pub dv_acum_v: f64,
+    pub dv_pct: f64,
+    pub perdidas_w: f64,
+    pub i_max_a: Option<f64>,
+    /// (P acum. AP kW, I AP A, %ΔV AP, pérdidas AP W) si el conductor tiene hilo de AP.
+    pub ap: Option<(f64, f64, f64, f64)>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct AlertaRed {
+    pub elemento: String,
+    pub codigo: String,
+    pub exceso: f64,
+    pub detalle: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct ResultadoRed {
+    pub tramos: Vec<FilaRed>,
+    /// Parámetro → valor (en el orden de la planilla).
+    pub resumen: Vec<(String, f64)>,
+    pub avisos: Vec<String>,
+    pub alertas: Vec<AlertaRed>,
+}
+
+impl ResultadoRed {
+    pub fn cumple(&self) -> bool {
+        self.alertas.is_empty()
+    }
+
+    pub fn resumen(&self, k: &str) -> Option<f64> {
+        self.resumen.iter().find(|x| x.0 == k).map(|x| x.1)
+    }
+}
+
+fn rd(x: f64, d: i32) -> f64 {
+    crate::numerico::redondear(x, d as usize)
+}
+
+/// (k de corriente, conductores con pérdidas, c de K desde r y x).
+fn sistema(s: &str) -> Option<(f64, f64, f64)> {
+    match s {
+        "3F" => Some((3f64.sqrt(), 3.0, 3f64.sqrt())),
+        "1F" => Some((1.0, 2.0, 2.0)),
+        _ => None,
+    }
+}
+
+fn factor_k(c: &ConductorRed, sist: &str, fp: f64, ap: bool) -> Option<f64> {
+    let (k, r, x) = if ap { (c.k_ap_ohm_km, c.r_ap_ohm_km, Some(0.0)) } else { (c.k_ohm_km, c.r_ohm_km, c.x_ohm_km) };
+    if let Some(k) = k {
+        return Some(k);
+    }
+    let r = r?;
+    let cc = if ap { 2.0 } else { sistema(sist).unwrap().2 };
+    Some(cc * (r * fp + x.unwrap_or(0.0) * (1.0 - fp * fp).sqrt()))
+}
+
+/// Índices de la raíz a las hojas (DFS como en Python); valida árbol con una sola raíz.
+fn orden_topologico(n: &[Nodo]) -> Result<Vec<usize>, String> {
+    let raices: Vec<usize> = (0..n.len()).filter(|&i| n[i].padre.is_empty()).collect();
+    if raices.len() != 1 {
+        return Err(format!("La red debe tener una sola raíz (padre vacío); hay {}", raices.len()));
+    }
+    let mut vistos = std::collections::BTreeSet::new();
+    let mut rep = std::collections::BTreeSet::new();
+    for x in n {
+        if !vistos.insert(x.nodo.clone()) {
+            rep.insert(x.nodo.clone());
+        }
+    }
+    if !rep.is_empty() {
+        return Err(format!("Nodos repetidos: {rep:?}"));
+    }
+    let mut hijos: HashMap<&str, Vec<usize>> = HashMap::new();
+    for (i, x) in n.iter().enumerate() {
+        if !x.padre.is_empty() {
+            hijos.entry(&x.padre).or_default().push(i);
+        }
+    }
+    let faltan: std::collections::BTreeSet<&str> = hijos.keys().copied().filter(|p| !vistos.contains(*p)).collect();
+    if !faltan.is_empty() {
+        return Err(format!("Padres inexistentes: {faltan:?}"));
+    }
+    let (mut orden, mut pila) = (Vec::new(), vec![raices[0]]);
+    while let Some(i) = pila.pop() {
+        orden.push(i);
+        if let Some(h) = hijos.get(n[i].nodo.as_str()) {
+            pila.extend(h.iter().rev());
+        }
+    }
+    if orden.len() != n.len() {
+        return Err("La red tiene ciclos o nodos desconectados de la raíz".into());
+    }
+    Ok(orden)
+}
+
+/// Flujo radial por sumatoria de potencias.
+pub fn calcular(red: &Red) -> Result<ResultadoRed, String> {
+    let (k_i, n_f, _) = sistema(&red.sistema).ok_or_else(|| format!("Sistema {:?}; use [\"1F\", \"3F\"]", red.sistema))?;
+    let n = &red.nodos;
+    let orden = orden_topologico(n)?;
+    let mut avisos = red.avisos_fuentes();
+    let cat: HashMap<&str, &ConductorRed> = red.conductores.iter().map(|c| (c.formacion.as_str(), c)).collect();
+    let mut sin_cat: Vec<&str> =
+        n.iter().filter(|x| !x.padre.is_empty() && !cat.contains_key(x.conductor.as_str())).map(|x| x.conductor.as_str()).collect();
+    sin_cat.sort();
+    sin_cat.dedup();
+    if !sin_cat.is_empty() {
+        return Err(format!("Conductores no definidos en el catálogo: {sin_cat:?}"));
+    }
+    let pend: Vec<&str> = red
+        .conductores
+        .iter()
+        .filter(|c| c.fuente.is_empty() || c.fuente.to_uppercase().contains("PENDIENTE"))
+        .map(|c| c.formacion.as_str())
+        .collect();
+    if !pend.is_empty() {
+        avisos.push(format!("PENDIENTE_REVISION: catálogo de conductores sin fuente ({})", pend.join(", ")));
+    }
+
+    let fs = red.fs_efectivo();
+    let p_sp: Vec<f64> = n.iter().map(|x| x.lotes * red.calificacion_kw_lote * fs + x.kw_ce * red.fs_ce).collect();
+    let p_ap: Vec<f64> = n.iter().map(|x| x.lamparas * red.kw_lampara * red.fs_ap).collect();
+    let v_ap = red.tension_ap_v.filter(|&v| v != 0.0).unwrap_or(if red.sistema == "3F" {
+        red.tension_v / 3f64.sqrt()
+    } else {
+        red.tension_v
+    });
+    let ap_sep = |f: &str| cat.get(f).is_some_and(|c| c.k_ap_ohm_km.is_some() || c.r_ap_ohm_km.is_some());
+
+    let pos: HashMap<&str, usize> = n.iter().enumerate().map(|(i, x)| (x.nodo.as_str(), i)).collect();
+    let (mut acum_sp, mut acum_ap) = (p_sp.clone(), p_ap.clone());
+    for &i in orden.iter().rev() {
+        if !n[i].padre.is_empty() {
+            let j = pos[n[i].padre.as_str()];
+            acum_sp[j] += acum_sp[i];
+            acum_ap[j] += acum_ap[i];
+        }
+    }
+
+    let (mut dv_sp, mut dv_ap): (HashMap<&str, f64>, HashMap<&str, f64>) = (HashMap::new(), HashMap::new());
+    let mut tramos = Vec::new();
+    for &i in &orden {
+        let (nodo, padre) = (n[i].nodo.as_str(), n[i].padre.as_str());
+        if padre.is_empty() {
+            dv_sp.insert(nodo, 0.0);
+            dv_ap.insert(nodo, 0.0);
+            continue;
+        }
+        let c = cat[n[i].conductor.as_str()];
+        let l = n[i].longitud_m / 1000.0;
+        let sep = ap_sep(&n[i].conductor);
+        let p = acum_sp[i] + if sep { 0.0 } else { acum_ap[i] };
+        let corr = p * 1e3 / (k_i * red.tension_v * red.fp_sp);
+        let k = factor_k(c, &red.sistema, red.fp_sp, false)
+            .ok_or_else(|| format!("Conductor {}: falta k_ohm_km o r_ohm_km", c.formacion))?;
+        let dv = k * corr * l;
+        let perd = c.r_ohm_km.map_or(f64::NAN, |r| n_f * corr * corr * r * l);
+        let acum = dv_sp[padre] + dv;
+        dv_sp.insert(nodo, acum);
+        let ap = if sep {
+            let i_ap = acum_ap[i] * 1e3 / (v_ap * red.fp_ap);
+            let k_ap = factor_k(c, &red.sistema, red.fp_ap, true).unwrap_or(f64::NAN);
+            let a = dv_ap[padre] + k_ap * i_ap * l;
+            dv_ap.insert(nodo, a);
+            let perd_ap = c.r_ap_ohm_km.map_or(f64::NAN, |r| rd(2.0 * i_ap * i_ap * r * l, 2));
+            Some((rd(acum_ap[i], 3), rd(i_ap, 2), rd(100.0 * a / v_ap, 3), perd_ap))
+        } else {
+            let a = dv_ap[padre];
+            dv_ap.insert(nodo, a);
+            None
+        };
+        tramos.push(FilaRed {
+            nodo: nodo.into(),
+            padre: padre.into(),
+            longitud_m: rd(l * 1e3, 2),
+            formacion: c.formacion.clone(),
+            lotes: n[i].lotes,
+            p_sp_kw: rd(p_sp[i], 3),
+            p_acum_kw: rd(p, 3),
+            k_ohm_km: rd(k, 4),
+            i_a: rd(corr, 2),
+            dv_tramo_v: rd(dv, 3),
+            dv_acum_v: rd(acum, 3),
+            dv_pct: rd(100.0 * acum / red.tension_v, 3),
+            perdidas_w: rd(perd, 2),
+            i_max_a: c.corriente_max_a,
+            ap,
+        });
+    }
+
+    let raiz = orden[0];
+    let md = acum_sp[raiz] + acum_ap[raiz];
+    let nansum = |it: &mut dyn Iterator<Item = f64>| it.filter(|x| !x.is_nan()).sum::<f64>();
+    let perd_kw = (nansum(&mut tramos.iter().map(|t| t.perdidas_w))
+        + nansum(&mut tramos.iter().filter_map(|t| t.ap.map(|a| a.3))))
+        / 1e3;
+    let hay_ap = tramos.iter().any(|t| t.ap.is_some());
+    let mut resumen: Vec<(String, f64)> = vec![
+        ("Abonados".into(), n.iter().map(|x| x.lotes).sum::<f64>().trunc()),
+        ("Factor de simultaneidad SP".into(), fs),
+        ("M.D. SP (kW)".into(), rd(acum_sp[raiz], 3)),
+        ("M.D. AP (kW)".into(), rd(acum_ap[raiz], 3)),
+        ("M.D. total (kW)".into(), rd(md, 3)),
+        ("Potencia aparente (kVA)".into(), rd(acum_sp[raiz] / red.fp_sp + acum_ap[raiz] / red.fp_ap, 3)),
+        ("Pérdidas (kW)".into(), rd(perd_kw, 4)),
+        ("Pérdidas (% M.D.)".into(), if md != 0.0 { rd(100.0 * perd_kw / md, 3) } else { 0.0 }),
+        ("%ΔV máx.".into(), tramos.iter().map(|t| t.dv_pct).fold(0.0f64, f64::max)),
+    ];
+    if hay_ap {
+        let m = tramos.iter().filter_map(|t| t.ap.map(|a| a.2)).fold(f64::NEG_INFINITY, f64::max);
+        resumen.push(("%ΔV AP máx.".into(), m));
+    }
+    if red.factor_carga != 0.0 {
+        let fper = 0.3 * red.factor_carga + 0.7 * red.factor_carga * red.factor_carga;
+        resumen.push(("Factor de pérdidas".into(), rd(fper, 4)));
+        resumen.push(("Energía perdida (kWh/año)".into(), rd(perd_kw * fper * 8760.0, 1)));
+        resumen.push(("Energía vendida (kWh/año)".into(), rd(md * red.factor_carga * 8760.0, 1)));
+    }
+
+    let mut al: Vec<AlertaRed> = Vec::new();
+    let mut add = |elem: String, cod: &str, ev: f64, perm: f64, det: String| {
+        if perm > 0.0 && ev > perm + 1e-9 {
+            al.push(AlertaRed { elemento: elem, codigo: cod.into(), exceso: rd(100.0 * (ev - perm) / perm, 1), detalle: det });
+        }
+    };
+    for t in &tramos {
+        if red.caida_max_pct != 0.0 {
+            add(t.nodo.clone(), "DV", t.dv_pct, red.caida_max_pct, format!("%ΔV {:.2} % > {} %", t.dv_pct, fmt_g(red.caida_max_pct)));
+        }
+        if let Some(im) = t.i_max_a {
+            add(format!("{}-{}", t.padre, t.nodo), "I", t.i_a, im, format!("I {:.1} A > {} A", t.i_a, fmt_g(im)));
+        }
+    }
+    if red.caida_max_pct != 0.0 {
+        for t in &tramos {
+            if let Some(a) = t.ap.filter(|a| !a.2.is_nan()) {
+                add(t.nodo.clone(), "DV-AP", a.2, red.caida_max_pct, format!("%ΔV AP {:.2} % > {} %", a.2, fmt_g(red.caida_max_pct)));
+            }
+        }
+    }
+    let r = |k: &str| resumen.iter().find(|x| x.0 == k).unwrap().1;
+    if red.perdidas_max_pct != 0.0 {
+        let v = r("Pérdidas (% M.D.)");
+        add(red.nombre.clone(), "PERD", v, red.perdidas_max_pct, format!("pérdidas {v:.2} % > {} %", fmt_g(red.perdidas_max_pct)));
+    }
+    if red.transformador_kva != 0.0 {
+        let cap = red.transformador_kva * red.factor_sobrecarga;
+        let v = r("Potencia aparente (kVA)");
+        add(n[raiz].nodo.clone(), "TR", v, cap, format!("{v:.1} kVA > {cap:.1} kVA"));
+    }
+    al.sort_by(|a, b| b.exceso.partial_cmp(&a.exceso).unwrap());
+    Ok(ResultadoRed { tramos, resumen, avisos, alertas: al })
+}
+
+/// Nodos y conductores desde el texto de sus CSV.
+pub fn leer_tablas(nodos_csv: &str, conductores_csv: &str) -> Result<(Vec<Nodo>, Vec<ConductorRed>), String> {
+    let num = |f: &std::collections::BTreeMap<String, String>, k: &str| {
+        f.get(k).and_then(|s| s.replace(',', ".").parse::<f64>().ok()).filter(|v| v.is_finite())
+    };
+    let txt = |f: &std::collections::BTreeMap<String, String>, k: &str| f.get(k).cloned().unwrap_or_default();
+    let nodos = leer_csv(nodos_csv)?
+        .iter()
+        .map(|f| Nodo {
+            nodo: txt(f, "nodo"),
+            padre: txt(f, "padre"),
+            longitud_m: num(f, "longitud_m").unwrap_or(0.0),
+            conductor: txt(f, "conductor"),
+            lotes: num(f, "lotes").unwrap_or(0.0),
+            kw_ce: num(f, "kw_ce").unwrap_or(0.0),
+            lamparas: num(f, "lamparas").unwrap_or(0.0),
+            este: num(f, "este"),
+            norte: num(f, "norte"),
+        })
+        .collect();
+    let cond = leer_csv(conductores_csv)?
+        .iter()
+        .map(|f| ConductorRed {
+            formacion: txt(f, "formacion"),
+            k_ohm_km: num(f, "k_ohm_km"),
+            r_ohm_km: num(f, "r_ohm_km"),
+            x_ohm_km: num(f, "x_ohm_km"),
+            k_ap_ohm_km: num(f, "k_ap_ohm_km"),
+            r_ap_ohm_km: num(f, "r_ap_ohm_km"),
+            corriente_max_a: num(f, "corriente_max_A"),
+            fuente: txt(f, "fuente"),
+        })
+        .collect();
+    Ok((nodos, cond))
+}

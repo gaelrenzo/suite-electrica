@@ -14,6 +14,9 @@ Nada se da por portado sin comparación numérica:
 2. Las pruebas de Rust (`motor/tests/*.rs`) leen las mismas entradas y deben reproducir los
    resultados (tolerancia relativa 1e-9 en fórmulas cerradas, 1e-6 donde hay iteraciones).
 3. `cargo test` en `motor/` debe pasar siempre antes de subir cambios.
+4. Redondeos: Rust usa `numerico::redondear` (formato decimal correctamente redondeado), que
+   reproduce `round()` de Python; los montos que caen justo en medio céntimo pueden diferir
+   en ±0,01 porque pandas suma por pares.
 
 ## Herramientas
 
@@ -33,8 +36,8 @@ Nada se da por portado sin comparación numérica:
 | 1c | Cálculo de línea (ubicación automática, tramos, vanos, cargas, altitud, estados por vano) | `linea` | ✅ 4 proyectos = Python |
 | 1d | Catálogos DGE, verificación con momentos de poste, metrado | `catalogos` | ✅ = Python |
 | 1e | Alertas, tabla de flechado, derivaciones | `alertas`, `flechado`, `derivaciones` | ✅ = Python |
-| 2 | GridCraft (caída de tensión) y PresuCraft (presupuesto) | `red`, `presupuesto` | ⏳ siguiente |
-| 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `io`, `utm`, `tin` | pendiente |
+| 2 | GridCraft (caída de tensión) y PresuCraft (presupuesto) | `red`, `presupuesto` | ✅ = Python (montos ±0,01 por orden de suma) |
+| 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `io`, `utm`, `tin` | ⏳ siguiente |
 | 4 | Salidas: planillas Excel, planos DXF (perfil, red), memoria PDF | `salidas` | pendiente |
 | 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | binario `suite-electrica` | pendiente |
 | 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | pendiente |
