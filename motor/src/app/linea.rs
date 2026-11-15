@@ -74,15 +74,32 @@ fn poner(app: &mut App, r: Result<suite_motor::documento::Calculo, String>, que:
             res.avisos.len()
         );
         app.linea.tablas = tablas_linea(res, &c.proyecto, &c.extras());
-        if !c.cruces.is_empty() {
-            app.linea.tablas.push(suite_motor::documento::tabla_cruces(&c.cruces));
-        }
+        app.linea.tablas.extend(hojas_extra(&c, app.doc.ruta.as_deref()));
         app.calculo = Some(c);
         app.obsoleto = false;
         if app.linea.seleccion.is_some_and(|i| i >= app.doc.estructuras.len()) {
             app.linea.seleccion = None;
         }
     }
+}
+
+/// Hojas que se agregan a la planilla: cruces y cimentaciones (si hay `cimentaciones.csv`
+/// junto al `.sel`; un error de la tabla va como aviso en la hoja).
+fn hojas_extra(c: &suite_motor::documento::Calculo, ruta: Option<&std::path::Path>) -> Vec<Tabla> {
+    let mut v = Vec::new();
+    if !c.cruces.is_empty() {
+        v.push(suite_motor::documento::tabla_cruces(&c.cruces));
+    }
+    let postes: Vec<(String, f64)> = c.metrado.iter().filter(|f| f.item == "Poste").map(|f| (f.codigo.clone(), f.cantidad)).collect();
+    match ruta.map(suite_motor::cimentacion::cargar_junto).transpose().map(Option::flatten) {
+        Ok(Some(t)) if !postes.is_empty() => {
+            let (f, a) = suite_motor::cimentacion::metrado(&postes, &t);
+            v.push(suite_motor::salidas::tabla_cimentaciones(&f, &a));
+        }
+        Ok(_) => {}
+        Err(e) => v.push(suite_motor::salidas::tabla_cimentaciones(&[], &[e])),
+    }
+    v
 }
 
 pub fn deshacer(app: &mut App) {
@@ -120,9 +137,7 @@ fn exportar(app: &mut App) {
             d.guardar(&dir.join("perfil_linea.dxf"))?,
             escribir_excel(&dir.join("planilla_estructuras.xlsx"), &{
                 let mut t = tablas_linea(r, p, &c.extras());
-                if !c.cruces.is_empty() {
-                    t.push(suite_motor::documento::tabla_cruces(&c.cruces));
-                }
+                t.extend(hojas_extra(c, app.doc.ruta.as_deref()));
                 t
             })?,
             pdf::memoria_pdf(&dir.join("memoria_calculo.pdf"), r, p, &c.extras())?,
