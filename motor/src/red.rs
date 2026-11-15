@@ -735,3 +735,70 @@ pub fn longitud_plano(red: &Red, i: usize) -> Option<f64> {
     let p = red.nodos.iter().find(|x| x.nodo == n.padre)?;
     Some((n.este? - p.este?).hypot(n.norte? - p.norte?))
 }
+
+/// Grupo de datos de la estructura que se copia a varios postes a la vez.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CampoEstructura {
+    Armado,
+    /// Soporte y número de soportes.
+    Soporte,
+    Pat,
+    Caja,
+    Pastoral,
+    /// Retenida y número de retenidas.
+    Retenida,
+    Conectores,
+    Acometidas,
+}
+
+impl CampoEstructura {
+    pub const TODOS: [CampoEstructura; 8] = [
+        Self::Armado, Self::Soporte, Self::Pat, Self::Caja, Self::Pastoral, Self::Retenida, Self::Conectores, Self::Acometidas,
+    ];
+
+    pub fn nombre(self) -> &'static str {
+        match self {
+            Self::Armado => "Armado",
+            Self::Soporte => "Soporte",
+            Self::Pat => "Puesta a tierra",
+            Self::Caja => "Caja derivación",
+            Self::Pastoral => "Pastoral",
+            Self::Retenida => "Retenida",
+            Self::Conectores => "Conectores",
+            Self::Acometidas => "Acometidas",
+        }
+    }
+}
+
+/// Copia los `campos` de `modelo` a la estructura de los nodos `indices` (los demás campos no
+/// cambian). Devuelve cuántos nodos cambiaron; los índices fuera de rango se ignoran.
+pub fn asignar_estructura(red: &mut Red, indices: &[usize], modelo: &EstructuraBt, campos: &[CampoEstructura]) -> usize {
+    let mut cambiados = 0;
+    for &i in indices {
+        let Some(n) = red.nodos.get_mut(i) else { continue };
+        let antes = n.estructura.clone();
+        let e = &mut n.estructura;
+        for c in campos {
+            match c {
+                CampoEstructura::Armado => e.armado = modelo.armado.clone(),
+                CampoEstructura::Soporte => {
+                    e.soporte = modelo.soporte.clone();
+                    e.n_soportes = modelo.n_soportes;
+                }
+                CampoEstructura::Pat => e.pat = modelo.pat.clone(),
+                CampoEstructura::Caja => e.caja = modelo.caja.clone(),
+                CampoEstructura::Pastoral => e.pastoral = modelo.pastoral.clone(),
+                CampoEstructura::Retenida => {
+                    e.retenida = modelo.retenida.clone();
+                    e.n_retenidas = modelo.n_retenidas;
+                }
+                CampoEstructura::Conectores => e.conectores = modelo.conectores.clone(),
+                CampoEstructura::Acometidas => e.acometidas = modelo.acometidas.clone(),
+            }
+        }
+        if n.estructura != antes {
+            cambiados += 1;
+        }
+    }
+    cambiados
+}

@@ -1,12 +1,13 @@
 //! Pestaña GridCraft: la red se dibuja y edita en planta (como en REDCAD) y se calcula en el
 //! mismo plano. Herramientas: seleccionar/mover (el vano se ajusta a las coordenadas), agregar
-//! poste (cuelga del seleccionado), eliminar. Fondo: un DXF y/o la topografía del proyecto.
+//! poste (cuelga del seleccionado), eliminar. Mayús+clic arma una selección múltiple para
+//! asignar la misma estructura a varios postes. Fondo: un DXF y/o la topografía del proyecto.
 
 use std::path::{Path, PathBuf};
 
 use eframe::egui;
 use egui_plot::{Legend, Line, Plot, PlotPoint, PlotPoints, Points, Text};
-use suite_motor::red::{self, longitud_plano, ConductorRed, Nodo, Red, ResultadoRed};
+use suite_motor::red::{self, asignar_estructura, longitud_plano, CampoEstructura, ConductorRed, EstructuraBt, Nodo, Red, ResultadoRed};
 use suite_motor::salidas::{escribir_excel, tablas_red_con_metrado, Tabla};
 use suite_motor::dxf;
 
@@ -33,6 +34,10 @@ pub struct EstadoRed {
     resumen: String,
     hoja: usize,
     sel: Option<usize>,
+    /// Selección múltiple (Mayús+clic), ordenada y sin repetidos.
+    multi: Vec<usize>,
+    modelo: EstructuraBt,
+    campos: [bool; 8],
     modo: Modo,
     arrastre: Option<usize>,
     mover_con_raton: bool,
@@ -54,6 +59,9 @@ impl Default for EstadoRed {
             resumen: String::new(),
             hoja: 0,
             sel: None,
+            multi: Vec::new(),
+            modelo: EstructuraBt::default(),
+            campos: [false; 8],
             modo: Modo::Seleccionar,
             arrastre: None,
             mover_con_raton: true,
@@ -83,6 +91,7 @@ impl EstadoRed {
         if let (Some(r), Some(n)) = (&mut self.red, self.pila.pop()) {
             r.nodos = n;
             self.sel = None;
+            self.multi.clear();
             self.obsoleto = true;
         }
     }
@@ -95,6 +104,7 @@ impl EstadoRed {
         self.resultado = None;
         self.tablas.clear();
         self.sel = None;
+        self.multi.clear();
         self.pila.clear();
         self.modificado = false;
         self.calcular().map(|_| ())
@@ -289,6 +299,8 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
     let pos = |n: &Nodo| Some([n.este?, n.norte?]);
     let mut accion: Option<Box<dyn FnOnce(&mut EstadoRed)>> = None;
     let (modo, sel, mover) = (st.modo, st.sel, st.mover_con_raton);
+    let multi = st.multi.clone();
+    let mayus = ui.input(|i| i.modifiers.shift);
     let arrastre = st.arrastre;
     let nodos = rd.nodos.clone();
     let plot = Plot::new("plano_red").legend(Legend::default()).data_aspect(1.0).height(alto).x_axis_label("Este (m)").y_axis_label("Norte (m)")
@@ -315,7 +327,7 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
         for (i, n) in nodos.iter().enumerate() {
             let Some(a) = pos(n) else { continue };
             let raiz = n.padre.is_empty();
-            let c = if sel == Some(i) { egui::Color32::from_rgb(230, 126, 34) } else if raiz { egui::Color32::from_rgb(200, 60, 200) } else { egui::Color32::WHITE };
+            let c = if sel == Some(i) || multi.contains(&i) { egui::Color32::from_rgb(230, 126, 34) } else if raiz { egui::Color32::from_rgb(200, 60, 200) } else { egui::Color32::WHITE };
             pu.points(Points::new("", vec![a]).radius(if raiz { 7.0 } else { 4.5 }).color(c).filled(true));
             let etiqueta = match pct.get(&n.nodo) {
                 Some(x) => format!("{} ({x:.1} %)", n.nodo),
@@ -341,7 +353,25 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
             Modo::Seleccionar => {
                 if resp.clicked() {
                     let i = cerca(puntero);
-                    accion = Some(Box::new(move |st: &mut EstadoRed| st.sel = i));
+                    accion = Some(Box::new(move |st: &mut EstadoRed| {
+                        if mayus {
+                            // Mayús+clic: agrega o quita el poste de la selección múltiple
+                            let Some(i) = i else { return };
+                            if st.multi.is_empty() {
+                                st.multi.extend(st.sel);
+                            }
+                            match st.multi.binary_search(&i) {
+                                Ok(k) => {
+                                    st.multi.remove(k);
+                                }
+                                Err(k) => st.multi.insert(k, i),
+                            }
+                            st.sel = st.multi.last().copied();
+                        } else {
+                            st.multi.clear();
+                            st.sel = i;
+                        }
+                    }));
                 }
                 if mover && resp.drag_started() {
                     if let Some(i) = cerca(puntero) {
@@ -409,6 +439,7 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
                                 rd.nodos.remove(i);
                             }
                             st.sel = None;
+                            st.multi.clear();
                         }));
                     }
                 }
@@ -425,7 +456,68 @@ fn propiedades(app: &mut App, ui: &mut egui::Ui) {
     let Some(rd) = &mut st.red else { return };
     let mut cambio = false;
     egui::ScrollArea::vertical().id_salt("prop_red").show(ui, |ui| {
-        if let Some(i) = st.sel.filter(|&i| i < rd.nodos.len()) {
+        if st.multi.len() > 1 {
+            ui.heading(format!("{} postes seleccionados", st.multi.len()));
+            ui.label(egui::RichText::new(st.multi.iter().filter_map(|&i| rd.nodos.get(i)).map(|n| n.nodo.as_str()).collect::<Vec<_>>().join(", ")).small());
+            ui.label("Marque los datos que se copian a todos; los demás no cambian (un campo vacío lo borra).");
+            if ui.button("Copiar del primero").on_hover_text("Toma la estructura del primer poste de la selección como modelo").clicked() {
+                if let Some(n) = st.multi.first().and_then(|&i| rd.nodos.get(i)) {
+                    st.modelo = n.estructura.clone();
+                }
+            }
+            let e = &mut st.modelo;
+            egui::Grid::new("estr_multi").num_columns(3).show(ui, |ui| {
+                for (k, c) in CampoEstructura::TODOS.into_iter().enumerate() {
+                    ui.checkbox(&mut st.campos[k], c.nombre());
+                    match c {
+                        CampoEstructura::Armado => ui.add(egui::TextEdit::singleline(&mut e.armado).desired_width(110.0)),
+                        CampoEstructura::Soporte => ui.add(egui::TextEdit::singleline(&mut e.soporte).desired_width(110.0)),
+                        CampoEstructura::Pat => ui.add(egui::TextEdit::singleline(&mut e.pat).desired_width(110.0)),
+                        CampoEstructura::Caja => ui.add(egui::TextEdit::singleline(&mut e.caja).desired_width(110.0)),
+                        CampoEstructura::Pastoral => ui.add(egui::TextEdit::singleline(&mut e.pastoral).desired_width(110.0)),
+                        CampoEstructura::Retenida => ui.add(egui::TextEdit::singleline(&mut e.retenida).desired_width(110.0)),
+                        CampoEstructura::Conectores => ui.label(format!("{} tipo(s), del modelo", e.conectores.len())),
+                        CampoEstructura::Acometidas => {
+                            let mut a = e.acometidas.join(";");
+                            let r = ui.add(egui::TextEdit::singleline(&mut a).desired_width(110.0)).on_hover_text("C corta, L larga, X extra larga; 3 trifásica; M con murete. Ej.: C;C;L3");
+                            if r.changed() {
+                                e.acometidas = a.split(';').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect();
+                            }
+                            r
+                        }
+                    };
+                    match c {
+                        CampoEstructura::Soporte => {
+                            ui.add(egui::DragValue::new(&mut e.n_soportes).speed(1.0).range(0.0..=9.0).prefix("× "));
+                        }
+                        CampoEstructura::Retenida => {
+                            ui.add(egui::DragValue::new(&mut e.n_retenidas).speed(1.0).range(0.0..=9.0).prefix("× "));
+                        }
+                        _ => {
+                            ui.label("");
+                        }
+                    }
+                    ui.end_row();
+                }
+            });
+            let campos: Vec<CampoEstructura> = CampoEstructura::TODOS.into_iter().zip(st.campos).filter(|x| x.1).map(|x| x.0).collect();
+            if ui.add_enabled(!campos.is_empty(), egui::Button::new(format!("Aplicar a {} postes", st.multi.len()))).clicked() {
+                let copia = rd.nodos.clone();
+                let n = asignar_estructura(rd, &st.multi, &st.modelo, &campos);
+                if n > 0 {
+                    st.pila.push(copia);
+                    if st.pila.len() > 100 {
+                        st.pila.remove(0);
+                    }
+                    cambio = true;
+                }
+                st.resumen = format!("Estructura asignada: {n} poste(s) cambiaron");
+            }
+            if ui.button("Quitar selección").clicked() {
+                st.multi.clear();
+            }
+            ui.separator();
+        } else if let Some(i) = st.sel.filter(|&i| i < rd.nodos.len()) {
             ui.heading("Poste / nodo");
             let otros: Vec<String> = rd.nodos.iter().enumerate().filter(|(k, _)| *k != i).map(|(_, n)| n.nodo.clone()).collect();
             let formaciones: Vec<String> = rd.conductores.iter().map(|c| c.formacion.clone()).collect();
@@ -513,7 +605,7 @@ fn propiedades(app: &mut App, ui: &mut egui::Ui) {
             }
             ui.separator();
         } else {
-            ui.label("Seleccione un poste en el plano para ver y editar sus datos.");
+            ui.label("Seleccione un poste en el plano para ver y editar sus datos. Mayús+clic agrega postes a la selección para asignarles la misma estructura.");
             ui.separator();
         }
         egui::CollapsingHeader::new("Parámetros de la red").default_open(st.sel.is_none()).show(ui, |ui| {
@@ -596,6 +688,7 @@ pub fn panel(app: &mut App, ui: &mut egui::Ui) {
                         rd.nodos.remove(i);
                     }
                     st.sel = None;
+                    st.multi.clear();
                 }
             }
         }

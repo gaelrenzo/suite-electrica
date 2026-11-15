@@ -420,7 +420,10 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 1. **Cruces en la app:** la verificación pasa `tests/cruces.rs`, pero falta revisarla en pantalla
    (ventana «Cruces y distancias de seguridad…», marcas en el perfil, hoja «Cruces»).
 2. **GridCraft:**
-   - asignar la misma estructura (armado, soporte, PAT, retenida…) a varios postes a la vez;
+   - ✅ asignar la misma estructura a varios postes a la vez: Mayús+clic arma la selección; el
+     panel copia solo los campos marcados (armado, soporte, PAT, caja, pastoral, retenida,
+     conectores, acometidas) con «Aplicar a N postes» y Ctrl+Z (`red::asignar_estructura`,
+     prueba `tests/red_asignar.rs`). Falta revisarlo en pantalla;
    - simbología en el plano y en el DXF: luminarias, retenidas y tipo de poste.
 3. **Cimentaciones:** excavación y concreto por poste para el metrado y el presupuesto. Los
    parámetros (empotramiento, dimensiones de la excavación) van en la plantilla con su fuente o
