@@ -13,7 +13,7 @@ use crate::entrada::Punto;
 use crate::geo::Perfil;
 use crate::linea::{Proyecto, Resultado};
 use crate::numerico::formato_g;
-use crate::red::{Red, ResultadoRed};
+use crate::red::{simbolos_red, Red, ResultadoRed};
 use crate::salidas::{cota_referencia, curvas_vanos, formato_progresiva, principales, tramos_validos};
 use crate::tin::{es_mayor, Curva, Tin};
 
@@ -360,6 +360,69 @@ pub fn construir_plano_red(red: &Red, r: &ResultadoRed, alto_texto: f64) -> Resu
         d.texto("TEXTO_RED", [x + alto_texto, y + alto_texto], alto_texto, 0.0, &txt);
     }
     Ok(Some(d))
+}
+
+/// Agrega al plano de la red la simbología (capas SIMB_*): subestación, retenidas con su
+/// anclaje, pastorales con luminaria y tipo de poste, más una leyenda bajo el dibujo (capa
+/// LEYENDA). `u` es el tamaño del símbolo en m. Aparte de `construir_plano_red`, que sigue
+/// igual a Python.
+pub fn simbologia_red(d: &mut Dxf, red: &Red, u: f64) {
+    let s = simbolos_red(red, u);
+    for (c, col) in [("SIMB_SED", 6), ("SIMB_RETENIDA", 4), ("SIMB_ALUMBRADO", 2), ("SIMB_POSTE", 8), ("LEYENDA", 7)] {
+        d.capa(c, col);
+    }
+    let sed = |d: &mut Dxf, p: [f64; 2]| {
+        let a = 1.2 * u;
+        d.polilinea("SIMB_SED", &[[p[0] - a, p[1] - a], [p[0] + a, p[1] - a], [p[0] + a, p[1] + a], [p[0] - a, p[1] + a]], true, 0.0);
+        d.linea("SIMB_SED", [p[0] - a, p[1] - a], [p[0] + a, p[1] + a]);
+    };
+    let retenida = |d: &mut Dxf, [a, b]: [[f64; 2]; 2]| {
+        d.linea("SIMB_RETENIDA", a, b);
+        d.circulo("SIMB_RETENIDA", b, 0.35 * u);
+    };
+    let luminaria = |d: &mut Dxf, [a, b]: [[f64; 2]; 2]| {
+        d.linea("SIMB_ALUMBRADO", a, b);
+        let r = 0.5 * u;
+        d.circulo("SIMB_ALUMBRADO", b, r);
+        let k = r * std::f64::consts::FRAC_1_SQRT_2;
+        d.linea("SIMB_ALUMBRADO", [b[0] - k, b[1] - k], [b[0] + k, b[1] + k]);
+        d.linea("SIMB_ALUMBRADO", [b[0] - k, b[1] + k], [b[0] + k, b[1] - k]);
+    };
+    if let Some(p) = s.sed {
+        sed(d, p);
+    }
+    for r in &s.retenidas {
+        retenida(d, *r);
+    }
+    for (p, (_, n)) in s.pastorales.iter().zip(&s.luminarias) {
+        luminaria(d, *p);
+        if *n > 1.0 {
+            d.texto("SIMB_ALUMBRADO", [p[1][0] + 0.6 * u, p[1][1]], 0.6 * u, 0.0, &format!("{n:.0}L"));
+        }
+    }
+    for (p, t) in &s.tipos {
+        d.texto("SIMB_POSTE", *p, 0.7 * u, 0.0, t);
+    }
+    // leyenda bajo el dibujo, a la izquierda
+    let Some([x0, y0, _, _]) = d.ext else { return };
+    let (x, mut y) = (x0, y0 - 3.0 * u);
+    d.texto("LEYENDA", [x, y], u, 0.0, "LEYENDA");
+    let fila = |y: &mut f64| {
+        *y -= 2.5 * u;
+        [x + 1.5 * u, *y]
+    };
+    let p = fila(&mut y);
+    sed(d, p);
+    d.texto("LEYENDA", [x + 4.0 * u, p[1] - 0.35 * u], 0.7 * u, 0.0, "Subestación (SED)");
+    let p = fila(&mut y);
+    d.circulo("SIMB_POSTE", p, 0.6 * u);
+    d.texto("LEYENDA", [x + 4.0 * u, p[1] - 0.35 * u], 0.7 * u, 0.0, "Poste (texto gris: tipo, p. ej. 8/200)");
+    let p = fila(&mut y);
+    retenida(d, [[p[0] - u, p[1]], [p[0] + u, p[1]]]);
+    d.texto("LEYENDA", [x + 4.0 * u, p[1] - 0.35 * u], 0.7 * u, 0.0, "Retenida y anclaje");
+    let p = fila(&mut y);
+    luminaria(d, [[p[0] - u, p[1]], [p[0] + 0.5 * u, p[1]]]);
+    d.texto("LEYENDA", [x + 4.0 * u, p[1] - 0.35 * u], 0.7 * u, 0.0, "Pastoral y luminaria (nL: lámparas)");
 }
 
 // ------------------------------------------------------------------ láminas de entrega

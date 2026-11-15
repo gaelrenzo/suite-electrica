@@ -6,8 +6,8 @@
 use std::path::{Path, PathBuf};
 
 use eframe::egui;
-use egui_plot::{Legend, Line, Plot, PlotPoint, PlotPoints, Points, Text};
-use suite_motor::red::{self, asignar_estructura, longitud_plano, CampoEstructura, ConductorRed, EstructuraBt, Nodo, Red, ResultadoRed};
+use egui_plot::{Legend, Line, MarkerShape, Plot, PlotPoint, PlotPoints, Points, Text};
+use suite_motor::red::{self, asignar_estructura, simbolos_red, longitud_plano, CampoEstructura, ConductorRed, EstructuraBt, Nodo, Red, ResultadoRed};
 use suite_motor::salidas::{escribir_excel, tablas_red_con_metrado, Tabla};
 use suite_motor::dxf;
 
@@ -43,6 +43,7 @@ pub struct EstadoRed {
     mover_con_raton: bool,
     fondo: Vec<Vec<[f64; 2]>>,
     ver_topo: bool,
+    ver_simbolos: bool,
     conductor_nuevo: String,
     obsoleto: bool,
     pila: Vec<Vec<Nodo>>,
@@ -67,6 +68,7 @@ impl Default for EstadoRed {
             mover_con_raton: true,
             fondo: Vec::new(),
             ver_topo: true,
+            ver_simbolos: true,
             conductor_nuevo: String::new(),
             obsoleto: false,
             pila: Vec::new(),
@@ -140,6 +142,7 @@ impl EstadoRed {
         let (rd, r) = (self.red.as_ref().ok_or("No hay red")?, self.resultado.as_ref().ok_or("Calcule primero")?);
         let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &tablas_red_con_metrado(rd, r))?];
         if let Some(mut d) = dxf::construir_plano_red(rd, r, 2.0)? {
+            dxf::simbologia_red(&mut d, rd, 2.0);
             d.lamina(&dxf::Cajetin {
                 proyecto: rd.nombre.clone(),
                 titulo: "RED SECUNDARIA - CAÍDA DE TENSIÓN".into(),
@@ -251,6 +254,7 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
             }
         }
         ui.checkbox(&mut st.ver_topo, "Topografía");
+        ui.checkbox(&mut st.ver_simbolos, "Simbología").on_hover_text("SED, retenidas, pastorales con luminaria y tipo de poste");
     });
     ui.horizontal(|ui| {
         ui.label("Herramienta:");
@@ -303,6 +307,13 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
     let mayus = ui.input(|i| i.modifiers.shift);
     let arrastre = st.arrastre;
     let nodos = rd.nodos.clone();
+    let simbolos = st.ver_simbolos.then(|| {
+        // tamaño del símbolo: 1/80 de la extensión de la red
+        let xy: Vec<[f64; 2]> = nodos.iter().filter_map(pos).collect();
+        let ext = |k: usize| xy.iter().map(|p| p[k]).fold(f64::NEG_INFINITY, f64::max) - xy.iter().map(|p| p[k]).fold(f64::INFINITY, f64::min);
+        let u = if xy.len() > 1 { (ext(0).max(ext(1)) / 80.0).max(0.5) } else { 1.0 };
+        simbolos_red(rd, u)
+    });
     let plot = Plot::new("plano_red").legend(Legend::default()).data_aspect(1.0).height(alto).x_axis_label("Este (m)").y_axis_label("Norte (m)")
         .allow_drag(!(mover && modo == Modo::Seleccionar)).allow_double_click_reset(false);
     plot.show(ui, |pu| {
@@ -322,6 +333,28 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
             pu.line(Line::new("", PlotPoints::from(vec![p, a])).color(color).width(3.0));
             pu.text(Text::new("", PlotPoint::new((a[0] + p[0]) / 2.0, (a[1] + p[1]) / 2.0),
                 egui::RichText::new(format!("{:.0} m", n.longitud_m)).small()).color(egui::Color32::from_gray(170)));
+        }
+        // simbología (solo dibujo)
+        if let Some(s) = &simbolos {
+            if let Some(p) = s.sed {
+                pu.points(Points::new("SED", vec![p]).shape(MarkerShape::Square).radius(9.0).filled(false).color(egui::Color32::from_rgb(200, 60, 200)));
+            }
+            let c_ret = egui::Color32::from_rgb(0, 170, 190);
+            for (k, [a, b]) in s.retenidas.iter().enumerate() {
+                pu.line(Line::new(if k == 0 { "Retenida" } else { "" }, PlotPoints::from(vec![*a, *b])).color(c_ret).width(1.2));
+                pu.points(Points::new("", vec![*b]).radius(2.5).filled(false).color(c_ret));
+            }
+            let c_lum = egui::Color32::from_rgb(240, 200, 30);
+            for (k, ([a, b], (_, nl))) in s.pastorales.iter().zip(&s.luminarias).enumerate() {
+                pu.line(Line::new(if k == 0 { "Luminaria" } else { "" }, PlotPoints::from(vec![*a, *b])).color(c_lum).width(1.2));
+                pu.points(Points::new("", vec![*b]).shape(MarkerShape::Cross).radius(4.0).color(c_lum));
+                if *nl > 1.0 {
+                    pu.text(Text::new("", PlotPoint::new(b[0], b[1]), egui::RichText::new(format!("{nl:.0}L")).small()).anchor(egui::Align2::LEFT_CENTER).color(c_lum));
+                }
+            }
+            for (p, t) in &s.tipos {
+                pu.text(Text::new("", PlotPoint::new(p[0], p[1]), egui::RichText::new(t).small()).anchor(egui::Align2::LEFT_TOP).color(egui::Color32::from_gray(150)));
+            }
         }
         // postes
         for (i, n) in nodos.iter().enumerate() {

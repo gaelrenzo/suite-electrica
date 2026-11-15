@@ -802,3 +802,77 @@ pub fn asignar_estructura(red: &mut Red, indices: &[usize], modelo: &EstructuraB
     }
     cambiados
 }
+
+/// Simbología de la red en planta (coordenadas en m), común al plano de la app y al DXF.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct SimbolosRed {
+    /// Posición de la subestación (nodo raíz).
+    pub sed: Option<[f64; 2]>,
+    /// Retenidas: del poste al anclaje.
+    pub retenidas: Vec<[[f64; 2]; 2]>,
+    /// Pastorales: del poste a la luminaria.
+    pub pastorales: Vec<[[f64; 2]; 2]>,
+    /// Luminarias (extremo del pastoral) con su número de lámparas.
+    pub luminarias: Vec<([f64; 2], f64)>,
+    /// Tipo de poste (soporte del metrado) junto al poste, p. ej. `8/200`.
+    pub tipos: Vec<([f64; 2], String)>,
+}
+
+fn unitario(v: [f64; 2]) -> Option<[f64; 2]> {
+    let l = v[0].hypot(v[1]);
+    (l > 1e-9).then(|| [v[0] / l, v[1] / l])
+}
+
+fn rotar(v: [f64; 2], ang: f64) -> [f64; 2] {
+    let (s, c) = ang.sin_cos();
+    [v[0] * c - v[1] * s, v[0] * s + v[1] * c]
+}
+
+/// Calcula la simbología con un tamaño de símbolo `u` (m): retenida de 3u en contra de la
+/// resultante de los vanos (fuera del ángulo, o en prolongación del vano en un terminal; en
+/// alineamiento, perpendicular), una por `n_retenidas` separadas 25°; pastoral de 1,5u hacia el
+/// lado contrario de la retenida cuando hay pastoral o lámparas. Solo es dibujo: no cambia el
+/// cálculo ni el metrado. Los nodos sin coordenadas se omiten.
+pub fn simbolos_red(red: &Red, u: f64) -> SimbolosRed {
+    let pos = |n: &Nodo| Some([n.este?, n.norte?]);
+    let mut s = SimbolosRed::default();
+    for n in &red.nodos {
+        let Some(p) = pos(n) else { continue };
+        if n.padre.is_empty() {
+            s.sed = Some(p);
+        }
+        // vecinos: el padre y los hijos
+        let vecinos: Vec<[f64; 2]> = red
+            .nodos
+            .iter()
+            .filter(|x| (!n.padre.is_empty() && x.nodo == n.padre) || x.padre == n.nodo)
+            .filter_map(pos)
+            .filter_map(|q| unitario([q[0] - p[0], q[1] - p[1]]))
+            .collect();
+        let suma = vecinos.iter().fold([0.0, 0.0], |a, v| [a[0] + v[0], a[1] + v[1]]);
+        let afuera = if vecinos.len() >= 2 && suma[0].hypot(suma[1]) < 0.15 {
+            // alineamiento: perpendicular al vano
+            [-vecinos[0][1], vecinos[0][0]]
+        } else {
+            unitario([-suma[0], -suma[1]]).unwrap_or([0.0, -1.0])
+        };
+        let e = &n.estructura;
+        let nr = if e.retenida.is_empty() { 0 } else { e.n_retenidas.round().max(1.0) as usize };
+        for k in 0..nr {
+            let ang = (k as f64 - (nr as f64 - 1.0) / 2.0) * 25f64.to_radians();
+            let d = rotar(afuera, ang);
+            s.retenidas.push([p, [p[0] + 3.0 * u * d[0], p[1] + 3.0 * u * d[1]]]);
+        }
+        if !e.pastoral.is_empty() || n.lamparas > 0.0 {
+            let d = if nr > 0 { [-afuera[0], -afuera[1]] } else { afuera };
+            let f = [p[0] + 1.5 * u * d[0], p[1] + 1.5 * u * d[1]];
+            s.pastorales.push([p, f]);
+            s.luminarias.push((f, n.lamparas.max(1.0)));
+        }
+        if !e.soporte.is_empty() {
+            let t = if e.n_soportes > 1.0 { format!("{:.0}x{}", e.n_soportes, e.soporte) } else { e.soporte.clone() };
+            s.tipos.push(([p[0] + 0.8 * u, p[1] - 1.6 * u], t));
+        }
+    }
+    s
+}

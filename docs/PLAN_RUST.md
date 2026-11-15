@@ -424,7 +424,13 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      panel copia solo los campos marcados (armado, soporte, PAT, caja, pastoral, retenida,
      conectores, acometidas) con «Aplicar a N postes» y Ctrl+Z (`red::asignar_estructura`,
      prueba `tests/red_asignar.rs`). Falta revisarlo en pantalla;
-   - simbología en el plano y en el DXF: luminarias, retenidas y tipo de poste.
+   - ✅ simbología en el plano y en el DXF (`red::simbolos_red`, `dxf::simbologia_red`, prueba
+     `tests/red_simbolos.rs`): SED (cuadrado), retenida con anclaje contra la resultante de los
+     vanos (fuera del ángulo, en prolongación en terminales, perpendicular en alineamiento; varias
+     a ±12,5°), pastoral con luminaria al lado opuesto (nL si hay más de una lámpara) y tipo de
+     poste (soporte del metrado). En el DXF van en las capas SIMB_* con leyenda (capa LEYENDA);
+     `construir_plano_red` no cambia (paridad con Python). En la app: casilla «Simbología».
+     Es solo dibujo, no norma: falta revisarlo en pantalla.
 3. **Cimentaciones:** excavación y concreto por poste para el metrado y el presupuesto. Los
    parámetros (empotramiento, dimensiones de la excavación) van en la plantilla con su fuente o
    marcados PENDIENTE/EJEMPLO; la suite no inventa valores normativos.
