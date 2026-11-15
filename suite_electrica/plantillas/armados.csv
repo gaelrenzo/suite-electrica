@@ -9,8 +9,12 @@
 # Variantes "L": cruceta a 1,00 m (PS1/PA1) o 1,20 m (PR3) de la punta. Variantes con neutro (N): ver láminas.
 # fases (1, 2, 3) y neutro (1 = neutro corrido): la app elige el armado del sistema del proyecto. En los
 #   armados con neutro, distancia_punta_amarre_m llega al neutro (conductor más bajo); alturas_fases_m, solo fases.
-# Pendiente: biposte en H (láminas 027-030: dos postes por estructura).
-codigo,descripcion,funcion,angulo_max_deg,distancia_punta_amarre_m,separacion_fases_m,aislador,aisladores_por_fase,alturas_fases_m,retenida_toma,fuente,fases,neutro
+# postes: postes por estructura (vacío = 1; 2 = biposte en H, láminas 027-030). En los H cada poste
+#   toma la mitad de las cargas de los conductores más el viento sobre sí mismo (sin efecto pórtico),
+#   y el metrado cuenta dos postes. Alturas desde la punta: cruceta superior 0,225 m, cruceta de 4,30 m
+#   a 1,425 m y neutro a 2,625 m; postes a 2,00 m. separacion_fases_m de PA2H-3 (1,65 m) se deduce de
+#   las cotas de la lámina 030 (fase superior y fases de la cruceta de 4,30 m).
+codigo,descripcion,funcion,angulo_max_deg,distancia_punta_amarre_m,separacion_fases_m,aislador,aisladores_por_fase,alturas_fases_m,retenida_toma,fuente,fases,neutro,postes
 PS1-3,Suspensión 0°-5° trifásico,SUSPENSION|ANGULO,5,0.45,1.10,RIGIDO,1,0;0.45;0.45,angulo,Norma DGE RD 024-2003 lámina 004,3,0
 PS1-3L,Suspensión 0°-5° trifásico (cruceta a 1 m),SUSPENSION|ANGULO,5,1.00,1.10,RIGIDO,1,0;1.00;1.00,angulo,Norma DGE RD 024-2003 lámina 004,3,0
 PA1-3,Ángulo 5°-30° trifásico,ANGULO,30,0.45,1.10,RIGIDO,2,0;0.45;0.45,angulo,Norma DGE RD 024-2003 lámina 008,3,0
@@ -63,3 +67,10 @@ PA3-3N,Ángulo 60°-90° trifásico con neutro (vertical),ANGULO,90,3.825,,ANCLA
 PR3-3N,Retención o anclaje trifásico con neutro,ANCLAJE|ANGULO,,1.20,1.05,ANCLAJE,1,0.60;0.60;0.60,todo,Norma DGE RD 024-2003 lámina 020,3,1
 PR3-3NL,Retención o anclaje trifásico con neutro (cruceta a 1.20 m),ANCLAJE,,2.20,1.05,ANCLAJE,1,1.20;1.20;1.20,todo,Norma DGE RD 024-2003 lámina 020,3,1
 PTV-3N,Terminal vertical trifásico con neutro,FIN,,3.825,,ANCLAJE,1,0.225;1.425;2.625,longitudinal,Norma DGE RD 024-2003 lámina 024,3,1
+PSH-3,Suspensión biposte en H 0°-5° trifásico,SUSPENSION|ANGULO,5,1.425,2.00,RIGIDO,1,0.225;1.425;1.425,angulo,Norma DGE RD 024-2003 lámina 027,3,0,2
+PSH-3N,Suspensión biposte en H 0°-5° trifásico con neutro,SUSPENSION|ANGULO,5,2.625,2.00,RIGIDO,1,0.225;1.425;1.425,angulo,Norma DGE RD 024-2003 lámina 027,3,1,2
+PA1H-3,Ángulo biposte en H 0°-30° trifásico,ANGULO,30,1.425,2.00,RIGIDO,2,0.225;1.425;1.425,angulo,Norma DGE RD 024-2003 lámina 028,3,0,2
+PA1H-3N,Ángulo biposte en H 0°-30° trifásico con neutro,ANGULO,30,2.625,2.00,RIGIDO,2,0.225;1.425;1.425,angulo,Norma DGE RD 024-2003 lámina 028,3,1,2
+PRH-3,Retención o anclaje biposte en H trifásico,ANCLAJE|ANGULO,,1.425,2.00,ANCLAJE,1,0.225;1.425;1.425,todo,Norma DGE RD 024-2003 lámina 029,3,0,2
+PRH-3N,Retención o anclaje biposte en H trifásico con neutro,ANCLAJE|ANGULO,,2.625,2.00,ANCLAJE,1,0.225;1.425;1.425,todo,Norma DGE RD 024-2003 lámina 029,3,1,2
+PA2H-3,Ángulo biposte en H 30°-60° trifásico,ANGULO,60,1.425,1.65,SUSPENSION,1,0.225;1.425;1.425,angulo,Norma DGE RD 024-2003 lámina 030,3,0,2

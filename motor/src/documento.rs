@@ -33,7 +33,7 @@ pub const COLS_CATALOGO: [(&str, &[&str]); 4] = [
     ("postes", &["codigo", "material", "longitud_m", "carga_nominal_daN", "empotramiento_m", "carga_vertical_max_daN",
         "diam_punta_m", "diam_tierra_m", "mor_MPa", "dist_aplicacion_m", "fuente"]),
     ("armados", &["codigo", "descripcion", "funcion", "angulo_max_deg", "distancia_punta_amarre_m", "separacion_fases_m",
-        "aislador", "aisladores_por_fase", "alturas_fases_m", "retenida_toma", "fuente", "fases", "neutro"]),
+        "aislador", "aisladores_por_fase", "alturas_fases_m", "retenida_toma", "fuente", "fases", "neutro", "postes"]),
     ("retenidas", &["codigo", "descripcion", "carga_rotura_kN", "fuente"]),
     ("materiales", &["armado", "material", "unidad", "cantidad", "fuente"]),
 ];

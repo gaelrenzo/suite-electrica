@@ -40,6 +40,20 @@ pub struct Armado {
     pub fases: Option<f64>,
     /// Lleva neutro corrido.
     pub neutro: bool,
+    /// Postes por estructura (`None` = 1; 2 = biposte en H).
+    pub postes: Option<f64>,
+}
+
+impl Armado {
+    /// Número de postes de la estructura (1 si no se indica).
+    pub fn n_postes(&self) -> f64 {
+        self.postes.filter(|n| *n >= 1.0).map_or(1.0, f64::round)
+    }
+}
+
+/// Postes por estructura según su armado (1 si no hay armado o no lo indica).
+pub fn n_postes(armado: Option<&Armado>) -> f64 {
+    armado.map_or(1.0, Armado::n_postes)
 }
 
 #[derive(Clone, Debug, Default)]
@@ -125,6 +139,7 @@ impl Catalogos {
                     fuente: txt(f, "fuente"),
                     fases: numero(f, "fases"),
                     neutro: numero(f, "neutro").is_some_and(|v| v != 0.0),
+                    postes: numero(f, "postes"),
                 })
                 .collect(),
             retenidas: leer_csv(retenidas)?
@@ -278,7 +293,14 @@ pub struct Momentos {
 
 /// MVC, MTB, MTD, MVE y MRN de una hipótesis (ver `momentos_poste` en Python).
 pub fn momentos_poste(c: &Cargas, alturas: &[f64], poste: &Poste, retenida: Option<&str>) -> Momentos {
-    let n = alturas.len() as f64;
+    momentos_por_poste(c, alturas, poste, retenida, 1.0)
+}
+
+/// Momentos de cada poste de una estructura de `postes` postes (biposte en H: 2). Cada poste
+/// toma `1/postes` de las cargas de los conductores (MVC, MTB, MTD) y el viento sobre sí mismo
+/// (MVE) completo. Simplificación conservadora: no cuenta el efecto pórtico de las crucetas.
+pub fn momentos_por_poste(c: &Cargas, alturas: &[f64], poste: &Poste, retenida: Option<&str>, postes: f64) -> Momentos {
+    let n = alturas.len() as f64 * postes.max(1.0);
     let sh: f64 = alturas.iter().sum();
     let mvc = c.viento_conductor / n * sh;
     let mtb = (c.transversal - c.viento_conductor) / n * sh;
@@ -373,7 +395,7 @@ pub fn verificar(
             let toma = retenida_toma(e, arm);
             let mut peor: Option<(f64, String, Momentos)> = None;
             for c in r.cargas.iter().filter(|c| c.estructura == e.numero) {
-                let m = momentos_poste(c, &alt, pg, toma.as_deref());
+                let m = momentos_por_poste(c, &alt, pg, toma.as_deref(), n_postes(arm));
                 let (fs, det) = factor_seguridad_poste(pg, m.mrn);
                 if peor.as_ref().map_or(true, |x| fs < x.0) {
                     peor = Some((fs, det, m));
@@ -406,10 +428,11 @@ pub fn verificar(
         } else if geometria(pg) {
             // ya verificado con momentos
         } else if let Some(pp) = pg.filter(|pp| pp.carga_nominal_dan.is_some()) {
+            let np = n_postes(if e.armado.is_empty() { None } else { cat.armado(&e.armado) });
             let f_punta = match pp.empotramiento_m {
                 Some(emp) => mb / (pp.longitud_m.unwrap_or(0.0) - emp),
                 None => fh,
-            };
+            } / np;
             let fs = if f_punta > 0.0 { pp.carga_nominal_dan.unwrap() * 10.0 / f_punta } else { f64::INFINITY };
             f.f_punta = Some(f_punta);
             f.fs_poste = Some(fs);
@@ -430,6 +453,10 @@ pub fn verificar(
                 f.cumple = false;
                 obs.push("Altura de amarre ≥ longitud del poste".into());
             }
+        }
+        let np = n_postes(if e.armado.is_empty() { None } else { cat.armado(&e.armado) });
+        if np > 1.0 {
+            obs.push(format!("{np} postes: cada uno con 1/{np} de las cargas de conductores"));
         }
         f.observacion = obs.join("; ");
         filas.push(f);
@@ -478,7 +505,7 @@ pub fn fs_momentos(e: &Estructura, cargas: &[&Cargas], poste: &Poste, armado: Op
     let toma = retenida_toma(e, armado);
     cargas
         .iter()
-        .map(|c| factor_seguridad_poste(poste, momentos_poste(c, &alt, poste, toma.as_deref()).mrn).0)
+        .map(|c| factor_seguridad_poste(poste, momentos_por_poste(c, &alt, poste, toma.as_deref(), n_postes(armado)).mrn).0)
         .fold(f64::INFINITY, f64::min)
 }
 
@@ -510,7 +537,7 @@ pub fn elegir_poste_mrn(
         let f_punta = match (p.longitud_m, p.empotramiento_m) {
             (Some(l), Some(emp)) => mb / (l - emp),
             _ => fh,
-        };
+        } / n_postes(armado);
         if f_punta <= 0.0 || p.carga_nominal_dan.unwrap_or(0.0) * 10.0 / f_punta >= fs_poste {
             return p.codigo.clone();
         }
@@ -543,7 +570,9 @@ pub fn metrado(
     };
     let mut postes: BTreeMap<&str, usize> = BTreeMap::new();
     for e in r.estructuras.iter().filter(|e| !e.poste.is_empty()) {
-        *postes.entry(&e.poste).or_default() += 1;
+        // biposte en H: dos postes por estructura
+        let np = n_postes(if e.armado.is_empty() { None } else { cat.armado(&e.armado) }) as usize;
+        *postes.entry(&e.poste).or_default() += np;
     }
     for (cod, n) in &postes {
         let d = match cat.poste(cod) {

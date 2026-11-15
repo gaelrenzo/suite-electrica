@@ -278,8 +278,8 @@ resultados de referencia. Si un cambio los altera a propósito, se explica aquí
   cambia. Un `.sel` guarda sus propios catálogos: el botón «Cargar catálogos de la plantilla»
   actualiza un proyecto existente, y si el catálogo no tiene armados del sistema se avisa.
   `tests/armados_dge.rs` comprueba la elección, que cada armado tenga geometría y materiales, y
-  el cálculo completo con una línea 1Φ, una 2Φ con neutro y una 3Φ con neutro. **Pendiente:**
-  biposte en H (láminas 027-030), porque el modelo verifica un solo poste por estructura.
+  el cálculo completo con una línea 1Φ, una 2Φ con neutro y una 3Φ con neutro. Biposte en H:
+  ver «Otras brechas».
 * **GridCraft con fases por tramo (criterio de REDCAD).** El catálogo de conductores admite una
   columna nueva, `fases` (1, 2 o 3), y el JSON de la red un parámetro nuevo, `tension_fn_V`
   (220 V en 440/220 V; por defecto V/√3). Si alguna formación declara fases, todas deben
@@ -446,8 +446,17 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - Falta: hoja de cimentaciones en la planilla de LineCraft y revisarlo en pantalla.
 4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
-5. **Otras brechas con ESOLUTIONS:** biposte en H, transporte por rutas (PRESIO), terminal con
-   retenida a media línea, redes primarias, SRTM/catastro en TopoCraft.
+5. **Otras brechas con ESOLUTIONS:** transporte por rutas (PRESIO), terminal con retenida a media
+   línea, redes primarias, SRTM/catastro en TopoCraft.
+   - ✅ **Biposte en H** (Norma DGE RD 024-2003, láminas 027-030; prueba `tests/biposte_h.rs`):
+     7 armados (PSH-3/3N, PA1H-3/3N, PRH-3/3N, PA2H-3) con geometría y materiales transcritos de
+     las láminas, y columna nueva `postes` en `armados.csv` (2 en los H). Cada poste toma la mitad
+     de las cargas de los conductores (MVC, MTB, MTD) y todo el viento sobre sí mismo
+     (`catalogos::momentos_por_poste`); también en el criterio simplificado y en la elección de
+     poste por MRN. Es conservador: no cuenta el efecto pórtico de las crucetas. El metrado cuenta
+     dos postes por estructura H. La elección automática no los toma (están al final): se asignan
+     a mano en la tabla de estructuras. Un `.sel` existente necesita «Cargar catálogos de la
+     plantilla». No se comparó con REDLIN.
    - ✅ **Autodiseño BT** (`red::autodisenar`, prueba `tests/red_autodiseno.rs`, botón
      «Autodiseñar conductores» en GridCraft; Mayús+clic parte de las formaciones actuales; Ctrl+Z
      deshace): a cada tramo, la formación más chica (mayor K) que cumple %ΔV SP/AP, corriente y
