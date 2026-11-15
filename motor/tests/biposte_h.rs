@@ -96,3 +96,18 @@ fn linea_con_biposte() {
         assert!(b.observacion.contains("2 postes"), "{}", b.observacion);
     }
 }
+
+#[test]
+fn plantillas_con_columnas_fijas() {
+    // un campo con coma sin comillas desplaza las columnas (pandas lo rechaza)
+    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("suite_electrica").join("plantillas");
+    for (archivo, n) in [("materiales.csv", 5), ("armados.csv", 14)] {
+        let t = std::fs::read_to_string(base.join(archivo)).unwrap();
+        let limpio = t.lines().filter(|l| !l.starts_with('#')).collect::<Vec<_>>().join("\n");
+        let mut rd = csv::ReaderBuilder::new().flexible(true).from_reader(limpio.as_bytes());
+        for (k, r) in rd.records().enumerate() {
+            let r = r.unwrap();
+            assert!(r.len() == n || (archivo == "armados.csv" && r.len() == n - 1), "{archivo} fila {}: {} campos", k + 2, r.len());
+        }
+    }
+}
