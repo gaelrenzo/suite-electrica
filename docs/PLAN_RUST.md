@@ -447,7 +447,14 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
 5. **Otras brechas con ESOLUTIONS:** biposte en H, transporte por rutas (PRESIO), terminal con
-   retenida a media línea, autodiseño BT, redes primarias, SRTM/catastro en TopoCraft.
+   retenida a media línea, redes primarias, SRTM/catastro en TopoCraft.
+   - ✅ **Autodiseño BT** (`red::autodisenar`, prueba `tests/red_autodiseno.rs`, botón
+     «Autodiseñar conductores» en GridCraft; Mayús+clic parte de las formaciones actuales; Ctrl+Z
+     deshace): a cada tramo, la formación más chica (mayor K) que cumple %ΔV SP/AP, corriente y
+     pérdidas, solo entre formaciones con las mismas fases y con o sin hilo de AP. Voraz (agranda
+     el tramo del camino a la SED que más baja la caída) y pasada final que achica mientras
+     cumpla: da un mínimo local, no necesariamente el de menor costo. No compara con REDCAD.
+   - ✅ Cimentaciones también en la planilla de LineCraft (hoja «Cimentaciones»).
 6. **Retirar Python:** solo después de probar el `.exe` en otra PC sin Python y con confirmación
    explícita del autor; antes mover las plantillas a `data/plantillas`.
 

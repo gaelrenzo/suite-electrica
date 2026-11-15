@@ -876,3 +876,120 @@ pub fn simbolos_red(red: &Red, u: f64) -> SimbolosRed {
     }
     s
 }
+
+/// Resultado del autodiseño de conductores.
+#[derive(Clone, Debug)]
+pub struct Autodiseno {
+    pub red: Red,
+    pub resultado: ResultadoRed,
+    /// (nodo, formación anterior, formación nueva) de los tramos que cambiaron.
+    pub cambios: Vec<(String, String, String)>,
+    pub avisos: Vec<String>,
+}
+
+/// Autodiseño de conductores BT (como el de REDCAD): a cada tramo le asigna la formación más
+/// chica del catálogo que cumple %ΔV (SP y AP), corriente máxima y pérdidas. «Más chica» =
+/// mayor K (Ω/km); solo se cambia entre formaciones con las mismas fases y con o sin hilo de AP.
+///
+/// 1. Con `desde_minimo`, todos los tramos parten de la más chica de su grupo; si no, de la actual.
+/// 2. Mientras haya alertas: corriente → se agranda ese tramo; %ΔV → en el camino a la SED del
+///    nodo peor, el tramo cuyo cambio baja más la caída (ΔV_tramo·(1 − K_nuevo/K_actual));
+///    pérdidas → el tramo con más pérdidas. Si ninguno se puede agrandar, se avisa y se detiene.
+/// 3. Pasada final: se achica cada tramo mientras la red siga cumpliendo (mínimo local).
+///
+/// La alerta del transformador no depende del conductor y no se corrige.
+pub fn autodisenar(red: &Red, desde_minimo: bool) -> Result<Autodiseno, String> {
+    let grupo = |c: &ConductorRed| (c.fases.map(|f| f.round() as i64), c.k_ap_ohm_km.is_some());
+    // formaciones por grupo, de la más chica (mayor K) a la más grande
+    let escala = |f: &str| -> Vec<(String, f64)> {
+        let Some(c) = red.conductores.iter().find(|c| c.formacion == f) else { return Vec::new() };
+        let g = grupo(c);
+        let mut v: Vec<(String, f64)> = red
+            .conductores
+            .iter()
+            .filter(|x| grupo(x) == g)
+            .filter_map(|x| Some((x.formacion.clone(), x.k_ohm_km?)))
+            .collect();
+        v.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
+        v
+    };
+    let mut r = red.clone();
+    let mut avisos = Vec::new();
+    let tramos: Vec<usize> = (0..r.nodos.len()).filter(|&i| !r.nodos[i].padre.is_empty()).collect();
+    let escalas: Vec<Vec<(String, f64)>> = r.nodos.iter().map(|n| escala(&n.conductor)).collect();
+    for &i in &tramos {
+        if escalas[i].is_empty() {
+            avisos.push(format!("{}: la formación «{}» no está en el catálogo o no tiene K; no se cambia", r.nodos[i].nodo, r.nodos[i].conductor));
+        } else if desde_minimo {
+            r.nodos[i].conductor = escalas[i][0].0.clone();
+        }
+    }
+    let pos = |r: &Red, i: usize| escalas[i].iter().position(|x| x.0 == r.nodos[i].conductor);
+    let siguiente = |r: &Red, i: usize| pos(r, i).and_then(|p| escalas[i].get(p + 1)).cloned();
+    let idx = |r: &Red, nombre: &str| r.nodos.iter().position(|n| n.nodo == nombre);
+    let corregibles = |a: &AlertaRed| matches!(a.codigo.as_str(), "DV" | "DV-AP" | "I" | "PERD");
+    let limite = 1 + tramos.iter().map(|&i| escalas[i].len()).sum::<usize>();
+    let mut res = calcular(&r)?;
+    for _ in 0..limite {
+        let Some(a) = res.alertas.iter().find(|a| corregibles(a)).cloned() else { break };
+        let elegido: Option<usize> = match a.codigo.as_str() {
+            "I" => a.elemento.rsplit_once('-').and_then(|(_, n)| idx(&r, n)).filter(|&i| siguiente(&r, i).is_some()),
+            "PERD" => res
+                .tramos
+                .iter()
+                .filter_map(|t| Some((idx(&r, &t.nodo)?, t.perdidas_w)))
+                .filter(|(i, _)| siguiente(&r, *i).is_some())
+                .max_by(|x, y| x.1.partial_cmp(&y.1).unwrap())
+                .map(|x| x.0),
+            _ => {
+                // camino del nodo a la SED
+                let mut mejor: Option<(usize, f64)> = None;
+                let mut k = idx(&r, &a.elemento);
+                while let Some(i) = k.filter(|&i| !r.nodos[i].padre.is_empty()) {
+                    if let (Some(t), Some((_, kn)), Some(p)) =
+                        (res.tramos.iter().find(|t| t.nodo == r.nodos[i].nodo), siguiente(&r, i), pos(&r, i))
+                    {
+                        let ganancia = t.dv_tramo_v.abs() * (1.0 - kn / escalas[i][p].1);
+                        if mejor.is_none_or(|m| ganancia > m.1) {
+                            mejor = Some((i, ganancia));
+                        }
+                    }
+                    k = idx(&r, &r.nodos[i].padre.clone());
+                }
+                mejor.map(|m| m.0)
+            }
+        };
+        let Some(i) = elegido else {
+            avisos.push(format!("No se puede corregir {} ({}): no hay formación mayor en el catálogo", a.elemento, a.detalle));
+            break;
+        };
+        r.nodos[i].conductor = siguiente(&r, i).unwrap().0;
+        res = calcular(&r)?;
+    }
+    let malas = |res: &ResultadoRed| res.alertas.iter().filter(|a| corregibles(a)).count();
+    if malas(&res) == 0 {
+        // pasada final: achicar mientras cumpla
+        for &i in tramos.iter().rev() {
+            while let Some(p) = pos(&r, i).filter(|&p| p > 0) {
+                let antes = r.nodos[i].conductor.clone();
+                r.nodos[i].conductor = escalas[i][p - 1].0.clone();
+                let prueba = calcular(&r)?;
+                if malas(&prueba) == 0 {
+                    res = prueba;
+                } else {
+                    r.nodos[i].conductor = antes;
+                    break;
+                }
+            }
+        }
+    }
+    avisos.extend(res.alertas.iter().filter(|a| a.codigo == "TR").map(|a| format!("Transformador: {} (no depende del conductor)", a.detalle)));
+    let cambios = red
+        .nodos
+        .iter()
+        .zip(&r.nodos)
+        .filter(|(a, b)| a.conductor != b.conductor)
+        .map(|(a, b)| (a.nodo.clone(), a.conductor.clone(), b.conductor.clone()))
+        .collect();
+    Ok(Autodiseno { red: r, resultado: res, cambios, avisos })
+}

@@ -253,6 +253,29 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
                 }
             }
         }
+        if ui.add_enabled(hay, egui::Button::new("Autodiseñar conductores"))
+            .on_hover_text("Asigna a cada tramo la formación más chica (mayor K) que cumple %ΔV, corriente y pérdidas, sin mezclar fases. Mayús+clic: parte de las formaciones actuales. Ctrl+Z deshace.")
+            .clicked()
+        {
+            let desde_minimo = !ui.input(|i| i.modifiers.shift);
+            if let Some(rd) = &st.red {
+                match red::autodisenar(rd, desde_minimo) {
+                    Ok(a) => {
+                        st.apilar();
+                        let n = a.cambios.len();
+                        st.red = Some(a.red);
+                        match st.calcular() {
+                            Ok(m) => {
+                                let extra = if a.avisos.is_empty() { String::new() } else { format!(" — {}", a.avisos.join("; ")) };
+                                app.estado = format!("Autodiseño: {n} tramo(s) cambiaron. {m}{extra}");
+                            }
+                            Err(e) => app.error = Some(e),
+                        }
+                    }
+                    Err(e) => app.error = Some(e),
+                }
+            }
+        }
         if ui.add_enabled(!st.pila.is_empty(), egui::Button::new("Deshacer")).clicked() {
             st.deshacer();
         }
