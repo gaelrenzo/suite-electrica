@@ -488,3 +488,11 @@ mod pruebas {
         assert_eq!(texto_python(0.125), "0.125");
     }
 }
+
+/// Hoja «Cimentaciones»: partidas en m³ y, al final, los avisos.
+pub fn tabla_cimentaciones(filas: &[crate::cimentacion::FilaCimentacion], avisos: &[String]) -> Tabla {
+    let mut tb = Tabla::nueva("Cimentaciones", &["Código", "Partida", "Unidad", "Cantidad"]);
+    tb.filas.extend(filas.iter().map(|f| vec![t(f.codigo.clone()), t(f.descripcion.clone()), t(f.unidad.clone()), n(f.cantidad)]));
+    tb.filas.extend(avisos.iter().map(|a| vec![t("AVISO"), t(a.clone()), t(""), n(f64::NAN)]));
+    tb
+}

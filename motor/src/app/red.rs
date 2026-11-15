@@ -8,15 +8,16 @@ use std::path::{Path, PathBuf};
 use eframe::egui;
 use egui_plot::{Legend, Line, MarkerShape, Plot, PlotPoint, PlotPoints, Points, Text};
 use suite_motor::red::{self, asignar_estructura, simbolos_red, longitud_plano, CampoEstructura, ConductorRed, EstructuraBt, Nodo, Red, ResultadoRed};
-use suite_motor::salidas::{escribir_excel, tablas_red_con_metrado, Tabla};
+use suite_motor::salidas::{escribir_excel, tabla_cimentaciones, tablas_red_con_metrado, Tabla};
 use suite_motor::dxf;
 
 use crate::{abrir_externo, elegir_carpeta, num, ver_tabla, App};
 
-const PLANTILLAS: [(&str, &str); 3] = [
+const PLANTILLAS: [(&str, &str); 4] = [
     ("red.json", include_str!("../../../suite_electrica/plantillas/red_proyecto.json")),
     ("nodos.csv", include_str!("../../../suite_electrica/plantillas/red_nodos.csv")),
     ("conductores_bt.csv", include_str!("../../../suite_electrica/plantillas/conductores_bt.csv")),
+    (suite_motor::cimentacion::ARCHIVO, suite_motor::cimentacion::PLANTILLA),
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -125,6 +126,9 @@ impl EstadoRed {
             r.alertas.len()
         );
         self.tablas = tablas_red_con_metrado(rd, &r);
+        if let Some((filas, avisos)) = cimentaciones_red(rd, self.ruta.as_deref())? {
+            self.tablas.push(tabla_cimentaciones(&filas, &avisos));
+        }
         self.hoja = self.hoja.min(self.tablas.len().saturating_sub(1));
         self.resultado = Some(r);
         self.obsoleto = false;
@@ -140,7 +144,7 @@ impl EstadoRed {
 
     fn exportar(&self, c: &Path) -> Result<Vec<PathBuf>, String> {
         let (rd, r) = (self.red.as_ref().ok_or("No hay red")?, self.resultado.as_ref().ok_or("Calcule primero")?);
-        let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &tablas_red_con_metrado(rd, r))?];
+        let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &self.tablas)?];
         if let Some(mut d) = dxf::construir_plano_red(rd, r, 2.0)? {
             dxf::simbologia_red(&mut d, rd, 2.0);
             d.lamina(&dxf::Cajetin {
@@ -153,6 +157,17 @@ impl EstadoRed {
         }
         Ok(out)
     }
+}
+
+/// Metrado de cimentaciones de la red con `cimentaciones.csv` de la carpeta de `red.json`
+/// (`None` si no hay archivo o la red no tiene soportes).
+pub fn cimentaciones_red(rd: &Red, ruta: Option<&Path>) -> Result<Option<(Vec<suite_motor::cimentacion::FilaCimentacion>, Vec<String>)>, String> {
+    let Some(tabla) = ruta.map(suite_motor::cimentacion::cargar_junto).transpose()?.flatten() else { return Ok(None) };
+    let postes: Vec<(String, f64)> = red::metrado(rd).into_iter().filter(|f| f.item == "Soporte").map(|f| (f.codigo, f.cantidad)).collect();
+    if postes.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(suite_motor::cimentacion::metrado(&postes, &tabla)))
 }
 
 fn crear(carpeta: &Path) -> Result<PathBuf, String> {
@@ -251,6 +266,17 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
                     }
                     Err(e) => app.error = Some(e),
                 }
+            }
+        }
+        if ui.add_enabled(st.ruta.is_some(), egui::Button::new("Cimentaciones…")).on_hover_text("Abre cimentaciones.csv de la carpeta de la red (lo crea con valores de EJEMPLO si no existe)").clicked() {
+            if let Some(r) = st.ruta.as_deref().and_then(Path::parent).map(|d| d.join(suite_motor::cimentacion::ARCHIVO)) {
+                if !r.exists() {
+                    if let Err(e) = std::fs::write(&r, suite_motor::cimentacion::PLANTILLA) {
+                        app.error = Some(format!("{}: {e}", r.display()));
+                    }
+                }
+                app.estado = format!("Edite {} (valores y fuente) y pulse Calcular", r.display());
+                abrir_externo(&r);
             }
         }
         ui.checkbox(&mut st.ver_topo, "Topografía");

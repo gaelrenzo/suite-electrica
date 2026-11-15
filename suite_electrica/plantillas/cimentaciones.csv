@@ -1,0 +1,15 @@
+# Cimentación por tipo de poste (una fila por código de soporte/poste, el mismo del metrado:
+# «8/200» en GridCraft, «CAC 12/300» en LineCraft). La suite NO trae valores normativos: las filas
+# de abajo son EJEMPLO para probar el cálculo. Reemplácelas por las del plano de cimentación del
+# proyecto o de la norma que corresponda y anote la fuente; mientras la fuente diga EJEMPLO o
+# PENDIENTE, la planilla lo avisa.
+# forma: cuadrada (dimension_m = lado) o circular (dimension_m = diámetro).
+# profundidad_m: profundidad del hoyo; solado_m: espesor del solado (0 si no lleva).
+# diam_base_m: diámetro del poste en la base (descuenta el volumen del poste empotrado).
+# relleno: concreto (cimentación de concreto) o compactado (relleno con material propio).
+soporte,forma,dimension_m,profundidad_m,solado_m,diam_base_m,relleno,fuente
+8/200,cuadrada,0.6,1.3,0.1,0.25,compactado,EJEMPLO
+8/300,cuadrada,0.7,1.3,0.1,0.27,compactado,EJEMPLO
+CAC 12/300,cuadrada,0.9,1.8,0.1,0.34,concreto,EJEMPLO
+CAC 12/400,cuadrada,0.9,1.8,0.1,0.36,concreto,EJEMPLO
+CAC 13/400,cuadrada,1.0,1.9,0.1,0.37,concreto,EJEMPLO

@@ -428,13 +428,32 @@ fn metrado_a_presupuesto(app: &mut App, de_red: bool) {
             app.error = Some("Abra o dibuje primero la red en GridCraft".into());
             return;
         };
-        (suite_motor::red::metrado_presupuesto(&red::metrado(rd), "RS"), "RS", "GridCraft")
+        let mut csv = suite_motor::red::metrado_presupuesto(&red::metrado(rd), "RS");
+        match crate::red::cimentaciones_red(rd, app.red.ruta.as_deref()) {
+            Ok(Some((f, _))) => csv.push_str(&suite_motor::cimentacion::lineas_presupuesto(&f, "RS")),
+            Ok(None) => {}
+            Err(e) => {
+                app.error = Some(e);
+                return;
+            }
+        }
+        (csv, "RS", "GridCraft")
     } else {
         let Some(c) = &app.calculo else {
             app.error = Some("Calcule primero la línea en LineCraft".into());
             return;
         };
-        (metrado_presupuesto(&c.metrado, "LP"), "LP", "LineCraft")
+        let mut csv = metrado_presupuesto(&c.metrado, "LP");
+        let postes: Vec<(String, f64)> = c.metrado.iter().filter(|f| f.item == "Poste").map(|f| (f.codigo.clone(), f.cantidad)).collect();
+        match app.doc.ruta.as_deref().map(suite_motor::cimentacion::cargar_junto).transpose().map(Option::flatten) {
+            Ok(Some(t)) => csv.push_str(&suite_motor::cimentacion::lineas_presupuesto(&suite_motor::cimentacion::metrado(&postes, &t).0, "LP")),
+            Ok(None) => {}
+            Err(e) => {
+                app.error = Some(e);
+                return;
+            }
+        }
+        (csv, "LP", "LineCraft")
     };
     let Some(ruta) = app.presu.ruta.clone() else {
         app.error = Some("Abra o cree primero un presupuesto".into());

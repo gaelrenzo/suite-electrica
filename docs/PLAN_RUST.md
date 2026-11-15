@@ -431,9 +431,19 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      poste (soporte del metrado). En el DXF van en las capas SIMB_* con leyenda (capa LEYENDA);
      `construir_plano_red` no cambia (paridad con Python). En la app: casilla «Simbología».
      Es solo dibujo, no norma: falta revisarlo en pantalla.
-3. **Cimentaciones:** excavación y concreto por poste para el metrado y el presupuesto. Los
-   parámetros (empotramiento, dimensiones de la excavación) van en la plantilla con su fuente o
-   marcados PENDIENTE/EJEMPLO; la suite no inventa valores normativos.
+3. ✅ **Cimentaciones** (`motor/src/cimentacion.rs`, prueba `tests/cimentaciones.rs`): tabla
+   `cimentaciones.csv` junto a `red.json` o al `.sel`, una fila por código de soporte/poste
+   (forma cuadrada o circular, dimensión, profundidad, solado, diámetro de base, relleno con
+   concreto o compactado, fuente). Por poste: excavación A·h, solado A·s, concreto o relleno
+   A·(h−s) − poste empotrado, eliminación = excavación − relleno. La plantilla trae solo valores
+   de **EJEMPLO**; se avisa mientras la fuente diga EJEMPLO/PENDIENTE, si un soporte no tiene fila
+   o falta el diámetro de base.
+   - GridCraft: hoja «Cimentaciones» (también en el Excel exportado), botón «Cimentaciones…»
+     (crea/abre el CSV) y «Nueva red» copia la plantilla.
+   - PresuCraft: «Metrado desde GridCraft/LineCraft» agrega CIM-EXC, CIM-SOL, CIM-CON, CIM-REL
+     y CIM-ELI (m³) al rubro RS o LP; sus precios van en `montaje.csv` (si faltan, PresuCraft
+     avisa «costo 0»).
+   - Falta: hoja de cimentaciones en la planilla de LineCraft y revisarlo en pantalla.
 4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
 5. **Otras brechas con ESOLUTIONS:** biposte en H, transporte por rutas (PRESIO), terminal con
