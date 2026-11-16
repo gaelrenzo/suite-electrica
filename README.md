@@ -8,12 +8,12 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/suite-electrica.exe"><img alt="Descargar para Windows" src="https://img.shields.io/badge/Descargar-Windows%20.exe-2ea44f?style=for-the-badge&logo=windows"></a>
+  <a href="https://github.com/gaelrenzo/suite-electrica/releases/latest/download/suite-electrica.exe"><img alt="Descargar para Windows" src="https://img.shields.io/badge/Descargar-Windows%20.exe-2ea44f?style=for-the-badge&logo=windows"></a>
 </p>
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-blue"></a>
-  <a href="https://github.com/gaelrenzo/suite-electrica/releases"><img alt="Versión" src="https://img.shields.io/badge/versión-0.1.0%20(prueba)-orange"></a>
+  <a href="https://github.com/gaelrenzo/suite-electrica/releases"><img alt="Versión" src="https://img.shields.io/badge/versión-0.2.0%20(prueba)-orange"></a>
   <a href="https://github.com/gaelrenzo/suite-electrica/actions/workflows/rust.yml"><img alt="Pruebas Rust" src="https://github.com/gaelrenzo/suite-electrica/actions/workflows/rust.yml/badge.svg"></a>
   <a href="https://github.com/gaelrenzo/suite-electrica/actions/workflows/pruebas.yml"><img alt="Pruebas Python" src="https://github.com/gaelrenzo/suite-electrica/actions/workflows/pruebas.yml/badge.svg"></a>
   <img alt="Hecho en Rust" src="https://img.shields.io/badge/hecho%20en-Rust-b7410e?logo=rust">
@@ -51,11 +51,11 @@ herramientas comerciales que se usan en Perú, construida a partir de la normati
 
 | Programa | Descarga | Tamaño |
 |---|---|---|
-| **Suite Eléctrica** (app principal) | [suite-electrica.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/suite-electrica.exe) | 22,9 MB |
-| Comparador con REDLIN | [comparar-redlin.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-redlin.exe) | 1,4 MB |
-| Comparador con REDCAD | [comparar-redcad.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-redcad.exe) | 1,6 MB |
-| Comparador con PRESIO | [comparar-presio.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-presio.exe) | 1,4 MB |
-| Sumas de verificación | [SHA256SUMS.txt](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/SHA256SUMS.txt) | — |
+| **Suite Eléctrica** (app principal) | [suite-electrica.exe](https://github.com/gaelrenzo/suite-electrica/releases/latest/download/suite-electrica.exe) | 22,9 MB |
+| Comparador con REDLIN | [comparar-redlin.exe](https://github.com/gaelrenzo/suite-electrica/releases/latest/download/comparar-redlin.exe) | 1,4 MB |
+| Comparador con REDCAD | [comparar-redcad.exe](https://github.com/gaelrenzo/suite-electrica/releases/latest/download/comparar-redcad.exe) | 1,6 MB |
+| Comparador con PRESIO | [comparar-presio.exe](https://github.com/gaelrenzo/suite-electrica/releases/latest/download/comparar-presio.exe) | 1,4 MB |
+| Sumas de verificación | [SHA256SUMS.txt](https://github.com/gaelrenzo/suite-electrica/releases/latest/download/SHA256SUMS.txt) | — |
 
 Descargar y abrir: **no necesita instalación ni Python**. Versión de prueba 0.1.0 ·
 [todas las versiones](https://github.com/gaelrenzo/suite-electrica/releases).

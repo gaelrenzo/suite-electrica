@@ -48,7 +48,7 @@ Nada se da por portado sin comparación numérica:
 | 3 | Archivos: CSV, JSON (.sel), Excel, DXF, KML/GPX, MapSource, TPG, UTM, TIN, curvas de nivel, perfil | `entrada`, `proyectos`, `utm`, `tin` | ✅ 14 archivos de prueba (válidos y problemáticos) = Python; `.sel` ida y vuelta Python↔Rust; `proyecto.json` → mismo cálculo |
 | 4 | Salidas: planillas Excel, planos DXF (perfil, red), memoria PDF | `salidas`, `dxf`, `pdf` | ✅ 5 casos: Excel = Python (2 698 celdas), DXF = Python (entidad a entidad, auditoría ezdxf sin errores), PDF con todo el texto de Python; diferencias en `docs/DIFERENCIAS_RUST.md` |
 | 5 | Interfaz egui: TopoCraft, LineCraft (perfil interactivo, planilla editable), GridCraft, PresuCraft | `documento`, binario `suite-electrica` | ✅ documento `.sel` = Python (flujo completo de la app, 230 líneas); `.exe` de 22 MB probado sin Python; falta probarlo en otra PC |
-| 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | ⏳ referencia congelada (`python-referencia-v1`); `comparar-redlin` portado (= Python en los 5 modos); `.exe` publicado (release `v0.1.0-rust`); falta probarlo en otra PC y retirar Python |
+| 6 | Validación final contra REDLIN con los scripts de `examples/validacion` portados, `.exe` y retiro de Python | — | ⏳ referencia congelada (`python-referencia-v1`); `comparar-redlin` portado (= Python en los 5 modos); `.exe` publicado (release `v0.2.0`; antes `v0.1.0-rust`); falta probarlo en otra PC y retirar Python |
 
 ## Criterios de aceptación por etapa
 
@@ -195,7 +195,7 @@ Antes de borrar `suite_electrica/`, hay que:
    `cargo run --release --bin comparar-redlin -- PlanillaEstTotal.xls` (ver los demás modos en el
    archivo).
 3. Probar el `.exe` en otra PC: descargarlo del *release*
-   [`v0.1.0-rust`](https://github.com/gaelrenzo/suite-electrica/releases/tag/v0.1.0-rust)
+   [`v0.2.0`](https://github.com/gaelrenzo/suite-electrica/releases/tag/v0.2.0)
    (se incluye `SHA256SUMS.txt`).
 4. Confirmar con el autor.
 
@@ -415,7 +415,7 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 .\target\release\comparar-presio.exe ... --apu | --fp                          # PRESIO
 ```
 
-### Pendientes (en este orden)
+### Hecho tras la referencia (detalle)
 
 1. ✅ **Cruces en la app:** revisado en pantalla el 16/11 (marcas en el perfil con su distancia,
    verde si cumple, y hoja «Cruces»); la verificación pasa `tests/cruces.rs`.
@@ -423,14 +423,14 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - ✅ asignar la misma estructura a varios postes a la vez: Mayús+clic arma la selección; el
      panel copia solo los campos marcados (armado, soporte, PAT, caja, pastoral, retenida,
      conectores, acometidas) con «Aplicar a N postes» y Ctrl+Z (`red::asignar_estructura`,
-     prueba `tests/red_asignar.rs`). Falta revisarlo en pantalla;
+     prueba `tests/red_asignar.rs`). Revisado en pantalla el 16/11;
    - ✅ simbología en el plano y en el DXF (`red::simbolos_red`, `dxf::simbologia_red`, prueba
      `tests/red_simbolos.rs`): SED (cuadrado), retenida con anclaje contra la resultante de los
      vanos (fuera del ángulo, en prolongación en terminales, perpendicular en alineamiento; varias
      a ±12,5°), pastoral con luminaria al lado opuesto (nL si hay más de una lámpara) y tipo de
      poste (soporte del metrado). En el DXF van en las capas SIMB_* con leyenda (capa LEYENDA);
      `construir_plano_red` no cambia (paridad con Python). En la app: casilla «Simbología».
-     Es solo dibujo, no norma: falta revisarlo en pantalla.
+     Es solo dibujo, no norma. Revisado en pantalla el 16/11.
 3. ✅ **Cimentaciones** (`motor/src/cimentacion.rs`, prueba `tests/cimentaciones.rs`): tabla
    `cimentaciones.csv` junto a `red.json` o al `.sel`, una fila por código de soporte/poste
    (forma cuadrada o circular, dimensión, profundidad, solado, diámetro de base, relleno con
@@ -443,10 +443,11 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - PresuCraft: «Metrado desde GridCraft/LineCraft» agrega CIM-EXC, CIM-SOL, CIM-CON, CIM-REL
      y CIM-ELI (m³) al rubro RS o LP; sus precios van en `montaje.csv` (si faltan, PresuCraft
      avisa «costo 0»).
-   - Falta: hoja de cimentaciones en la planilla de LineCraft y revisarlo en pantalla.
-4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `4f13cf6` (16/11/2026; antes `a3f193a`) con el build (editor de GridCraft, editores de
-   tablas, planta de LineCraft, láminas, interfaz y cruces).
-5. **Otras brechas con ESOLUTIONS:** ✅ todas las de la lista tienen una primera versión.
+   - LineCraft: hoja «Cimentaciones» en la planilla.
+4. **Release:** ✅ `v0.2.0` (17/11/2026) con todo lo anterior. `v0.1.0-rust` se volvió a subir
+   varias veces con el mismo nombre (último build: `4f13cf6`); desde ahora cada build publicado
+   lleva un número de versión nuevo y el README enlaza a `releases/latest`.
+5. **Brechas con ESOLUTIONS de la primera lista:** ✅ todas tienen una primera versión.
    - ✅ **Catastro y faja de servidumbre** (`motor/src/catastro.rs`, prueba `tests/catastro.rs`):
      botón «Catastro (DXF)…» en TopoCraft (predios = polilíneas cerradas; nombre = texto dentro).
      Por predio: progresivas y longitud del eje dentro, área de faja y % del predio; lista en el
@@ -482,8 +483,7 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      No se comparó con PRESIO (los costos por t·km los pone el usuario con su cotización).
    - GridCraft: revisado en pantalla el 16/11 la selección múltiple (Mayús+clic, «Aplicar a 3
      postes» con armado y retenida), la simbología (SED, luminarias, retenidas) y el metrado.
-     Se corrigió el redondeo del metrado (0.11500000000000002 km → 0.115). Falta ver en pantalla
-     cimentaciones y autodiseño.
+     Se corrigió el redondeo del metrado (0.11500000000000002 km → 0.115).
    - ✅ **Biposte en H** (Norma DGE RD 024-2003, láminas 027-030; prueba `tests/biposte_h.rs`):
      7 armados (PSH-3/3N, PA1H-3/3N, PRH-3/3N, PA2H-3) con geometría y materiales transcritos de
      las láminas, y columna nueva `postes` en `armados.csv` (2 en los H). Cada poste toma la mitad
@@ -499,9 +499,27 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      pérdidas, solo entre formaciones con las mismas fases y con o sin hilo de AP. Voraz (agranda
      el tramo del camino a la SED que más baja la caída) y pasada final que achica mientras
      cumpla: da un mínimo local, no necesariamente el de menor costo. No compara con REDCAD.
-   - ✅ Cimentaciones también en la planilla de LineCraft (hoja «Cimentaciones»).
-6. **Retirar Python:** solo después de probar el `.exe` en otra PC sin Python y con confirmación
-   explícita del autor; antes mover las plantillas a `data/plantillas`.
+
+### Pendientes
+
+1. **Retirar Python.** Bloquean: probar `suite-electrica.exe` en otra PC sin Python y la
+   confirmación explícita del autor. (✅ Plantillas ya movidas a `data/plantillas`.)
+2. **Revisar en pantalla:** cimentaciones y autodiseño de conductores (GridCraft); relieve SRTM y
+   catastro (TopoCraft); red primaria.
+3. **Comparar con el software comercial** (la demo de 18 días corre desde el 13/11, vence ≈ 01/12):
+   - terminal a media línea y biposte en H, con REDLIN (`comparar-redlin`);
+   - red primaria MT y autodiseño BT, con REDCAD (`comparar-redcad`);
+   - transporte por rutas, con PRESIO.
+4. **Valores de EJEMPLO** que hay que reemplazar por los de una fuente citada (norma DGE, CNE o
+   fabricante): faja de servidumbre de 11 m; conductores AAAC de MT (r, x y DMG de 1,20 m); tabla
+   de cimentaciones; hipótesis I-V, EDS de 18 % y tiro máximo de 40 %.
+5. **Brechas con ESOLUTIONS según sus manuales** (también en la hoja de ruta del README):
+   - TopoCraft: numeración y validación de viviendas; ortofotos georreferenciadas como fondo;
+     edición de puntos y rutas (trasladar, rotar, proyectar, unir, invertir); códigos de campo (CTU).
+   - LineCraft: vibraciones eólicas (CIGRE 273) y amortiguadores; verificación de crucetas y
+     esquemas de aisladores; planos con plantilla de bloques.
+   - GridCraft: autodistribución de estructuras BT desde los lotes; revisión automática del diseño,
+     capas y rehacer; reportes de varias redes juntas.
 
 Reglas que se mantienen: no copiar datos de software comercial (los reportes de REDLIN, REDCAD y
 PRESIO solo se usan localmente para comparar); todo valor normativo lleva su fuente; cada función
