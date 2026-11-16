@@ -364,6 +364,8 @@ pub fn tablas_red(r: &ResultadoRed) -> Vec<Tabla> {
 /// Hojas de GridCraft con el metrado (si la red tiene datos de estructuras).
 pub fn tablas_red_con_metrado(red: &crate::red::Red, r: &ResultadoRed) -> Vec<Tabla> {
     let mut v = tablas_red(r);
+    let rev = crate::red::revisar(red);
+    v.push(Tabla::lista("Revisión", "Observación", &rev, "Sin observaciones"));
     let met = crate::red::metrado(red);
     if red.nodos.iter().any(|n| n.estructura != Default::default()) {
         let mut tb = Tabla::nueva("Metrado", &["Ítem", "Código", "Unidad", "Cantidad"]);

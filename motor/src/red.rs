@@ -996,3 +996,48 @@ pub fn autodisenar(red: &Red, desde_minimo: bool) -> Result<Autodiseno, String> 
         .collect();
     Ok(Autodiseno { red: r, resultado: res, cambios, avisos })
 }
+
+/// Revisión automática del diseño (sin valores normativos): incoherencias de datos que no impiden
+/// calcular pero dan un metrado o un plano incompletos. Una observación por línea.
+pub fn revisar(red: &Red) -> Vec<String> {
+    let mut obs = Vec::new();
+    let n = &red.nodos;
+    let mut vistos = std::collections::HashSet::new();
+    for x in n.iter().filter(|x| !vistos.insert(x.nodo.as_str())) {
+        obs.push(format!("{}: nombre de nodo repetido", x.nodo));
+    }
+    let con_xy = n.iter().filter(|x| x.este.is_some() && x.norte.is_some()).count();
+    if con_xy > 0 && con_xy < n.len() {
+        for x in n.iter().filter(|x| x.este.is_none() || x.norte.is_none()) {
+            obs.push(format!("{}: sin coordenadas (los demás postes sí las tienen; el plano DXF no se genera)", x.nodo));
+        }
+    }
+    for (i, x) in n.iter().enumerate() {
+        if let Some(l) = longitud_plano(red, i) {
+            if (l - x.longitud_m).abs() > 2.0_f64.max(0.05 * l) {
+                obs.push(format!("{}: el vano dice {:.1} m pero las coordenadas dan {:.1} m", x.nodo, x.longitud_m, l));
+            }
+        }
+    }
+    let hijos = |nombre: &str| n.iter().filter(|y| y.padre == nombre).count();
+    let usa = |f: &dyn Fn(&EstructuraBt) -> bool| n.iter().any(|x| f(&x.estructura));
+    if usa(&|e| !e.armado.is_empty()) {
+        for x in n.iter().filter(|x| !x.padre.is_empty() && x.estructura.armado.is_empty()) {
+            obs.push(format!("{}: sin armado (el metrado queda incompleto)", x.nodo));
+        }
+    }
+    for x in n.iter().filter(|x| x.lamparas > 0.0 && x.estructura.pastoral.is_empty() && usa(&|e| !e.pastoral.is_empty())) {
+        obs.push(format!("{}: {} lámpara(s) sin pastoral", x.nodo, x.lamparas));
+    }
+    if usa(&|e| !e.acometidas.is_empty()) {
+        for x in n.iter().filter(|x| x.lotes > 0.0 && (x.estructura.acometidas.len() as f64) < x.lotes) {
+            obs.push(format!("{}: {} lote(s) y {} acometida(s)", x.nodo, x.lotes, x.estructura.acometidas.len()));
+        }
+    }
+    if usa(&|e| !e.retenida.is_empty()) {
+        for x in n.iter().filter(|x| !x.padre.is_empty() && hijos(&x.nodo) == 0 && x.estructura.retenida.is_empty()) {
+            obs.push(format!("{}: fin de línea sin retenida", x.nodo));
+        }
+    }
+    obs
+}

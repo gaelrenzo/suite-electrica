@@ -178,7 +178,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] Editor en planta, caída de tensión, metrado y materiales (igual a REDCAD)
 - [x] Autodiseño de conductores BT, simbología, red primaria 22,9 kV
 - [ ] Autodistribución de estructuras BT desde los lotes del catastro
-- [ ] Revisión automática del diseño, capas y rehacer
+- [x] Revisión automática del diseño
+- [ ] Capas y rehacer
 - [ ] Reportes de varias redes juntas
 
 **PresuCraft**
