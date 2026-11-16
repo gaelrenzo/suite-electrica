@@ -111,3 +111,14 @@ fn plantillas_con_columnas_fijas() {
         }
     }
 }
+
+#[test]
+fn retenidas_de_biposte() {
+    use suite_motor::catalogos::toma_biposte;
+    let t = |x: &str| Some(x.to_string());
+    assert_eq!(toma_biposte(t("todo"), 2.0, 2), t("longitudinal"), "H con 2 retenidas");
+    assert_eq!(toma_biposte(t("todo"), 2.0, 4), t("todo"), "H con 2 por poste");
+    assert_eq!(toma_biposte(t("todo"), 1.0, 1), t("todo"), "un poste no cambia");
+    assert_eq!(toma_biposte(t("angulo"), 2.0, 1), t("angulo"));
+    assert_eq!(toma_biposte(None, 2.0, 0), None);
+}

@@ -512,16 +512,26 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - los CSV guardados por Excel como «CSV UTF-8» (con BOM) no se leían bien (la red salía con
      10 raíces): `catalogos::leer_csv` quita el BOM;
    - la plantilla de red primaria trae coordenadas de ejemplo para verse en planta y exportar DXF.
-3. **Comparar con el software comercial** (la demo de 18 días corre desde el 13/11, vence ≈ 01/12).
-   Intento del 17/11 con REDLIN: el terminal a media línea se declara con un armado cuyo «tipo de uso
-   mecánico» es TERMINAL (manual de REDLIN, p. 29), pero manejando la interfaz a ciegas no se logró
-   seleccionar una sola estructura (el clic toma la ruta entera). Hace falta que el autor haga en
-   REDLIN: abrir una copia de `SER-ejemplo.len`, cambiar el armado de una estructura intermedia a
-   uno TERMINAL, recalcular y exportar `PlanillaEstTotal` y `CalculoMecanicoEst`; luego
-   `comparar-redlin … --cargas`.
-   - terminal a media línea y biposte en H, con REDLIN (`comparar-redlin`);
-   - red primaria MT y autodiseño BT, con REDCAD (`comparar-redcad`);
-   - transporte por rutas, con PRESIO.
+3. **Comparar con el software comercial** (la demo de 18 días corre desde el 13/11, vence ≈ 01/12):
+   - ✅ **Terminal a media línea, con REDLIN** (17/11). En una copia de `SER-ejemplo.len` se cambió
+     el armado de la estructura 6 de la Troncal (PS1-3L, suspensión) a PTV-3 (terminal) editando el
+     archivo: el `.len` es una serialización MFC sin cifrar y cada nodo guarda en el byte 53 de su
+     registro el índice del armado primario (posición en el catálogo + 1; se dedujo cruzando los
+     registros con `PlanillaEstTotal.xls`). REDLIN lo abrió y se exportaron sus planillas. Resultado:
+     REDLIN reporta como «longitudinal» solo el desbalance (49 kg-f), pero **verifica el poste con el
+     tiro completo del lado mayor** (257 kg-f): MRN 68 494,6 N·m frente a 68 810,8 de la suite
+     (+0,46 %), FS 0,953 frente a 0,948. Es la regla de la suite (`tests/terminal_intermedio.rs`).
+     REDLIN no agrega retenidas por el cambio de armado (la suite propone 2, una por lado).
+   - ✅ **Biposte en H, con REDLIN** (17/11): `comparar-redlin --postes` ahora incluye las estructuras
+     de 2 postes con armado H (las «2x…», dos postes independientes, quedan fuera). Las 5 PRH-3 del
+     ejemplo coinciden (mediana 0,102 %, máx. 0,675 %) tras una regla nueva deducida de REDLIN: en un
+     biposte las retenidas solo toman toda la carga con 2 por poste; con menos toman la longitudinal y
+     la del ángulo queda en los postes (`catalogos::toma_biposte`, prueba `retenidas_de_biposte`).
+     Antes la suite suponía que 2 retenidas tomaban todo en un H en ángulo: MRN −84 %, no
+     conservador.
+   - `COMPARAR_DETALLE=texto` hace que `comparar-redlin --postes` imprima una línea por estructura
+     cuyo armado contiene el texto (postes, retenida, FL, MRN y FS de REDLIN y de la suite).
+   - Falta: red primaria MT y autodiseño BT con REDCAD; transporte por rutas con PRESIO.
 4. **Valores de EJEMPLO** que hay que reemplazar por los de una fuente citada (norma DGE, CNE o
    fabricante): faja de servidumbre de 11 m; conductores AAAC de MT (r, x y DMG de 1,20 m); tabla
    de cimentaciones; hipótesis I-V, EDS de 18 % y tiro máximo de 40 %.

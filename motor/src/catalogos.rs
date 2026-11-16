@@ -277,6 +277,16 @@ pub fn alturas_fases(e: &Estructura, poste: Option<&Poste>, armado: Option<&Arma
     (0..n).map(|i| libre - bajo[i.min(bajo.len() - 1)]).collect()
 }
 
+/// En un biposte en H las retenidas solo toman toda la carga con 2 por poste; con menos toman la
+/// longitudinal y la del ángulo queda en los postes (criterio de REDLIN: biposte PRH-3 en ángulo
+/// con 2 retenidas, `comparar-redlin --postes`, MRN −0,7 %).
+pub fn toma_biposte(toma: Option<String>, postes: f64, n_retenidas: usize) -> Option<String> {
+    match toma.as_deref() {
+        Some("todo") if postes >= 2.0 && (n_retenidas as f64) < 2.0 * postes => Some("longitudinal".into()),
+        _ => toma,
+    }
+}
+
 /// Qué carga toma la retenida: `None` sin retenida; `todo`, `angulo` o `longitudinal`.
 pub fn retenida_toma(e: &Estructura, armado: Option<&Armado>) -> Option<String> {
     if !lleva_retenida(e) {
@@ -405,7 +415,8 @@ pub fn verificar(
             let pg = pg.unwrap();
             let arm = if e.armado.is_empty() { None } else { cat.armado(&e.armado) };
             let alt = alturas_fases(e, Some(pg), arm, p.n_conductores);
-            let toma = retenida_toma(e, arm);
+            let n_ret = n_retenidas.get(&e.numero).copied().filter(|&n| n > 0).unwrap_or(retenidas_defecto(r, e));
+            let toma = toma_biposte(retenida_toma(e, arm), n_postes(arm), n_ret);
             let mut peor: Option<(f64, String, Momentos)> = None;
             for c in r.cargas.iter().filter(|c| c.estructura == e.numero) {
                 let m = momentos_por_poste(c, &alt, pg, toma.as_deref(), n_postes(arm));

@@ -14,7 +14,7 @@ use std::collections::BTreeMap;
 use std::f64::consts::PI;
 
 use calamine::{Data, Reader};
-use suite_motor::catalogos::{factor_seguridad_poste, momentos_poste, Poste};
+use suite_motor::catalogos::{factor_seguridad_poste, momentos_por_poste, Poste};
 use suite_motor::conductor::{carga_unitaria, Conductor, Hipotesis, G};
 use suite_motor::linea::Cargas;
 use suite_motor::mecanica::{cambio_estado, deformacion_creep, Curva, Modelo};
@@ -388,7 +388,10 @@ fn postes(planilla: &str, cme: &str, sum: &str) -> Result<(), String> {
     for i in 0..pl.len().min(cm.len()) {
         let Some(p) = postes.get(&texto(celda(&pl, i, 22))) else { continue };
         let ret = o_cero(num(celda(&pl, i, 28))) + o_cero(num(celda(&pl, i, 29))) > 0.0;
-        if num(celda(&pl, i, 21)) != 1.0 {
+        // 1 poste, o biposte en H (2): cada poste toma la mitad de las cargas de los conductores
+        let npost = num(celda(&pl, i, 21));
+        // 2 soportes solo si es un armado en H (los «2x…» son dos postes independientes, fuera de alcance)
+        if !(npost == 1.0 || (npost == 2.0 && texto(celda(&cm, i, 5)).contains("H-"))) {
             continue;
         }
         let x = |j: usize| num(celda(&cm, i, j));
@@ -402,6 +405,11 @@ fn postes(planilla: &str, cme: &str, sum: &str) -> Result<(), String> {
         if sh.is_nan() {
             continue;
         }
+        // terminal con vanos a ambos lados (a media línea): REDLIN verifica el poste con el tiro
+        // completo del lado mayor, no con el desbalance que reporta como «longitudinal»
+        let arm0 = texto(celda(&cm, i, 5));
+        let (ta, tb) = (o_cero(num(celda(&pl, i, 46))), o_cero(num(celda(&pl, i, 48))));
+        let fl = if (arm0.starts_with("PTV") || arm0.starts_with("TS")) && ta > 0.0 && tb > 0.0 { ta.max(tb) * G } else { fl };
         let c = Cargas {
             estructura: 0,
             hipotesis: "ME".into(),
@@ -426,14 +434,32 @@ fn postes(planilla: &str, cme: &str, sum: &str) -> Result<(), String> {
         } else {
             Some("angulo")
         };
-        let m = momentos_poste(&c, &[sh / 3.0; 3], p, toma);
+        let n_ret = (o_cero(num(celda(&pl, i, 28))) + o_cero(num(celda(&pl, i, 29)))) as usize;
+        let toma = suite_motor::catalogos::toma_biposte(toma.map(String::from), npost, n_ret);
+        let m = momentos_por_poste(&c, &[sh / 3.0; 3], p, toma.as_deref(), npost);
         let (fs, _) = factor_seguridad_poste(p, m.mrn);
+        // COMPARAR_DETALLE=texto: una línea por estructura cuyo armado contiene el texto
+        if let Ok(f) = std::env::var("COMPARAR_DETALLE") {
+            if arm.contains(&f) {
+                println!(
+                    "  fila {:>3} {:<10} postes={} ret={:<5} FL={:>9.1} N  MRN R={:>10.1} LC={:>10.1} ({:+.3} %)  FS R={:.3} LC={:.3}",
+                    i + 3, arm, npost, ret, fl, x(59), m.mrn, 100.0 * (m.mrn / x(59) - 1.0), x(64), fs
+                );
+            }
+        }
+        let arm = if npost == 2.0 { format!("H:{arm}") } else { arm };
         filas.push((ret, arm, [(mve_r, m.mve), (x(59), m.mrn), (x(64), fs)]));
     }
     println!("MRN por grupo de armado (PR retención, PA/PS ángulo, TS terminal):");
     let mut grupos: BTreeMap<String, Vec<f64>> = BTreeMap::new();
     for (ret, arm, v) in &filas {
-        let g = if *ret { arm.chars().take(2).collect() } else { "sin".to_string() };
+        let g = if arm.starts_with("H:") {
+            "H (2 postes)".to_string()
+        } else if *ret {
+            arm.chars().take(2).collect()
+        } else {
+            "sin".to_string()
+        };
         grupos.entry(g).or_default().push((100.0 * (v[1].1 / v[1].0 - 1.0)).abs());
     }
     println!("grupo");
@@ -444,7 +470,7 @@ fn postes(planilla: &str, cme: &str, sum: &str) -> Result<(), String> {
         for ret in [false, true] {
             let e: Vec<f64> = filas
                 .iter()
-                .filter(|f| f.0 == ret)
+                .filter(|f| f.0 == ret && !f.1.starts_with("H:"))
                 .map(|f| f.2[k])
                 .filter(|(r, l)| !r.is_nan() && !l.is_nan() && *r > 0.0)
                 .map(|(r, l)| (100.0 * (l / r - 1.0)).abs())
