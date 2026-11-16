@@ -444,7 +444,7 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      y CIM-ELI (m³) al rubro RS o LP; sus precios van en `montaje.csv` (si faltan, PresuCraft
      avisa «costo 0»).
    - Falta: hoja de cimentaciones en la planilla de LineCraft y revisarlo en pantalla.
-4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
+4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `4f13cf6` (16/11/2026; antes `a3f193a`) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
 5. **Otras brechas con ESOLUTIONS:** ✅ todas las de la lista tienen una primera versión.
    - ✅ **Catastro y faja de servidumbre** (`motor/src/catastro.rs`, prueba `tests/catastro.rs`):
