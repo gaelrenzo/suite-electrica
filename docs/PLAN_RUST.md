@@ -588,8 +588,9 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      (0 = no verificar; el límite según la categoría de terreno lo pone el usuario con su fuente,
      `hw_max_m`); alerta «V» por tramo con H/w en la hipótesis inicial y L·D/m del vano mayor para
      decidir amortiguadores.
-   - GridCraft: autodistribución de estructuras BT desde los lotes; capas y rehacer; reportes de
-     varias redes juntas. ✅ Revisión automática del diseño (17/11, `red::revisar`, hoja «Revisión»
+   - GridCraft: autodistribución de estructuras BT desde los lotes; capas; reportes de varias
+     redes juntas. ✅ Rehacer (17/11): botón y Ctrl+Y; deshacer guarda el estado para rehacerlo y
+     cada edición nueva vacía la pila (revisado en pantalla: autodiseño → deshacer → rehacer). ✅ Revisión automática del diseño (17/11, `red::revisar`, hoja «Revisión»
      en la app y el Excel; prueba `tests/red_revision.rs`): nombres repetidos, postes sin
      coordenadas, vano distinto de la distancia en el plano (> 2 m y > 5 %), postes sin armado,
      lámparas sin pastoral, lotes sin acometidas y fines de línea sin retenida (las tres últimas

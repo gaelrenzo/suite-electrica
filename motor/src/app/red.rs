@@ -48,6 +48,8 @@ pub struct EstadoRed {
     conductor_nuevo: String,
     obsoleto: bool,
     pila: Vec<Vec<Nodo>>,
+    /// Estados deshechos, para rehacer (se vacía con cada edición nueva).
+    rehacer: Vec<Vec<Nodo>>,
     pub modificado: bool,
 }
 
@@ -73,6 +75,7 @@ impl Default for EstadoRed {
             conductor_nuevo: String::new(),
             obsoleto: false,
             pila: Vec::new(),
+            rehacer: Vec::new(),
             modificado: false,
         }
     }
@@ -86,16 +89,27 @@ impl EstadoRed {
                 self.pila.remove(0);
             }
         }
+        self.rehacer.clear();
         self.obsoleto = true;
         self.modificado = true;
     }
 
     fn deshacer(&mut self) {
         if let (Some(r), Some(n)) = (&mut self.red, self.pila.pop()) {
-            r.nodos = n;
+            self.rehacer.push(std::mem::replace(&mut r.nodos, n));
             self.sel = None;
             self.multi.clear();
             self.obsoleto = true;
+        }
+    }
+
+    fn rehacer(&mut self) {
+        if let (Some(r), Some(n)) = (&mut self.red, self.rehacer.pop()) {
+            self.pila.push(std::mem::replace(&mut r.nodos, n));
+            self.sel = None;
+            self.multi.clear();
+            self.obsoleto = true;
+            self.modificado = true;
         }
     }
 
@@ -109,6 +123,7 @@ impl EstadoRed {
         self.sel = None;
         self.multi.clear();
         self.pila.clear();
+        self.rehacer.clear();
         self.modificado = false;
         self.calcular().map(|_| ())
     }
@@ -289,8 +304,11 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
                 }
             }
         }
-        if ui.add_enabled(!st.pila.is_empty(), egui::Button::new("Deshacer")).clicked() {
+        if ui.add_enabled(!st.pila.is_empty(), egui::Button::new("Deshacer")).on_hover_text("Ctrl+Z").clicked() {
             st.deshacer();
+        }
+        if ui.add_enabled(!st.rehacer.is_empty(), egui::Button::new("Rehacer")).on_hover_text("Ctrl+Y").clicked() {
+            st.rehacer();
         }
         ui.separator();
         if ui.button("Fondo DXF…").on_hover_text("Plano de lotes o calles como referencia").clicked() {
@@ -604,6 +622,7 @@ fn propiedades(app: &mut App, ui: &mut egui::Ui) {
                     if st.pila.len() > 100 {
                         st.pila.remove(0);
                     }
+                    st.rehacer.clear();
                     cambio = true;
                 }
                 st.resumen = format!("Estructura asignada: {n} poste(s) cambiaron");
@@ -789,6 +808,9 @@ pub fn panel(app: &mut App, ui: &mut egui::Ui) {
         }
         if ui.input(|i| i.modifiers.command && i.key_pressed(egui::Key::Z)) {
             app.red.deshacer();
+        }
+        if ui.input(|i| i.modifiers.command && i.key_pressed(egui::Key::Y)) && !ui.ctx().egui_wants_keyboard_input() {
+            app.red.rehacer();
         }
         let st = &mut app.red;
         if hay_tablas {

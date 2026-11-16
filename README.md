@@ -179,7 +179,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] Autodiseño de conductores BT, simbología, red primaria 22,9 kV
 - [ ] Autodistribución de estructuras BT desde los lotes del catastro
 - [x] Revisión automática del diseño
-- [ ] Capas y rehacer
+- [x] Rehacer (Ctrl+Y)
+- [ ] Capas
 - [ ] Reportes de varias redes juntas
 
 **PresuCraft**
