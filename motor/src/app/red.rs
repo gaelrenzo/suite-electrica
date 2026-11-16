@@ -170,9 +170,17 @@ pub fn cimentaciones_red(rd: &Red, ruta: Option<&Path>) -> Result<Option<(Vec<su
     Ok(Some(suite_motor::cimentacion::metrado(&postes, &tabla)))
 }
 
-fn crear(carpeta: &Path) -> Result<PathBuf, String> {
+/// Red primaria (MT): mismo motor que la secundaria, con cargas por subestación y conductores AAAC.
+const PLANTILLAS_MT: [(&str, &str); 4] = [
+    ("red.json", include_str!("../../../suite_electrica/plantillas/red_mt_proyecto.json")),
+    ("nodos.csv", include_str!("../../../suite_electrica/plantillas/red_mt_nodos.csv")),
+    ("conductores_mt.csv", include_str!("../../../suite_electrica/plantillas/conductores_mt.csv")),
+    (suite_motor::cimentacion::ARCHIVO, suite_motor::cimentacion::PLANTILLA),
+];
+
+fn crear(carpeta: &Path, mt: bool) -> Result<PathBuf, String> {
     std::fs::create_dir_all(carpeta).map_err(|e| e.to_string())?;
-    for (n, t) in PLANTILLAS {
+    for (n, t) in if mt { PLANTILLAS_MT } else { PLANTILLAS } {
         let r = carpeta.join(n);
         if !r.exists() {
             std::fs::write(&r, t).map_err(|e| format!("{}: {e}", r.display()))?;
@@ -220,13 +228,18 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
                 return;
             }
         }
-        if ui.button("Nueva red…").on_hover_text("Crea una carpeta con plantillas (no sobrescribe) y la abre").clicked() {
-            if let Some(c) = elegir_carpeta("Carpeta de la red", None) {
-                match crear(&c).and_then(|r| st.abrir(&r).map(|_| r)) {
-                    Ok(r) => app.estado = format!("Red creada en {} — dibuje los postes en el plano", r.display()),
-                    Err(e) => app.error = Some(e),
+        for (mt, titulo, ayuda) in [
+            (false, "Nueva red…", "Red secundaria (BT): crea una carpeta con plantillas (no sobrescribe) y la abre"),
+            (true, "Nueva red primaria…", "Red primaria 22,9 kV: cargas por subestación (kW en «Carga especial») y conductores AAAC de EJEMPLO"),
+        ] {
+            if ui.button(titulo).on_hover_text(ayuda).clicked() {
+                if let Some(c) = elegir_carpeta("Carpeta de la red", None) {
+                    match crear(&c, mt).and_then(|r| st.abrir(&r).map(|_| r)) {
+                        Ok(r) => app.estado = format!("Red creada en {} — dibuje los postes en el plano", r.display()),
+                        Err(e) => app.error = Some(e),
+                    }
+                    return;
                 }
-                return;
             }
         }
         let hay = st.red.is_some();

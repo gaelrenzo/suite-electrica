@@ -1,0 +1,25 @@
+{
+  "nombre": "Red primaria 22,9 kV - ejemplo",
+  "nodos": "nodos.csv",
+  "conductores": "conductores_mt.csv",
+  "sistema": "3F",
+  "tension_V": 22900,
+  "calificacion_kw_lote": 0,
+  "fs_sp": 1.0,
+  "tabla_fs": [],
+  "fp_sp": 0.9,
+  "fs_ce": 1.0,
+  "kw_lampara": 0,
+  "fs_ap": 1.0,
+  "fp_ap": 0.9,
+  "caida_max_pct": 5.0,
+  "perdidas_max_pct": 0,
+  "factor_carga": 0.3,
+  "transformador_kva": 0,
+  "factor_sobrecarga": 1.0,
+  "fuentes": {
+    "caida_max_pct": "EJEMPLO: citar la caída máxima admisible en MT (NTCSE / Código Nacional de Electricidad)",
+    "fp_sp": "EJEMPLO: factor de potencia de las cargas",
+    "conductores": "EJEMPLO: ver conductores_mt.csv"
+  }
+}

@@ -446,8 +446,13 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - Falta: hoja de cimentaciones en la planilla de LineCraft y revisarlo en pantalla.
 4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
-5. **Otras brechas con ESOLUTIONS:** terminal con retenida a media línea, redes primarias,
-   catastro en TopoCraft.
+5. **Otras brechas con ESOLUTIONS:** terminal con retenida a media línea, catastro en TopoCraft.
+   - ✅ **Red primaria (MT)** con el mismo motor de GridCraft (prueba `tests/red_primaria.rs`, que
+     verifica corriente, ΔV y %ΔV del primer tramo contra el cálculo a mano): botón «Nueva red
+     primaria…» con las plantillas `red_mt_proyecto.json` (22,9 kV, 3F), `red_mt_nodos.csv` (punto de
+     alimentación y subestaciones con su demanda en «Carga especial», kW) y `conductores_mt.csv`
+     (AAAC 25-70 mm² de **EJEMPLO**: r = ρ/S con la aleación 6201 y x por fórmula con DMG = 1,20 m;
+     reemplazar por la ficha del fabricante y la DMG real). No se comparó con REDCAD.
    - ✅ **Relieve SRTM** (`entrada::leer_hgt`, `Documento::importar_srtm`, prueba `tests/srtm.rs`):
      botón «Relieve SRTM (.hgt)…» en TopoCraft. Lee la hoja (1201² o 3601² enteros big-endian; la
      esquina sale del nombre, p. ej. `S16W070.hgt`), descarta vacíos, convierte a UTM de la zona del

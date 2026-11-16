@@ -1,0 +1,11 @@
+# Red primaria radial: la raíz es el punto de alimentación (PMI o barra de la subestación de potencia).
+# kw_ce: demanda de cada subestación de distribución (kW = kVA × factor de potencia × factor de demanda).
+# lotes y lamparas en 0. longitud_m y conductor: tramo padre -> nodo. este/norte opcionales (UTM, m).
+nodo,padre,longitud_m,conductor,lotes,kw_ce,lamparas
+PMI,,,,0,0,0
+D1,PMI,1500,AAAC 35,0,0,0
+SED-01,D1,800,AAAC 25,0,22.5,0
+SED-02,D1,1200,AAAC 35,0,45,0
+D2,D1,2500,AAAC 35,0,0,0
+SED-03,D2,600,AAAC 25,0,13.5,0
+SED-04,D2,900,AAAC 25,0,22.5,0
