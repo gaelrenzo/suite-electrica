@@ -67,10 +67,15 @@ fn exportar_topo(app: &mut App) {
     let (c_plano, c_perfil) = (caj("PLANO TOPOGRÁFICO", "PT-01", ""), caj("PERFIL LONGITUDINAL DEL EJE", "PT-02", "EXAG. V 10x"));
     let (eq, mayor) = (app.doc.topo.equidistancia, app.doc.topo.mayor_cada);
     let eje = app.doc.eje.clone();
+    let predios = if app.doc.catastro.is_empty() { None } else { app.doc.predios_afectados().ok() };
+    let ancho = app.doc.ancho_servidumbre_m;
     let r = app.doc.topografia().and_then(|t| {
         let mut d = dxf::construir_plano_topo(&t.puntos, Some(&t.tin), &t.curvas, eq, mayor, eje.as_deref(), 1.0);
         d.lamina(&c_plano);
         let mut out = vec![d.guardar(&c.join("plano.dxf"))?];
+        if let Some(f) = &predios {
+            out.push(escribir_excel(&c.join("predios_afectados.xlsx"), &[suite_motor::catastro::tabla_predios(f, ancho)])?);
+        }
         if let Some(p) = &t.perfil {
             pdf::perfil_pdf(&c.join("perfil.pdf"), p, None, None, "PERFIL LONGITUDINAL")?;
             out.push(c.join("perfil.pdf"));
@@ -98,6 +103,17 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
                 if ui.button("Importar eje…").clicked() {
                     importar_eje(app);
                 }
+                if ui.button("Catastro (DXF)…")
+                    .on_hover_text("Predios como polilíneas cerradas; el nombre es el texto que cae dentro de cada una")
+                    .clicked()
+                {
+                    if let Some(r) = rfd::FileDialog::new().add_filter("Catastro (DXF)", &["dxf"]).pick_file() {
+                        let res = app.doc.importar_catastro(&r);
+                        if let Some(n) = app.intentar(res) {
+                            app.estado = format!("{n} predios importados de {}", r.display());
+                        }
+                    }
+                }
                 if ui.button("Relieve SRTM (.hgt)…")
                     .on_hover_text("Sin levantamiento: terreno del modelo SRTM de la NASA en una franja de 300 m alrededor del eje (importe antes el eje). Solo para anteproyecto.")
                     .clicked()
@@ -112,6 +128,37 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
                 }
             });
             ui.label(format!("Puntos: {}", app.doc.puntos.len()));
+            if !app.doc.catastro.is_empty() {
+                ui.horizontal(|ui| {
+                    ui.label(format!("Predios: {} · faja de servidumbre", app.doc.catastro.len()));
+                    if ui.add(egui::DragValue::new(&mut app.doc.ancho_servidumbre_m).speed(0.5).range(0.0..=200.0).suffix(" m"))
+                        .on_hover_text("Cite el ancho del CNE Suministro en «Fuentes» (ancho_servidumbre_m)")
+                        .changed()
+                    {
+                        app.doc.modificado = true;
+                    }
+                });
+                match app.doc.predios_afectados() {
+                    Ok(f) if f.is_empty() => {
+                        ui.label("Ningún predio dentro de la faja.");
+                    }
+                    Ok(f) => {
+                        egui::CollapsingHeader::new(format!("Predios afectados ({})", f.len())).default_open(true).show(ui, |ui| {
+                            for p in &f {
+                                let tramo = if p.progresiva_ini.is_nan() {
+                                    "solo la faja".to_string()
+                                } else {
+                                    format!("{} a {}", suite_motor::salidas::formato_progresiva(p.progresiva_ini, 2), suite_motor::salidas::formato_progresiva(p.progresiva_fin, 2))
+                                };
+                                ui.label(format!("{}: {tramo}, {:.1} m de eje, {:.1} m² de faja", p.nombre, p.longitud_eje_m, p.area_faja_m2));
+                            }
+                        });
+                    }
+                    Err(e) => {
+                        ui.label(e);
+                    }
+                }
+            }
             ui.label(match &app.doc.eje {
                 Some(e) => format!("Eje: {} vértices", e.len()),
                 None => "Eje: sin importar".into(),
@@ -185,6 +232,7 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
         let alto = ui.available_height();
         let (eq, mayor) = (app.doc.topo.equidistancia, app.doc.topo.mayor_cada);
         let eje = app.doc.eje.clone();
+        let catastro = app.doc.catastro.clone();
         let Ok(t) = app.doc.topografia() else {
             ui.centered_and_justified(|ui| ui.label("Importe puntos topográficos (CSV, TXT, DXF, KML, GPX o Excel RLT) y un eje."));
             return;
@@ -206,6 +254,14 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
                 };
                 if m { nm = false } else { nn = false }
                 pu.line(Line::new(nombre, PlotPoints::from(xy)).color(egui::Color32::from_rgb(140, 90, 40)).width(if m { 1.6 } else { 0.6 }));
+            }
+            for (k, p) in catastro.iter().enumerate() {
+                let mut xy = p.xy.clone();
+                xy.push(xy[0]);
+                pu.line(Line::new(if k == 0 { "Predios" } else { "" }, PlotPoints::from(xy)).color(egui::Color32::from_rgb(90, 140, 200)).width(1.0));
+                let (cx, cy) = p.xy.iter().fold((0.0, 0.0), |a, q| (a.0 + q[0], a.1 + q[1]));
+                let n = p.xy.len() as f64;
+                pu.text(egui_plot::Text::new("", egui_plot::PlotPoint::new(cx / n, cy / n), egui::RichText::new(&p.nombre).small()).color(egui::Color32::from_rgb(120, 170, 230)));
             }
             if let Some(e) = eje {
                 pu.line(Line::new("Eje", PlotPoints::from(e)).color(egui::Color32::RED).width(2.0));

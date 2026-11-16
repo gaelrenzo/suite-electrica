@@ -310,6 +310,9 @@ pub struct Documento {
     pub estructuras: Vec<FilaEstructura>,
     /// Cruces y obstáculos bajo la línea (columnas `COLS_CRUCES`, texto como en la planilla).
     pub cruces: Vec<Vec<String>>,
+    /// Predios del catastro y ancho de la faja de servidumbre (m).
+    pub catastro: Vec<crate::catastro::Predio>,
+    pub ancho_servidumbre_m: f64,
     pub catalogos: BTreeMap<String, TablaCatalogo>,
     pub ruta: Option<PathBuf>,
     pub modificado: bool,
@@ -390,6 +393,8 @@ impl Documento {
             fuentes,
             estructuras: Vec::new(),
             cruces: Vec::new(),
+            catastro: Vec::new(),
+            ancho_servidumbre_m: ANCHO_SERVIDUMBRE_EJEMPLO,
             catalogos,
             ruta: None,
             modificado: false,
@@ -428,6 +433,22 @@ impl Documento {
         self.puntos = entrada::leer(ruta)?;
         self.cambio_topografia();
         Ok(())
+    }
+
+    /// Predios del catastro desde un DXF (reemplaza los anteriores).
+    pub fn importar_catastro(&mut self, ruta: &Path) -> Result<usize, String> {
+        self.catastro = entrada::predios_dxf(ruta)?;
+        if !self.fuentes.iter().any(|(k, _)| k == "ancho_servidumbre_m") {
+            self.fuentes.push(("ancho_servidumbre_m".into(), "EJEMPLO: citar el ancho de la faja de servidumbre del CNE Suministro para la tensión de la línea".into()));
+        }
+        self.modificado = true;
+        Ok(self.catastro.len())
+    }
+
+    /// Predios afectados por la faja de servidumbre a lo largo del eje.
+    pub fn predios_afectados(&self) -> Result<Vec<crate::catastro::FilaPredio>, String> {
+        let eje = self.eje.as_ref().ok_or("Importe el eje para ver los predios afectados")?;
+        Ok(crate::catastro::afectados(eje, &self.catastro, self.ancho_servidumbre_m, 0.5))
     }
 
     /// Relieve SRTM (`.hgt`) en una franja de `margen_m` alrededor del eje: reemplaza los puntos.
@@ -870,6 +891,12 @@ impl Documento {
             "filas": self.puntos.iter().map(|p| json!([p.punto, num(p.este), num(p.norte), num(p.cota), p.descripcion])).collect::<Vec<_>>(),
         }));
         d.insert("eje".into(), self.eje.as_ref().map_or(Value::Null, |e| json!(e)));
+        if !self.catastro.is_empty() {
+            d.insert("catastro".into(), json!({
+                "ancho_servidumbre_m": self.ancho_servidumbre_m,
+                "predios": self.catastro.iter().map(|p| json!({"nombre": p.nombre, "xy": p.xy})).collect::<Vec<_>>(),
+            }));
+        }
         if !self.cruces.is_empty() {
             d.insert("cruces".into(), Value::Array(self.cruces.iter().map(|f| {
                 Value::Object(COLS_CRUCES.iter().zip(f).map(|(c, v)| (c.to_string(), json!(v))).collect())
@@ -1013,6 +1040,23 @@ impl Documento {
                     .collect()
             })
             .unwrap_or_default();
+        if let Some(c) = d.get("catastro") {
+            doc.ancho_servidumbre_m = c.get("ancho_servidumbre_m").and_then(|x| x.as_f64()).unwrap_or(ANCHO_SERVIDUMBRE_EJEMPLO);
+            doc.catastro = c
+                .get("predios")
+                .and_then(|x| x.as_array())
+                .map(|a| {
+                    a.iter()
+                        .map(|p| crate::catastro::Predio {
+                            nombre: p.get("nombre").and_then(|x| x.as_str()).unwrap_or("").into(),
+                            xy: p.get("xy").and_then(|x| x.as_array()).map(|v| {
+                                v.iter().filter_map(|q| Some([q.get(0)?.as_f64()?, q.get(1)?.as_f64()?])).collect()
+                            }).unwrap_or_default(),
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
+        }
         doc.cruces = d
             .get("cruces")
             .and_then(|x| x.as_array())
@@ -1234,3 +1278,6 @@ pub fn tabla_cruces(c: &[FilaCruce]) -> crate::salidas::Tabla {
             .collect(),
     }
 }
+
+/// Ancho de faja de servidumbre por defecto (m): valor de EJEMPLO, el usuario cita el del CNE.
+pub const ANCHO_SERVIDUMBRE_EJEMPLO: f64 = 11.0;

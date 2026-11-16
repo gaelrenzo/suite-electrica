@@ -24,4 +24,5 @@ pub mod salidas;
 pub mod dxf;
 pub mod pdf;
 pub mod apu;
+pub mod catastro;
 pub mod cimentacion;

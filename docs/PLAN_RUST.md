@@ -446,7 +446,14 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - Falta: hoja de cimentaciones en la planilla de LineCraft y revisarlo en pantalla.
 4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
-5. **Otras brechas con ESOLUTIONS:** catastro en TopoCraft.
+5. **Otras brechas con ESOLUTIONS:** ✅ todas las de la lista tienen una primera versión.
+   - ✅ **Catastro y faja de servidumbre** (`motor/src/catastro.rs`, prueba `tests/catastro.rs`):
+     botón «Catastro (DXF)…» en TopoCraft (predios = polilíneas cerradas; nombre = texto dentro).
+     Por predio: progresivas y longitud del eje dentro, área de faja y % del predio; lista en el
+     panel, predios dibujados en la planta y `predios_afectados.xlsx` al exportar. El ancho de faja
+     (11 m de **EJEMPLO**) se edita en el panel y se cita en «Fuentes» (`ancho_servidumbre_m`).
+     Se guarda en el `.sel` (clave `catastro`, solo si hay predios). Área por muestreo de 0,5 m:
+     en los vértices del eje hay una cuña de error (anotado en el código con `ponytail:`).
    - ✅ **Terminal a media línea** (doble remate; prueba `tests/terminal_intermedio.rs`): una
      estructura FIN con vanos a ambos lados ya no toma la diferencia de tiros (como un anclaje, casi
      cero), sino el tiro completo del lado mayor, porque cada lado se ancla por separado (al tender

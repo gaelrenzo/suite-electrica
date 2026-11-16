@@ -388,6 +388,34 @@ fn polilineas(ents: &[EntidadDxf]) -> Vec<(&'static str, String, Vec<[f64; 3]>, 
     out
 }
 
+/// Predios de un DXF: polilíneas cerradas; el nombre es el TEXT/MTEXT que cae dentro (si no,
+/// «Predio n»).
+pub fn predios_dxf(ruta: &Path) -> Result<Vec<crate::catastro::Predio>, String> {
+    let ents = entidades_dxf(ruta)?;
+    let textos: Vec<([f64; 2], String)> = ents
+        .iter()
+        .filter(|e| e.tipo == "TEXT" || e.tipo == "MTEXT")
+        .filter_map(|e| Some(([num(e, 10)?, num(e, 20)?], e.pares.iter().find(|p| p.0 == 1)?.1.trim().to_string())))
+        .collect();
+    let mut out = Vec::new();
+    for (_, _, v, cerrada) in polilineas(&ents) {
+        if !cerrada || v.len() < 3 {
+            continue;
+        }
+        let xy: Vec<[f64; 2]> = v.iter().map(|p| [p[0], p[1]]).collect();
+        let nombre = textos
+            .iter()
+            .find(|(p, _)| crate::catastro::dentro(*p, &xy))
+            .map(|t| t.1.clone())
+            .unwrap_or_else(|| format!("Predio {}", out.len() + 1));
+        out.push(crate::catastro::Predio { nombre, xy });
+    }
+    if out.is_empty() {
+        return Err(format!("{}: no hay polilíneas cerradas (predios)", ruta.display()));
+    }
+    Ok(out)
+}
+
 /// Líneas de un DXF para usar como fondo (LINE, POLYLINE y LWPOLYLINE; las cerradas se cierran).
 pub fn lineas_dxf(ruta: &Path) -> Result<Vec<Vec<[f64; 2]>>, String> {
     let ents = entidades_dxf(ruta)?;
