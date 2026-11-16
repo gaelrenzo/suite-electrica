@@ -571,7 +571,12 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    de cimentaciones; hipótesis I-V, EDS de 18 % y tiro máximo de 40 %.
 5. **Brechas con ESOLUTIONS según sus manuales** (también en la hoja de ruta del README):
    - TopoCraft: numeración y validación de viviendas; ortofotos georreferenciadas como fondo;
-     edición de puntos y rutas (trasladar, rotar, proyectar, unir, invertir); códigos de campo (CTU).
+     edición de rutas (proyectar, unir, invertir); códigos de campo (CTU). ✅ Edición de puntos
+     (17/11): ventana «Editar puntos…» con la tabla (buscar, editar, agregar, eliminar; «Aplicar
+     cambios» valida cada número) y transformación de la nube: traslación ΔE/ΔN/ΔZ y rotación
+     alrededor del centroide, opcionalmente también del eje (`Documento::transformar_puntos`,
+     prueba `tests/puntos_transformar.rs`). Revisado en pantalla: 2 601 puntos girados 30° con
+     el eje, perfil sin cambios.
    - LineCraft: amortiguadores (cantidad por vano según fabricante); verificación de crucetas y
      esquemas de aisladores; planos con plantilla de bloques. ✅ Vibraciones eólicas, criterio H/w
      de CIGRE TB 273 (prueba `tests/vibraciones_hw.rs`): parámetro «H/w máx.» en las alertas

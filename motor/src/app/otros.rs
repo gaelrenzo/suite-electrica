@@ -103,6 +103,12 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
                 if ui.button("Importar eje…").clicked() {
                     importar_eje(app);
                 }
+                if ui.add_enabled(!app.doc.puntos.is_empty(), egui::Button::new("Editar puntos…"))
+                    .on_hover_text("Editar, agregar o eliminar puntos; trasladar o rotar la nube")
+                    .clicked()
+                {
+                    app.puntos_ed.abrir(&app.doc.puntos);
+                }
                 if ui.button("Catastro (DXF)…")
                     .on_hover_text("Predios como polilíneas cerradas; el nombre es el texto que cae dentro de cada una")
                     .clicked()
@@ -228,6 +234,7 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
             }
         });
     });
+    ventana_puntos(app, &ui.ctx().clone());
     egui::CentralPanel::default().show(ui, |ui| {
         let alto = ui.available_height();
         let (eq, mayor) = (app.doc.topo.equidistancia, app.doc.topo.mayor_cada);
@@ -736,4 +743,122 @@ fn parametros_presu(ui: &mut egui::Ui, m: &mut ModuloJson) -> Option<(&'static s
         m.params_mod = true;
     }
     crear
+}
+
+/// Ventana de edición de puntos topográficos (tabla y transformaciones).
+#[derive(Default)]
+pub struct EditorPuntos {
+    abierto: bool,
+    filas: Vec<Vec<String>>,
+    filtro: String,
+    modificado: bool,
+    de: f64,
+    dn: f64,
+    dz: f64,
+    rot: f64,
+    con_eje: bool,
+}
+
+const COLS_PUNTOS: [&str; 5] = ["punto", "este", "norte", "cota", "descripcion"];
+
+impl EditorPuntos {
+    pub fn abrir(&mut self, pts: &[suite_motor::entrada::Punto]) {
+        // 4 decimales (0,1 mm) sin ceros de más: sin el ruido de coma flotante tras rotar
+        let f = |x: f64| if x.is_nan() { "NaN".to_string() } else { format!("{x:.4}").trim_end_matches('0').trim_end_matches('.').to_string() };
+        self.filas = pts.iter().map(|p| vec![p.punto.clone(), f(p.este), f(p.norte), f(p.cota), p.descripcion.clone()]).collect();
+        self.modificado = false;
+        self.abierto = true;
+        self.con_eje = true;
+    }
+
+    /// Filas -> puntos; error con la fila y la columna que no es un número.
+    fn puntos(&self) -> Result<Vec<suite_motor::entrada::Punto>, String> {
+        self.filas
+            .iter()
+            .enumerate()
+            .filter(|(_, f)| f.iter().any(|c| !c.trim().is_empty()))
+            .map(|(k, f)| {
+                let n = |j: usize| {
+                    let t = f.get(j).map(|s| s.trim().replace(',', ".")).unwrap_or_default();
+                    t.parse::<f64>().map_err(|_| format!("Fila {}: «{}» no es un número de {}", k + 1, t, COLS_PUNTOS[j]))
+                };
+                Ok(suite_motor::entrada::Punto {
+                    punto: f.first().cloned().unwrap_or_default().trim().to_string(),
+                    este: n(1)?,
+                    norte: n(2)?,
+                    cota: n(3)?,
+                    descripcion: f.get(4).cloned().unwrap_or_default(),
+                })
+            })
+            .collect()
+    }
+}
+
+fn ventana_puntos(app: &mut App, ctx: &egui::Context) {
+    if !app.puntos_ed.abierto {
+        return;
+    }
+    let mut abierto = true;
+    let mut accion: Option<u8> = None; // 1 aplicar tabla, 2 descartar, 3 transformar
+    let ed = &mut app.puntos_ed;
+    egui::Window::new("Puntos topográficos").open(&mut abierto).default_size([820.0, 560.0]).show(ctx, |ui| {
+        ui.horizontal_wrapped(|ui| {
+            ui.label("Trasladar:");
+            ui.add(egui::DragValue::new(&mut ed.de).speed(0.1).prefix("ΔE ").suffix(" m"));
+            ui.add(egui::DragValue::new(&mut ed.dn).speed(0.1).prefix("ΔN ").suffix(" m"));
+            ui.add(egui::DragValue::new(&mut ed.dz).speed(0.01).prefix("ΔZ ").suffix(" m"));
+            ui.label("Rotar:");
+            ui.add(egui::DragValue::new(&mut ed.rot).speed(0.01).suffix("°")).on_hover_text("Antihorario, alrededor del centroide de los puntos");
+            ui.checkbox(&mut ed.con_eje, "también el eje");
+            if ui.add_enabled(!ed.modificado, egui::Button::new("Aplicar transformación")).on_hover_text("Guarde o descarte antes los cambios de la tabla").clicked() {
+                accion = Some(3);
+            }
+        });
+        ui.separator();
+        ui.horizontal(|ui| {
+            if ui.add_enabled(ed.modificado, egui::Button::new(egui::RichText::new("Aplicar cambios de la tabla").strong())).clicked() {
+                accion = Some(1);
+            }
+            if ui.add_enabled(ed.modificado, egui::Button::new("Descartar")).clicked() {
+                accion = Some(2);
+            }
+        });
+        let cols: Vec<String> = COLS_PUNTOS.iter().map(|c| c.to_string()).collect();
+        if crate::tablas::editar(ui, "puntos_topo", &cols, &mut ed.filas, &mut ed.filtro) {
+            ed.modificado = true;
+        }
+    });
+    app.puntos_ed.abierto = abierto;
+    match accion {
+        Some(1) => {
+            let r = app.puntos_ed.puntos();
+            if let Some(p) = app.intentar(r) {
+                app.estado = format!("{} puntos actualizados — pulse Procesar", p.len());
+                app.doc.puntos = p;
+                app.doc.cambio_topografia();
+                app.calculo = None;
+                let pts = app.doc.puntos.clone();
+                app.puntos_ed.abrir(&pts);
+            }
+        }
+        Some(2) => {
+            let pts = app.doc.puntos.clone();
+            app.puntos_ed.abrir(&pts);
+        }
+        Some(3) => {
+            let (de, dn, dz, rot, con_eje) = (app.puntos_ed.de, app.puntos_ed.dn, app.puntos_ed.dz, app.puntos_ed.rot, app.puntos_ed.con_eje);
+            let r = app.doc.transformar_puntos(de, dn, dz, rot, con_eje);
+            if app.intentar(r).is_some() {
+                app.estado = format!("Puntos transformados (ΔE {de} ΔN {dn} ΔZ {dz} m, {rot}°)");
+                app.calculo = None;
+                let pts = app.doc.puntos.clone();
+                app.puntos_ed.abrir(&pts);
+                app.puntos_ed.de = 0.0;
+                app.puntos_ed.dn = 0.0;
+                app.puntos_ed.dz = 0.0;
+                app.puntos_ed.rot = 0.0;
+            }
+        }
+        _ => {}
+    }
 }

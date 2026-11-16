@@ -160,7 +160,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] Catastro: predios afectados por la faja de servidumbre
 - [ ] Numeración y validación de viviendas
 - [ ] Ortofotos georreferenciadas como fondo
-- [ ] Edición de puntos y rutas (trasladar, rotar, proyectar, unir, invertir)
+- [x] Edición de puntos (tabla, trasladar, rotar)
+- [ ] Edición de rutas (proyectar, unir, invertir)
 - [ ] Códigos topográficos de campo (CTU)
 
 **LineCraft**

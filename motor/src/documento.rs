@@ -430,6 +430,33 @@ impl Documento {
     // ------------------------------------------------------------------ topografía
 
     /// Invalida la topografía calculada (tras cambiar puntos, eje o parámetros).
+    /// Rota los puntos `rot_deg` (antihorario) alrededor de su centroide y luego los traslada
+    /// (`de`, `dn`, `dz`); con `con_eje`, el eje recibe la misma transformación en planta.
+    pub fn transformar_puntos(&mut self, de: f64, dn: f64, dz: f64, rot_deg: f64, con_eje: bool) -> Result<(), String> {
+        if self.puntos.is_empty() {
+            return Err("No hay puntos que transformar".into());
+        }
+        let n = self.puntos.len() as f64;
+        let (cx, cy) = self.puntos.iter().fold((0.0, 0.0), |a, p| (a.0 + p.este / n, a.1 + p.norte / n));
+        let (s, c) = rot_deg.to_radians().sin_cos();
+        let t = |x: f64, y: f64| [cx + (x - cx) * c - (y - cy) * s + de, cy + (x - cx) * s + (y - cy) * c + dn];
+        for p in &mut self.puntos {
+            let [x, y] = t(p.este, p.norte);
+            p.este = x;
+            p.norte = y;
+            p.cota += dz;
+        }
+        if con_eje {
+            if let Some(e) = &mut self.eje {
+                for v in e.iter_mut() {
+                    *v = t(v[0], v[1]);
+                }
+            }
+        }
+        self.cambio_topografia();
+        Ok(())
+    }
+
     pub fn cambio_topografia(&mut self) {
         self.cache_topo = None;
         self.modificado = true;

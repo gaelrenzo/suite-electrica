@@ -22,7 +22,7 @@ pub fn editar(ui: &mut egui::Ui, id: &str, columnas: &[String], filas: &mut Vec<
     let anchos: Vec<f32> = (0..columnas.len())
         .map(|c| {
             let n = filas.iter().map(|r| r.get(c).map_or(0, |s| s.chars().count())).max().unwrap_or(0);
-            (n.max(columnas[c].chars().count()) as f32 * 7.0 + 14.0).clamp(48.0, 380.0)
+            (n.max(columnas[c].chars().count()) as f32 * 8.5 + 18.0).clamp(48.0, 420.0)
         })
         .collect();
     let alto = ui.spacing().interact_size.y;

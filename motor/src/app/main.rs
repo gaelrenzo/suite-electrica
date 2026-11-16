@@ -39,6 +39,7 @@ pub struct App {
     pub linea: linea::EstadoLinea,
     pub red: red::EstadoRed,
     pub presu: otros::ModuloJson,
+    pub puntos_ed: otros::EditorPuntos,
     cerrar: Option<bool>,
     titulo: String,
     /// Archivos abiertos o guardados hace poco (.sel, red.json, presupuesto.json).
@@ -90,6 +91,7 @@ impl App {
             linea: linea::EstadoLinea::default(),
             red: red::EstadoRed::default(),
             presu: otros::ModuloJson::nuevo(otros::Tipo::Presu),
+            puntos_ed: Default::default(),
             cerrar: None,
             titulo: String::new(),
             recientes: leer_recientes(),
