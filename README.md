@@ -167,7 +167,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] Cálculo mecánico, cargas, momentos de postes y alertas (igual a REDLIN)
 - [x] Cruces y distancias de seguridad, biposte en H, cimentaciones
 - [x] Terminal a media línea
-- [ ] Vibraciones eólicas (CIGRE 273) y amortiguadores
+- [x] Vibraciones eólicas: criterio H/w (CIGRE 273)
+- [ ] Amortiguadores por vano
 - [ ] Verificación de crucetas y esquemas de aisladores
 - [ ] Planos con plantilla de bloques
 

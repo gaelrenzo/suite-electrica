@@ -19,6 +19,9 @@ pub struct ConfigAlertas {
     pub tiro_max_espiga: f64,
     /// EDS máximo por vibraciones eólicas (% de rotura).
     pub eds_max_pct: f64,
+    /// Parámetro de catenaria H/w máximo (m) en la condición de EDS, criterio de CIGRE TB 273 según
+    /// la categoría del terreno (0 = no se verifica; el valor lo pone el usuario con su fuente).
+    pub hw_max_m: f64,
 }
 
 impl ConfigAlertas {
@@ -35,6 +38,7 @@ impl ConfigAlertas {
             angulo_salida_max: g("angulo_salida_max"),
             tiro_max_espiga: g("tiro_max_espiga"),
             eds_max_pct: g("eds_max_pct"),
+            hw_max_m: g("hw_max_m"),
         }
     }
 }
@@ -111,7 +115,7 @@ pub fn alertas(
             }
         }
     }
-    for t in &r.tramos {
+    for (k, t) in r.tramos.iter().enumerate() {
         let nombre = format!("Tramo {}-{}", est[t.inicio].codigo(), est[t.fin].codigo());
         for s in &t.estados {
             add(
@@ -129,6 +133,21 @@ pub fn alertas(
                     "V",
                     exceso(eds, cfg.eds_max_pct),
                     format!("EDS {eds:.1} % > {} % (vibraciones eólicas)", fmt_g(cfg.eds_max_pct)),
+                );
+            }
+        }
+        if cfg.hw_max_m != 0.0 {
+            if let Some(s) = t.estado(&p.hip_inicial) {
+                let c = &p.conductor;
+                let hw = s.h / c.peso;
+                // L·D/m del vano más largo del tramo (m³/kg): orienta la necesidad de amortiguadores
+                let l = r.vanos.iter().filter(|v| v.tramo == k).map(|v| v.longitud).fold(0.0, f64::max);
+                let ldm = l * c.diametro / (c.peso / crate::conductor::G);
+                add(
+                    format!("Tramo {}-{}", est[t.inicio].codigo(), est[t.fin].codigo()),
+                    "V",
+                    exceso(hw, cfg.hw_max_m),
+                    format!("H/w {hw:.0} m > {} m (vibraciones eólicas, CIGRE TB 273); L·D/m = {ldm:.2} m³/kg en el vano mayor ({l:.0} m)", fmt_g(cfg.hw_max_m)),
                 );
             }
         }

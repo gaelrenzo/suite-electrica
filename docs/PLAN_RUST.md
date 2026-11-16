@@ -512,7 +512,13 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - los CSV guardados por Excel como «CSV UTF-8» (con BOM) no se leían bien (la red salía con
      10 raíces): `catalogos::leer_csv` quita el BOM;
    - la plantilla de red primaria trae coordenadas de ejemplo para verse en planta y exportar DXF.
-3. **Comparar con el software comercial** (la demo de 18 días corre desde el 13/11, vence ≈ 01/12):
+3. **Comparar con el software comercial** (la demo de 18 días corre desde el 13/11, vence ≈ 01/12).
+   Intento del 17/11 con REDLIN: el terminal a media línea se declara con un armado cuyo «tipo de uso
+   mecánico» es TERMINAL (manual de REDLIN, p. 29), pero manejando la interfaz a ciegas no se logró
+   seleccionar una sola estructura (el clic toma la ruta entera). Hace falta que el autor haga en
+   REDLIN: abrir una copia de `SER-ejemplo.len`, cambiar el armado de una estructura intermedia a
+   uno TERMINAL, recalcular y exportar `PlanillaEstTotal` y `CalculoMecanicoEst`; luego
+   `comparar-redlin … --cargas`.
    - terminal a media línea y biposte en H, con REDLIN (`comparar-redlin`);
    - red primaria MT y autodiseño BT, con REDCAD (`comparar-redcad`);
    - transporte por rutas, con PRESIO.
@@ -522,8 +528,12 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 5. **Brechas con ESOLUTIONS según sus manuales** (también en la hoja de ruta del README):
    - TopoCraft: numeración y validación de viviendas; ortofotos georreferenciadas como fondo;
      edición de puntos y rutas (trasladar, rotar, proyectar, unir, invertir); códigos de campo (CTU).
-   - LineCraft: vibraciones eólicas (CIGRE 273) y amortiguadores; verificación de crucetas y
-     esquemas de aisladores; planos con plantilla de bloques.
+   - LineCraft: amortiguadores (cantidad por vano según fabricante); verificación de crucetas y
+     esquemas de aisladores; planos con plantilla de bloques. ✅ Vibraciones eólicas, criterio H/w
+     de CIGRE TB 273 (prueba `tests/vibraciones_hw.rs`): parámetro «H/w máx.» en las alertas
+     (0 = no verificar; el límite según la categoría de terreno lo pone el usuario con su fuente,
+     `hw_max_m`); alerta «V» por tramo con H/w en la hipótesis inicial y L·D/m del vano mayor para
+     decidir amortiguadores.
    - GridCraft: autodistribución de estructuras BT desde los lotes; revisión automática del diseño,
      capas y rehacer; reportes de varias redes juntas.
 

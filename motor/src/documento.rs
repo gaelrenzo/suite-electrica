@@ -23,8 +23,8 @@ pub const FORMATO: &str = "suite-electrica";
 pub const VERSION: i64 = 1;
 pub const EXTENSION: &str = "sel";
 pub const FUENTES_EXTRA: [&str; 2] = ["factor_seguridad_poste", "factor_seguridad_retenida"];
-pub const FUENTES_ALERTAS: [&str; 6] =
-    ["sep_k_tension", "sep_k_flecha", "angulo_salida_min", "angulo_salida_max", "tiro_max_espiga", "eds_max_pct"];
+pub const FUENTES_ALERTAS: [&str; 7] =
+    ["sep_k_tension", "sep_k_flecha", "angulo_salida_min", "angulo_salida_max", "tiro_max_espiga", "eds_max_pct", "hw_max_m"];
 /// Separación mínima entre estructuras al editar (m).
 pub const SEPARACION_MIN: f64 = 1.0;
 /// Tolerancia para reconocer un vértice del eje (m).
@@ -85,6 +85,8 @@ pub struct ParamLinea {
     pub angulo_salida_max: f64,
     pub tiro_max_espiga: f64,
     pub eds_max_pct: f64,
+    /// H/w máximo (m), CIGRE TB 273 (0 = no verificar).
+    pub hw_max_m: f64,
 }
 
 impl Default for ParamLinea {
@@ -116,6 +118,7 @@ impl Default for ParamLinea {
             angulo_salida_max: 0.0,
             tiro_max_espiga: 0.0,
             eds_max_pct: 0.0,
+            hw_max_m: 0.0,
         }
     }
 }
@@ -132,7 +135,7 @@ impl ParamLinea {
             "retenida": self.retenida, "desperdicio_pct": self.desperdicio_pct, "tension_kV": self.tension_kv,
             "sep_k_tension": self.sep_k_tension, "sep_k_flecha": self.sep_k_flecha,
             "angulo_salida_min": self.angulo_salida_min, "angulo_salida_max": self.angulo_salida_max,
-            "tiro_max_espiga": self.tiro_max_espiga, "eds_max_pct": self.eds_max_pct,
+            "tiro_max_espiga": self.tiro_max_espiga, "eds_max_pct": self.eds_max_pct, "hw_max_m": self.hw_max_m,
         })
     }
 
@@ -167,6 +170,7 @@ impl ParamLinea {
             angulo_salida_max: f("angulo_salida_max", 0.0),
             tiro_max_espiga: f("tiro_max_espiga", 0.0),
             eds_max_pct: f("eds_max_pct", 0.0),
+            hw_max_m: f("hw_max_m", 0.0),
         }
     }
 
@@ -181,6 +185,7 @@ impl ParamLinea {
             angulo_salida_max: self.angulo_salida_max,
             tiro_max_espiga: self.tiro_max_espiga,
             eds_max_pct: self.eds_max_pct,
+            hw_max_m: self.hw_max_m,
         }
     }
 
@@ -192,6 +197,7 @@ impl ParamLinea {
             "angulo_salida_min" => self.angulo_salida_min,
             "angulo_salida_max" => self.angulo_salida_max,
             "tiro_max_espiga" => self.tiro_max_espiga,
+            "hw_max_m" => self.hw_max_m,
             _ => self.eds_max_pct,
         }
     }

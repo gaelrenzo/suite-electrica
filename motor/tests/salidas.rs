@@ -309,7 +309,7 @@ fn salidas_linea(nombre: &str, p: &Proyecto, catalogos: bool) {
         met = Some(metrado(&r, p, &cat, 3.0, None, &BTreeMap::new()));
         let cfg = ConfigAlertas {
             fs_poste: 4.0, fs_retenida: 3.0, tension_kv: 22.9, sep_k_tension: 0.04, sep_k_flecha: 0.3,
-            angulo_salida_min: -20.0, angulo_salida_max: 5.0, tiro_max_espiga: 2000.0, eds_max_pct: 10.0,
+            angulo_salida_min: -20.0, angulo_salida_max: 5.0, tiro_max_espiga: 2000.0, eds_max_pct: 10.0, hw_max_m: 0.0,
         };
         al = alertas(&r, p, Some(&cat), ver.as_deref().unwrap(), &cfg);
     } else {

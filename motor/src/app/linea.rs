@@ -231,6 +231,7 @@ fn datos(app: &mut App, ui: &mut egui::Ui) {
             cambio |= num(ui, "Ángulo de salida máx.", &mut l.angulo_salida_max, 0.5, "°");
             cambio |= num(ui, "Carga máx. por espiga", &mut l.tiro_max_espiga, 10.0, " N");
             cambio |= num(ui, "EDS máx. (vibraciones)", &mut l.eds_max_pct, 0.1, " %");
+            cambio |= num(ui, "H/w máx. (CIGRE TB 273)", &mut l.hw_max_m, 25.0, " m");
         });
     });
     if ui.button("Cargar catálogos de la plantilla").on_hover_text(

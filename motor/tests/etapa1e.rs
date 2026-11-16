@@ -38,6 +38,7 @@ fn alertas_todas_las_clases() {
         angulo_salida_max: 5.0,
         tiro_max_espiga: 2000.0,
         eds_max_pct: 10.0,
+        hw_max_m: 0.0,
     };
     let a = alertas(&r, &caso.p, Some(&cat), &ver, &cfg);
     let esperado: Vec<Vec<&str>> =
