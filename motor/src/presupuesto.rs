@@ -576,3 +576,28 @@ pub fn leer_apu_csv(texto: &str) -> Result<Vec<crate::apu::PartidaApu>, String> 
     }
     Ok(out)
 }
+
+/// Suma los renglones repetidos (mismo rubro y UC) de un metrado en formato `rubro,uc,cantidad`,
+/// en el orden de su primera aparición (p. ej. el metrado de varias redes secundarias juntas).
+pub fn sumar_metrado_csv(texto: &str) -> Result<String, String> {
+    let mut orden: Vec<(String, String)> = Vec::new();
+    let mut suma: HashMap<(String, String), f64> = HashMap::new();
+    for f in leer_csv(texto)? {
+        let g = |k: &str| f.get(k).map(|s| s.trim().to_string()).unwrap_or_default();
+        let clave = (g("rubro"), g("uc"));
+        if clave.1.is_empty() {
+            continue;
+        }
+        let q = g("cantidad").replace(',', ".").parse::<f64>().map_err(|_| format!("metrado: cantidad «{}» de {}", g("cantidad"), clave.1))?;
+        if !suma.contains_key(&clave) {
+            orden.push(clave.clone());
+        }
+        *suma.entry(clave).or_default() += q;
+    }
+    let mut w = csv::Writer::from_writer(Vec::new());
+    w.write_record(["rubro", "uc", "cantidad"]).map_err(|e| e.to_string())?;
+    for c in &orden {
+        w.write_record([c.0.clone(), c.1.clone(), suma[c].to_string()]).map_err(|e| e.to_string())?;
+    }
+    String::from_utf8(w.into_inner().map_err(|e| e.to_string())?).map_err(|e| e.to_string())
+}

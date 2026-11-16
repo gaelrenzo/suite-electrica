@@ -444,7 +444,7 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      y CIM-ELI (m³) al rubro RS o LP; sus precios van en `montaje.csv` (si faltan, PresuCraft
      avisa «costo 0»).
    - LineCraft: hoja «Cimentaciones» en la planilla.
-4. **Release:** ✅ `v0.2.2` (17/11/2026: retenidas de biposte y transporte por origen como REDLIN y PRESIO, alerta H/w). Antes `v0.2.1` y `v0.2.0`. `v0.1.0-rust` se volvió a subir
+4. **Release:** ✅ `v0.2.3` (17/11/2026: cuelgue con nubes grandes y franja SRTM, editor de puntos, invertir eje, amortiguadores, revisión del diseño, rehacer, varias redes). Antes `v0.2.2` (17/11/2026: retenidas de biposte y transporte por origen como REDLIN y PRESIO, alerta H/w). Antes `v0.2.1` y `v0.2.0`. `v0.1.0-rust` se volvió a subir
    varias veces con el mismo nombre (último build: `4f13cf6`); desde ahora cada build publicado
    lleva un número de versión nuevo y el README enlaza a `releases/latest`.
 5. **Brechas con ESOLUTIONS de la primera lista:** ✅ todas tienen una primera versión.
@@ -588,8 +588,10 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      (0 = no verificar; el límite según la categoría de terreno lo pone el usuario con su fuente,
      `hw_max_m`); alerta «V» por tramo con H/w en la hipótesis inicial y L·D/m del vano mayor para
      decidir amortiguadores.
-   - GridCraft: autodistribución de estructuras BT desde los lotes; capas; reportes de varias
-     redes juntas. ✅ Rehacer (17/11): botón y Ctrl+Y; deshacer guarda el estado para rehacerlo y
+   - GridCraft: autodistribución de estructuras BT desde los lotes; capas. ✅ Varias redes juntas
+     (17/11): «Metrado de varias redes (RS)…» en PresuCraft suma el metrado y las cimentaciones de
+     varios `red.json` en el rubro RS (`presupuesto::sumar_metrado_csv`, prueba
+     `sumar_metrado_de_varias_redes`). ✅ Rehacer (17/11): botón y Ctrl+Y; deshacer guarda el estado para rehacerlo y
      cada edición nueva vacía la pila (revisado en pantalla: autodiseño → deshacer → rehacer). ✅ Revisión automática del diseño (17/11, `red::revisar`, hoja «Revisión»
      en la app y el Excel; prueba `tests/red_revision.rs`): nombres repetidos, postes sin
      coordenadas, vano distinto de la distancia en el plano (> 2 m y > 5 %), postes sin armado,

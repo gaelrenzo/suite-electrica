@@ -73,3 +73,17 @@ fn flete_por_origen_del_suministro() {
     p.suministros[0].ruta.clear();
     assert!(calcular(&p).unwrap_err().contains("varias rutas"));
 }
+
+/// Metrado de varias redes: los renglones repetidos se suman.
+#[test]
+fn sumar_metrado_de_varias_redes() {
+    use suite_motor::presupuesto::sumar_metrado_csv;
+    let s = sumar_metrado_csv("rubro,uc,cantidad\nRS,E1,3\nRS,\"3x35+16/25\",0.115\nRS,E1,2\nLP,E1,1\nRS,\"3x35+16/25\",0.2\n").unwrap();
+    let f = suite_motor::catalogos::leer_csv(&s).unwrap();
+    assert_eq!(f.len(), 3);
+    assert_eq!((f[0]["uc"].as_str(), f[0]["cantidad"].as_str()), ("E1", "5"));
+    assert_eq!(f[1]["uc"], "3x35+16/25");
+    assert!((f[1]["cantidad"].parse::<f64>().unwrap() - 0.315).abs() < 1e-12);
+    assert_eq!((f[2]["rubro"].as_str(), f[2]["cantidad"].as_str()), ("LP", "1"));
+    assert!(sumar_metrado_csv("rubro,uc,cantidad\nRS,E1,mucho\n").is_err());
+}

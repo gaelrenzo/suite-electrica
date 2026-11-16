@@ -616,6 +616,11 @@ pub fn panel_json(app: &mut App, ui: &mut egui::Ui, tipo: Tipo) {
             if tipo == Tipo::Presu && ui.button("Metrado desde GridCraft").on_hover_text("Rubro RS de metrado.csv").clicked() {
                 metrado_a_presupuesto(app, true);
             }
+            if tipo == Tipo::Presu
+                && ui.button("Metrado de varias redes (RS)…").on_hover_text("Elija varios red.json: sus metrados (y cimentaciones) se suman en el rubro RS").clicked()
+            {
+                metrado_varias_redes(app);
+            }
         });
         let m = modulo(app, tipo);
         ui.label(match &m.ruta {
@@ -870,5 +875,33 @@ fn ventana_puntos(app: &mut App, ctx: &egui::Context) {
             }
         }
         _ => {}
+    }
+}
+
+/// Suma el metrado de varias redes secundarias (cada una con su `red.json`) en el rubro RS.
+fn metrado_varias_redes(app: &mut App) {
+    let Some(ruta_presu) = app.presu.ruta.clone() else {
+        app.error = Some("Abra o cree primero un presupuesto".into());
+        return;
+    };
+    let Some(rutas) = rfd::FileDialog::new().add_filter("Redes de GridCraft", &["json"]).set_title("Redes secundarias a sumar").pick_files() else { return };
+    let r = (|| {
+        let mut csv = String::from("rubro,uc,cantidad\n");
+        for ruta in &rutas {
+            let rd = red::cargar(ruta).map_err(|e| format!("{}: {e}", ruta.display()))?;
+            csv.push_str(suite_motor::red::metrado_presupuesto(&red::metrado(&rd), "RS").lines().skip(1).map(|l| format!("{l}\n")).collect::<String>().as_str());
+            if let Some((f, _)) = crate::red::cimentaciones_red(&rd, Some(ruta.as_path()))? {
+                csv.push_str(&suite_motor::cimentacion::lineas_presupuesto(&f, "RS"));
+            }
+        }
+        let suma = presupuesto::sumar_metrado_csv(&csv)?;
+        let destino = ruta_presu.parent().unwrap_or(Path::new(".")).join("metrado.csv");
+        app.presu.guardar_datos()?;
+        fusionar_metrado(&destino, &suma, "RS")?;
+        let m = app.presu.calcular()?;
+        Ok::<_, String>(format!("Metrado de {} redes sumado en el rubro RS de {} — {m}", rutas.len(), destino.display()))
+    })();
+    if let Some(m) = app.intentar(r) {
+        app.estado = m;
     }
 }

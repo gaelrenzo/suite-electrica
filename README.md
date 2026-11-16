@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-blue"></a>
-  <a href="https://github.com/gaelrenzo/suite-electrica/releases"><img alt="Versión" src="https://img.shields.io/badge/versión-0.2.2%20(prueba)-orange"></a>
+  <a href="https://github.com/gaelrenzo/suite-electrica/releases"><img alt="Versión" src="https://img.shields.io/badge/versión-0.2.3%20(prueba)-orange"></a>
   <a href="https://github.com/gaelrenzo/suite-electrica/actions/workflows/rust.yml"><img alt="Pruebas Rust" src="https://github.com/gaelrenzo/suite-electrica/actions/workflows/rust.yml/badge.svg"></a>
   <a href="https://github.com/gaelrenzo/suite-electrica/actions/workflows/pruebas.yml"><img alt="Pruebas Python" src="https://github.com/gaelrenzo/suite-electrica/actions/workflows/pruebas.yml/badge.svg"></a>
   <img alt="Hecho en Rust" src="https://img.shields.io/badge/hecho%20en-Rust-b7410e?logo=rust">
@@ -181,7 +181,7 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] Revisión automática del diseño
 - [x] Rehacer (Ctrl+Y)
 - [ ] Capas
-- [ ] Reportes de varias redes juntas
+- [x] Metrado de varias redes juntas (PresuCraft, rubro RS)
 
 **PresuCraft**
 - [x] Presupuesto, APU y fórmula polinómica (igual a PRESIO)
