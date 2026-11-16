@@ -237,14 +237,16 @@ pub struct ModuloJson {
 }
 
 /// Tablas del presupuesto editables en la app: (clave del JSON, título).
-const TABLAS_PRESU: [(&str, &str); 6] = [
+const TABLAS_PRESU: [(&str, &str); 7] = [
     ("suministros", "Suministros"),
     ("unidades", "Unidades (UC)"),
     ("montaje", "Montaje"),
     ("metrado", "Metrado"),
     ("apu", "APU"),
     ("fp_agrupacion", "Agrupación FP"),
+    ("transporte", "Transporte (ruta)"),
 ];
+const CABECERA_TRANSPORTE: &str = "tramo,via,distancia_km,costo_t_km,fuente";
 const CABECERA_APU: &str = "partida,descripcion,unidad,rendimiento,tipo,insumo,unidad_insumo,cuadrilla,cantidad,precio,iu,base";
 const CABECERA_FP: &str = "iu,similar,monomio";
 
@@ -650,6 +652,11 @@ fn parametros_presu(ui: &mut egui::Ui, m: &mut ModuloJson) -> Option<(&'static s
         ui.horizontal(|ui| {
             if !m.params.contains_key("apu") && ui.button("Crear tabla de APU").on_hover_text("apu.csv: análisis de precios unitarios (reemplazan el precio de montaje)").clicked() {
                 crear = Some(("apu", "apu.csv", CABECERA_APU));
+            }
+            if !m.params.contains_key("transporte")
+                && ui.button("Crear ruta de transporte").on_hover_text("transporte.csv: tramos con su distancia y costo por t·km; reemplaza el flete por kg").clicked()
+            {
+                crear = Some(("transporte", "transporte.csv", CABECERA_TRANSPORTE));
             }
             if !m.params.contains_key("fp_agrupacion") && ui.button("Crear agrupación de la fórmula polinómica").on_hover_text("fp_agrupacion.csv: IU, similar y monomio").clicked() {
                 crear = Some(("fp_agrupacion", "fp_agrupacion.csv", CABECERA_FP));

@@ -426,6 +426,16 @@ pub fn tablas_presupuesto(r: &ResultadoPresupuesto) -> Vec<Tabla> {
         }
         v.push(tb);
     }
+    if !r.transporte.is_empty() {
+        let mut tb = Tabla::nueva("Transporte", &["Tramo", "Vía", "Distancia (km)", "Costo (por t·km)", "Costo por t", "Fuente"]);
+        for x in &r.transporte {
+            tb.filas.push(vec![t(x.tramo.clone()), t(x.via.clone()), n(x.distancia_km), n(x.costo_t_km), r2(x.distancia_km * x.costo_t_km), t(x.fuente.clone())]);
+        }
+        let total: f64 = r.transporte.iter().map(|x| x.distancia_km * x.costo_t_km).sum();
+        tb.filas.push(vec![t("TOTAL"), t("flete por kg = costo por t / 1000"), n(r.transporte.iter().map(|x| x.distancia_km).sum()), n(f64::NAN), r2(total),
+            t(format!("{:.4} por kg", total / 1000.0))]);
+        v.push(tb);
+    }
     v.push(Tabla::lista("Avisos", "Aviso", &r.avisos, "Sin avisos"));
     v
 }

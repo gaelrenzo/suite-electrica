@@ -446,8 +446,18 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - Falta: hoja de cimentaciones en la planilla de LineCraft y revisarlo en pantalla.
 4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
-5. **Otras brechas con ESOLUTIONS:** transporte por rutas (PRESIO), terminal con retenida a media
-   línea, redes primarias, SRTM/catastro en TopoCraft.
+5. **Otras brechas con ESOLUTIONS:** terminal con retenida a media línea, redes primarias,
+   SRTM/catastro en TopoCraft.
+   - ✅ **Transporte por rutas** (como PRESIO; prueba `tests/presu_transporte.rs`): tabla opcional
+     `transporte.csv` (tramo, vía, distancia_km, costo_t_km, fuente) enlazada en el JSON con la
+     clave `transporte`. El flete por kg = Σ distancia × costo por t·km / 1000 y reemplaza al
+     `flete_por_kg` fijo; hoja «Transporte» en los resultados y el Excel; aviso por cada tramo sin
+     fuente. En la app: «Crear ruta de transporte» en Parámetros y pestaña «Transporte (ruta)».
+     No se comparó con PRESIO (los costos por t·km los pone el usuario con su cotización).
+   - GridCraft: revisado en pantalla el 16/11 la selección múltiple (Mayús+clic, «Aplicar a 3
+     postes» con armado y retenida), la simbología (SED, luminarias, retenidas) y el metrado.
+     Se corrigió el redondeo del metrado (0.11500000000000002 km → 0.115). Falta ver en pantalla
+     cimentaciones y autodiseño.
    - ✅ **Biposte en H** (Norma DGE RD 024-2003, láminas 027-030; prueba `tests/biposte_h.rs`):
      7 armados (PSH-3/3N, PA1H-3/3N, PRH-3/3N, PA2H-3) con geometría y materiales transcritos de
      las láminas, y columna nueva `postes` en `armados.csv` (2 en los H). Cada poste toma la mitad

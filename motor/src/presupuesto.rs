@@ -57,6 +57,38 @@ pub struct Presupuesto {
     /// Fórmula polinómica: índice -> índice similar (agrupación preliminar) y grupo -> monomio.
     pub fp_similar: BTreeMap<String, String>,
     pub fp_monomio: BTreeMap<String, String>,
+    /// Ruta de transporte (como PRESIO): si hay tramos, el flete por kg sale de ellos.
+    pub transporte: Vec<TramoTransporte>,
+}
+
+/// Tramo de la ruta de transporte de los suministros: costo por tonelada-kilómetro según la vía.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct TramoTransporte {
+    pub tramo: String,
+    /// Tipo de vía (asfaltada, afirmada, trocha, acémila, fluvial…): solo descriptivo.
+    pub via: String,
+    pub distancia_km: f64,
+    pub costo_t_km: f64,
+    pub fuente: String,
+}
+
+/// Flete por kg de una ruta: Σ distancia × costo por t·km / 1000.
+pub fn flete_ruta(tramos: &[TramoTransporte]) -> f64 {
+    tramos.iter().map(|t| t.distancia_km * t.costo_t_km).sum::<f64>() / 1000.0
+}
+
+/// Lee `transporte.csv` (columnas tramo, via, distancia_km, costo_t_km, fuente).
+pub fn leer_transporte_csv(texto: &str) -> Result<Vec<TramoTransporte>, String> {
+    let mut out = Vec::new();
+    for (k, f) in leer_csv(texto)?.iter().enumerate() {
+        let g = |c: &str| f.get(c).map(|s| s.trim().to_string()).unwrap_or_default();
+        if g("tramo").is_empty() && g("distancia_km").is_empty() {
+            continue;
+        }
+        let num = |c: &str| g(c).replace(',', ".").parse::<f64>().map_err(|_| format!("transporte, fila {}: '{c}' = «{}» no es un número", k + 1, g(c)));
+        out.push(TramoTransporte { tramo: g("tramo"), via: g("via"), distancia_km: num("distancia_km")?, costo_t_km: num("costo_t_km")?, fuente: g("fuente") });
+    }
+    Ok(out)
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -118,6 +150,7 @@ pub struct ResultadoPresupuesto {
     pub avisos: Vec<String>,
     pub apu: Vec<crate::apu::ApuCalculado>,
     pub formula: Option<crate::apu::FormulaPolinomica>,
+    pub transporte: Vec<TramoTransporte>,
 }
 
 fn rd(x: f64, d: i32) -> f64 {
@@ -171,8 +204,11 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
             avisos.push(format!("PENDIENTE_REVISION: precios de {nombre} sin fuente verificada ({n} filas)"));
         }
     }
+    for t in p.transporte.iter().filter(|t| pendiente(&t.fuente)) {
+        avisos.push(format!("PENDIENTE_REVISION: costo de transporte del tramo '{}' -> {}", t.tramo, if t.fuente.is_empty() { "sin fuente" } else { &t.fuente }));
+    }
     for (k, v) in [
-        ("flete_por_kg", p.flete_por_kg),
+        ("flete_por_kg", if p.transporte.is_empty() { p.flete_por_kg } else { 0.0 }),
         ("gastos_generales_pct", p.gastos_generales_pct),
         ("utilidad_pct", p.utilidad_pct),
         ("igv_pct", p.igv_pct),
@@ -355,7 +391,7 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
             x
         })
         .collect();
-    Ok(ResultadoPresupuesto { resumen, suministro, montaje, planilla_uc, avisos, apu: apus, formula })
+    Ok(ResultadoPresupuesto { resumen, suministro, montaje, planilla_uc, avisos, apu: apus, formula, transporte: p.transporte.clone() })
 }
 
 /// Tablas desde el texto de los cuatro CSV.
@@ -431,8 +467,15 @@ pub fn cargar(ruta: &std::path::Path) -> Result<Presupuesto, String> {
         },
         fp_similar: Default::default(),
         fp_monomio: Default::default(),
+        transporte: match cfg.get("transporte").and_then(|v| v.as_str()) {
+            Some(_) => leer_transporte_csv(&leer("transporte")?)?,
+            None => Vec::new(),
+        },
     })
     .and_then(|mut p| {
+        if !p.transporte.is_empty() {
+            p.flete_por_kg = flete_ruta(&p.transporte);
+        }
         if cfg.get("fp_agrupacion").and_then(|v| v.as_str()).is_some() {
             for f in leer_csv(&leer("fp_agrupacion")?)? {
                 let g = |k: &str| f.get(k).map(|s| s.trim().to_string()).unwrap_or_default();
