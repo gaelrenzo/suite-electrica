@@ -446,7 +446,15 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - Falta: hoja de cimentaciones en la planilla de LineCraft y revisarlo en pantalla.
 4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
-5. **Otras brechas con ESOLUTIONS:** terminal con retenida a media línea, catastro en TopoCraft.
+5. **Otras brechas con ESOLUTIONS:** catastro en TopoCraft.
+   - ✅ **Terminal a media línea** (doble remate; prueba `tests/terminal_intermedio.rs`): una
+     estructura FIN con vanos a ambos lados ya no toma la diferencia de tiros (como un anclaje, casi
+     cero), sino el tiro completo del lado mayor, porque cada lado se ancla por separado (al tender
+     o si se corta el otro lado). Lleva 2 retenidas por defecto (una por lado) y cada una se
+     verifica con el tiro completo de su lado. Cambiar el tipo de una estructura devuelve sus
+     retenidas a «auto» si tenía 0 o 1. Los extremos no cambian (paridad con Python intacta).
+     Además: `cambiar_estructura` con un índice inexistente devuelve un error en vez de cerrar el
+     programa. No se comparó con REDLIN.
    - ✅ **Red primaria (MT)** con el mismo motor de GridCraft (prueba `tests/red_primaria.rs`, que
      verifica corriente, ΔV y %ΔV del primer tramo contra el cálculo a mano): botón «Nueva red
      primaria…» con las plantillas `red_mt_proyecto.json` (22,9 kV, 3F), `red_mt_nodos.csv` (punto de

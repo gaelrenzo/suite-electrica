@@ -573,7 +573,10 @@ pub fn calcular(p: &Proyecto) -> Result<Resultado, String> {
             }
             let viento = n * cu.viento * av * mitad.cos();
             let trans = n * (hb + ha) * mitad.sin() + viento;
-            let longi = n * (ha - hb).abs() * mitad.cos();
+            // terminal a media línea (doble remate): cada lado se ancla por separado y debe resistir
+            // el tiro completo de su vano (p. ej. al tender o si se corta el otro lado)
+            let intermedio = e.tipo == Tipo::Fin && atras.is_some() && adelante.is_some();
+            let longi = n * if intermedio { ha.max(hb) } else { (ha - hb).abs() } * mitad.cos();
             let vert = n * cu.vertical * ap;
             let fh = trans.hypot(longi);
             let ret = if necesita_retenida(e) { fh / phi.cos() } else { 0.0 };

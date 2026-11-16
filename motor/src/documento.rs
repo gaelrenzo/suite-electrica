@@ -650,7 +650,7 @@ impl Documento {
                 altura_amarre_m: None,
                 armado: e.armado.clone(),
                 poste: e.poste.clone(),
-                retenidas: if catalogos::lleva_retenida(e) { Some(1.0) } else { None },
+                retenidas: if catalogos::lleva_retenida(e) { Some(catalogos::retenidas_defecto(r, e) as f64) } else { None },
             })
             .collect();
         if nuevas != self.estructuras {
@@ -800,12 +800,16 @@ impl Documento {
         let num = |v: &str| -> Result<Option<f64>, String> {
             if v.is_empty() { Ok(None) } else { v.replace(',', ".").parse::<f64>().map(Some).map_err(|_| format!("Número inválido: {v}")) }
         };
-        let mut e = self.estructuras[i].clone();
+        let mut e = self.estructuras.get(i).ok_or(format!("No existe la estructura {}", i + 1))?.clone();
         match campo {
             "tipo" => {
                 let t = v.to_uppercase();
                 if !t.is_empty() {
                     Tipo::desde_str(&t).map_err(|_| format!("Tipo inválido: {v}"))?;
+                }
+                // otro tipo, otras retenidas: vuelve a «auto» (p. ej. 2 en un terminal a media línea)
+                if t != e.tipo && e.retenidas.is_some_and(|n| n <= 1.0) {
+                    e.retenidas = None;
                 }
                 e.tipo = t;
             }

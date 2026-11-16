@@ -235,6 +235,18 @@ impl Catalogos {
     }
 }
 
+/// Terminal a media línea (doble remate): FIN con vanos a ambos lados.
+pub fn terminal_intermedio(r: &Resultado, e: &Estructura) -> bool {
+    e.tipo == Tipo::Fin
+        && r.estructuras.first().map(|x| x.numero) != Some(e.numero)
+        && r.estructuras.last().map(|x| x.numero) != Some(e.numero)
+}
+
+/// Retenidas por defecto: 2 en un terminal intermedio (una por lado), 1 en las demás.
+pub fn retenidas_defecto(r: &Resultado, e: &Estructura) -> usize {
+    if terminal_intermedio(r, e) { 2 } else { 1 }
+}
+
 /// Estructuras de fin, anclaje o con deflexión llevan retenida.
 pub fn lleva_retenida(e: &Estructura) -> bool {
     matches!(e.tipo, Tipo::Fin | Tipo::Anclaje) || e.angulo.abs() > 0.01
@@ -411,12 +423,14 @@ pub fn verificar(
             }
         }
         if lleva_retenida(e) {
-            let n = n_retenidas.get(&e.numero).copied().filter(|&n| n > 0).unwrap_or(1);
+            let n = n_retenidas.get(&e.numero).copied().filter(|&n| n > 0).unwrap_or(retenidas_defecto(r, e));
             f.retenidas = n;
-            f.tiro_por_retenida = Some(tr / n as f64);
+            // en un terminal intermedio las retenidas se reparten por lado: cada lado toma su tiro completo
+            let reparto = if terminal_intermedio(r, e) { (n as f64 / 2.0).max(1.0) } else { n as f64 };
+            f.tiro_por_retenida = Some(tr / reparto);
             match ret.and_then(|x| x.carga_rotura_kn) {
                 Some(cr) => {
-                    let fs = if tr > 0.0 { cr * 1e3 / (tr / n as f64) } else { f64::INFINITY };
+                    let fs = if tr > 0.0 { cr * 1e3 / (tr / reparto) } else { f64::INFINITY };
                     f.fs_retenida = Some(fs);
                     if fs < fs_retenida {
                         f.cumple = false;
@@ -596,7 +610,7 @@ pub fn metrado(
         .estructuras
         .iter()
         .filter(|e| lleva_retenida(e))
-        .map(|e| n_retenidas.get(&e.numero).copied().filter(|&n| n > 0).unwrap_or(1))
+        .map(|e| n_retenidas.get(&e.numero).copied().filter(|&n| n > 0).unwrap_or(retenidas_defecto(r, e)))
         .sum();
     if n_ret > 0 {
         let cod = retenida
