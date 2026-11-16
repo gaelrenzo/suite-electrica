@@ -538,6 +538,13 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      la retenida también toma parte de la transversal. Modelarlo exige las alturas de fase y de
      anclaje de la retenida de cada armado, que el reporte de REDLIN no trae por separado; no se
      cambió el motor para no introducir un error sin evidencia suficiente.
+     Actualización (17/11): en la base de REDLIN (`BDS.xls`, hoja Armado) los TS son de tipo
+     **TERMINAL-DERIVACIÓN**: el poste lleva la línea principal y el arranque de una derivación. En
+     su reporte, cuando la retenida toma todo, MRN = MVC + MVE exacto (fila 55, igual que la suite);
+     en las demás TS el momento residual es una fracción variable de su MTD (0,26 a 0,54), que
+     depende del ángulo entre la derivación y la línea principal, no de las alturas del armado. Para
+     compararlas hace falta la geometría de cada derivación (no está en la planilla); el motor de
+     derivaciones de la suite (`derivaciones.rs`) sí combina ambas cargas.
    - `COMPARAR_DETALLE=texto` hace que `comparar-redlin --postes` imprima una línea por estructura
      cuyo armado contiene el texto (postes, retenida, FL, MRN y FS de REDLIN y de la suite).
    - ✅ **Transporte por rutas, con PRESIO** (17/11). PRESIO no usa una ruta única en t·km: su
