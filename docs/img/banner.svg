@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-label="Suite Eléctrica">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1f33"/>
+      <stop offset="1" stop-color="#12395c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="300" rx="16" fill="url(#bg)"/>
+  <!-- curvas de nivel -->
+  <g fill="none" stroke="#2a5a80" stroke-width="1.5" opacity=".7">
+    <path d="M0 250 C200 210 380 270 600 230 S1000 200 1200 240"/>
+    <path d="M0 270 C220 235 400 290 620 255 S1010 228 1200 262"/>
+    <path d="M0 228 C190 185 360 248 590 205 S990 172 1200 216"/>
+  </g>
+  <!-- terreno, postes y conductor -->
+  <path d="M60 262 L250 236 L440 250 L640 214 L840 230 L1040 204 L1140 214" fill="none" stroke="#6fa8d6" stroke-width="3"/>
+  <g stroke="#f2c14e" stroke-width="5" stroke-linecap="round">
+    <line x1="250" y1="236" x2="250" y2="176"/>
+    <line x1="440" y1="250" x2="440" y2="190"/>
+    <line x1="640" y1="214" x2="640" y2="154"/>
+    <line x1="840" y1="230" x2="840" y2="170"/>
+    <line x1="1040" y1="204" x2="1040" y2="144"/>
+  </g>
+  <path d="M250 176 Q345 200 440 190 Q540 186 640 154 Q740 180 840 170 Q940 168 1040 144" fill="none" stroke="#f2c14e" stroke-width="2"/>
+  <text x="60" y="92" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="58" font-weight="700" fill="#ffffff">Suite Eléctrica</text>
+  <text x="62" y="134" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" fill="#b9d4ea">Topografía · Líneas MT · Redes BT/MT · Presupuestos — libre y en un solo .exe</text>
+</svg>
