@@ -129,3 +129,19 @@ fn no_mezcla_fases() {
     assert_eq!(a.red.nodos[2].conductor, "1x16");
     assert!(a.red.nodos[1].conductor.starts_with('3'));
 }
+
+/// Catálogo del ejemplo: K vacía (sale de r como en `calcular`) y hilo de AP solo con r_ap.
+#[test]
+fn catalogo_con_k_calculada() {
+    let raiz = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().join("examples").join("gridcraft");
+    let mut red = suite_motor::red::cargar(&raiz.join("red.json")).unwrap();
+    assert!(red.conductores.iter().all(|c| c.k_ohm_km.is_none()));
+    red.caida_max_pct = 0.4; // el ejemplo llega a 0,431 %: hay que agrandar algún tramo
+    assert!(!calcular(&red).unwrap().cumple());
+    for desde_minimo in [false, true] {
+        let a = autodisenar(&red, desde_minimo).unwrap();
+        assert!(!a.avisos.iter().any(|x| x.contains("no tiene K")), "{:?}", a.avisos);
+        assert!(!a.cambios.is_empty());
+        assert!(a.resultado.cumple(), "{:?}", a.resultado.alertas);
+    }
+}

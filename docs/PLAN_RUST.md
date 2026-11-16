@@ -444,7 +444,7 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      y CIM-ELI (m³) al rubro RS o LP; sus precios van en `montaje.csv` (si faltan, PresuCraft
      avisa «costo 0»).
    - LineCraft: hoja «Cimentaciones» en la planilla.
-4. **Release:** ✅ `v0.2.0` (17/11/2026) con todo lo anterior. `v0.1.0-rust` se volvió a subir
+4. **Release:** ✅ `v0.2.1` (17/11/2026; `v0.2.0` sin las correcciones de la revisión en pantalla). `v0.1.0-rust` se volvió a subir
    varias veces con el mismo nombre (último build: `4f13cf6`); desde ahora cada build publicado
    lleva un número de versión nuevo y el README enlaza a `releases/latest`.
 5. **Brechas con ESOLUTIONS de la primera lista:** ✅ todas tienen una primera versión.
@@ -504,8 +504,14 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 
 1. **Retirar Python.** Bloquean: probar `suite-electrica.exe` en otra PC sin Python y la
    confirmación explícita del autor. (✅ Plantillas ya movidas a `data/plantillas`.)
-2. **Revisar en pantalla:** cimentaciones y autodiseño de conductores (GridCraft); relieve SRTM y
-   catastro (TopoCraft); red primaria.
+2. **Revisar en pantalla:** relieve SRTM (botón de importación; la lectura la cubre
+   `tests/srtm.rs`). ✅ Revisados el 17/11: cimentaciones (cantidades = cálculo a mano), autodiseño,
+   red primaria y catastro. Esa revisión encontró y corrigió (v0.2.1):
+   - el autodiseño no cambiaba nada con catálogos sin `k_ohm_km` (K calculada de r y x, como el
+     ejemplo): ahora usa la misma K que el cálculo (prueba `catalogo_con_k_calculada`);
+   - los CSV guardados por Excel como «CSV UTF-8» (con BOM) no se leían bien (la red salía con
+     10 raíces): `catalogos::leer_csv` quita el BOM;
+   - la plantilla de red primaria trae coordenadas de ejemplo para verse en planta y exportar DXF.
 3. **Comparar con el software comercial** (la demo de 18 días corre desde el 13/11, vence ≈ 01/12):
    - terminal a media línea y biposte en H, con REDLIN (`comparar-redlin`);
    - red primaria MT y autodiseño BT, con REDCAD (`comparar-redcad`);

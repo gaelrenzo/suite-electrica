@@ -1,6 +1,6 @@
 [package]
 name = "suite_motor"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Suite Eléctrica: TopoCraft, LineCraft, GridCraft y PresuCraft (motor y aplicación de escritorio)"
 license = "MIT"

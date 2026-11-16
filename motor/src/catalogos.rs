@@ -73,9 +73,10 @@ pub struct Material {
     pub fuente: String,
 }
 
-/// Lee un CSV (líneas `#` = comentarios) como filas de `encabezado -> valor`.
+/// Lee un CSV (líneas `#` = comentarios) como filas de `encabezado -> valor`. Acepta el BOM UTF-8
+/// que pone Excel al guardar «CSV UTF-8».
 pub fn leer_csv(texto: &str) -> Result<Vec<BTreeMap<String, String>>, String> {
-    let limpio: String = texto.lines().filter(|l| !l.trim_start().starts_with('#')).collect::<Vec<_>>().join("\n");
+    let limpio: String = texto.trim_start_matches('\u{feff}').lines().filter(|l| !l.trim_start().starts_with('#')).collect::<Vec<_>>().join("\n");
     let mut rd = csv::ReaderBuilder::new().trim(csv::Trim::All).flexible(true).from_reader(limpio.as_bytes());
     let enc: Vec<String> = rd.headers().map_err(|e| e.to_string())?.iter().map(|s| s.to_string()).collect();
     let mut filas = Vec::new();
@@ -728,5 +729,7 @@ mod prueba_archivo_csv {
         assert_eq!(b.filas, a.filas[..2].to_vec());
         // lo que lee el motor es lo mismo
         assert_eq!(leer_csv(&a.a_texto()).unwrap()[0]["descripcion"], "Poste, 12 m");
+        // CSV guardado por Excel (BOM UTF-8) con comentario en la primera línea
+        assert_eq!(leer_csv("\u{feff}# nota\nnodo,padre\nA,\n").unwrap()[0]["nodo"], "A");
     }
 }

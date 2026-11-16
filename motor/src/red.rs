@@ -900,7 +900,8 @@ pub struct Autodiseno {
 ///
 /// La alerta del transformador no depende del conductor y no se corrige.
 pub fn autodisenar(red: &Red, desde_minimo: bool) -> Result<Autodiseno, String> {
-    let grupo = |c: &ConductorRed| (c.fases.map(|f| f.round() as i64), c.k_ap_ohm_km.is_some());
+    // mismo criterio que `calcular`: hay hilo de AP si tiene K o R de AP
+    let grupo = |c: &ConductorRed| (c.fases.map(|f| f.round() as i64), c.k_ap_ohm_km.is_some() || c.r_ap_ohm_km.is_some());
     // formaciones por grupo, de la más chica (mayor K) a la más grande
     let escala = |f: &str| -> Vec<(String, f64)> {
         let Some(c) = red.conductores.iter().find(|c| c.formacion == f) else { return Vec::new() };
@@ -909,7 +910,8 @@ pub fn autodisenar(red: &Red, desde_minimo: bool) -> Result<Autodiseno, String> 
             .conductores
             .iter()
             .filter(|x| grupo(x) == g)
-            .filter_map(|x| Some((x.formacion.clone(), x.k_ohm_km?)))
+            // K como en `calcular`: la de la tabla o r cos φ + x sen φ si está vacía
+            .filter_map(|x| Some((x.formacion.clone(), factor_k(x, &red.sistema, red.fp_sp, false)?)))
             .collect();
         v.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap());
         v
