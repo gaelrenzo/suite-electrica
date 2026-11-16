@@ -35,6 +35,18 @@ herramientas comerciales que se usan en Perú, construida a partir de la normati
 | 🔌 | **GridCraft** | Redes BT/MT en planta: caída de tensión, pérdidas, autodiseño de conductores, metrado | REDCAD |
 | 💰 | **PresuCraft** | Presupuesto por unidades constructivas, APU, fórmula polinómica, transporte | PRESIO |
 
+<p align="center">
+  <a href="#descargas">Descargas</a> ·
+  <a href="#capturas">Así se ve</a> ·
+  <a href="#comparacion">Comparación</a> ·
+  <a href="#flujo">Flujo de trabajo</a> ·
+  <a href="#hoja-de-ruta">Hoja de ruta</a> ·
+  <a href="#faq">Preguntas frecuentes</a> ·
+  <a href="#desarrolladores">Desarrolladores</a>
+</p>
+
+<a name="descargas"></a>
+
 ## ⬇️ Descargas (Windows 10/11)
 
 | Programa | Descarga | Tamaño |
@@ -51,6 +63,49 @@ Descargar y abrir: **no necesita instalación ni Python**. Versión de prueba 0.
 > Windows puede mostrar el aviso de SmartScreen (ejecutable sin firmar):
 > *Más información → Ejecutar de todas formas*.
 
+**Requisitos:** Windows 10 u 11 de 64 bits. La interfaz usa DirectX 12 o Vulkan; en equipos sin
+tarjeta gráfica, Windows lo emula (WARP). Para verificar la descarga:
+`Get-FileHash suite-electrica.exe` en PowerShell y comparar con `SHA256SUMS.txt`.
+
+<a name="capturas"></a>
+
+## 🖼️ Así se ve
+
+Salidas reales generadas por la suite con los datos de ejemplo del repositorio.
+
+<p align="center">
+  <img src="docs/img/perfil-linea.png" alt="Perfil de una línea primaria con postes, conductor a flecha máxima y despeje mínimo" width="100%"><br>
+  <sub><b>LineCraft</b> · perfil de la línea: estructuras ubicadas automáticamente, conductor a flecha máxima y curva de despeje mínimo.</sub>
+</p>
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/img/curvas-nivel.png" alt="Curvas de nivel y eje de la línea"><br>
+      <sub><b>TopoCraft</b> · curvas de nivel (mayores y menores) desde el TIN, con el eje de la línea.</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/img/memoria.png" alt="Primera página de la memoria de cálculo en PDF"><br>
+      <sub><b>Memoria de cálculo PDF</b> · cada parámetro lleva su fuente; lo no verificado se marca EJEMPLO.</sub>
+    </td>
+  </tr>
+</table>
+
+<a name="comparacion"></a>
+
+## 📊 Comparación
+
+| | Suite Eléctrica | Suite comercial (4 programas) |
+|---|---|---|
+| Tamaño | **1 archivo de 23 MB** | 4 instaladores, ~320 MB |
+| Instalación | No necesita | Instalador por programa + activación |
+| Licencia | **Libre (MIT), sin vencimiento** | De pago; la demo dura 18 días |
+| Código fuente | Abierto, con pruebas automáticas | Cerrado |
+| Fórmulas | Documentadas en `docs/` con su fuente | Según el manual de usuario |
+| Formatos de salida | DXF R12, Excel, PDF | DXF, Excel, reportes propios |
+
+La suite comercial tiene todavía funciones que aquí faltan: ver la [hoja de ruta](#hoja-de-ruta).
+
 ## ✨ Por qué usarla
 
 - **Un solo `.exe` de 23 MB.** Los cuatro programas comerciales equivalentes pesan unos 320 MB.
@@ -62,6 +117,8 @@ Descargar y abrir: **no necesita instalación ni Python**. Versión de prueba 0.
 - **Formatos de siempre.** Lee CSV, DXF, KML, GPX, MapSource, Excel RLT y TPG. Entrega planos
   DXF con lámina y cajetín, planillas Excel y memorias de cálculo en PDF.
 - **Libre (MIT).** Úsala, estúdiala y mejórala.
+
+<a name="flujo"></a>
 
 ## 🧭 Flujo de trabajo
 
@@ -91,7 +148,62 @@ Guía paso a paso: [`docs/GUIA_RAPIDA.md`](docs/GUIA_RAPIDA.md).
 Estado de la migración a Rust y validación contra los comerciales:
 [`docs/PLAN_RUST.md`](docs/PLAN_RUST.md).
 
+<a name="hoja-de-ruta"></a>
+
+## 🗺️ Hoja de ruta
+
+Lo que falta para estar a la par de la suite comercial, según sus manuales de usuario.
+
+**TopoCraft**
+- [x] Importar CSV, DXF, KML, GPX, MapSource, Excel RLT y TPG
+- [x] TIN, curvas de nivel, perfil longitudinal y relieve SRTM
+- [ ] Catastro: lotes y numeración de viviendas *(en desarrollo)*
+- [ ] Ortofotos georreferenciadas como fondo
+- [ ] Edición de puntos y rutas (trasladar, rotar, proyectar, unir, invertir)
+- [ ] Códigos topográficos de campo (CTU)
+
+**LineCraft**
+- [x] Cálculo mecánico, cargas, momentos de postes y alertas (igual a REDLIN)
+- [x] Cruces y distancias de seguridad, biposte en H, cimentaciones
+- [x] Terminal a media línea
+- [ ] Vibraciones eólicas (CIGRE 273) y amortiguadores
+- [ ] Verificación de crucetas y esquemas de aisladores
+- [ ] Planos con plantilla de bloques
+
+**GridCraft**
+- [x] Editor en planta, caída de tensión, metrado y materiales (igual a REDCAD)
+- [x] Autodiseño de conductores BT, simbología, red primaria 22,9 kV
+- [ ] Autodistribución de estructuras BT desde los lotes del catastro
+- [ ] Revisión automática del diseño, capas y rehacer
+- [ ] Reportes de varias redes juntas
+
+**PresuCraft**
+- [x] Presupuesto, APU y fórmula polinómica (igual a PRESIO)
+- [x] Transporte por rutas
+
+<a name="faq"></a>
+
+## ❓ Preguntas frecuentes
+
+**¿Puedo usarla en un proyecto real?**
+Sí, pero revisa los avisos. Los catálogos de ejemplo traen valores marcados `EJEMPLO` o
+`PENDIENTE_REVISION`; reemplázalos por los de tu proyecto con su fuente (CNE, norma DGE, ficha
+del fabricante) antes de firmar una memoria.
+
+**¿Abre los archivos de los programas comerciales (`.len`, `.red`, `.top`)?**
+No: son formatos cerrados. Sí lee lo que esos programas exportan (Excel RLT, TPG, DXF, KML).
+
+**¿Funciona en Linux o macOS?**
+El ejecutable publicado es para Windows. La versión Python funciona en Linux; el código Rust
+debería compilar con `cargo build --release`, pero aún no se ha probado fuera de Windows.
+
+**Encontré un error en un cálculo.**
+Abre un [issue](https://github.com/gaelrenzo/suite-electrica/issues) con el archivo de entrada y el
+resultado esperado (y su fuente). Cada corrección deja una prueba que falla si el error vuelve.
+
 ---
+
+<a name="desarrolladores"></a>
 
 ## 🛠️ Para desarrolladores
 
@@ -195,6 +307,13 @@ suite_electrica/  versión Python (referencia congelada en python-referencia-v1)
 data/             catálogos CSV        examples/  datos sintéticos
 tests/            pytest               docs/      fundamentos de cálculo
 ```
+
+### Contribuir
+
+1. `git pull` antes de editar; commits cortos en español.
+2. Ningún valor normativo sin fuente; lo que no la tiene se marca `PENDIENTE` o `EJEMPLO`.
+3. Cada función nueva deja una prueba; `cargo test --release` debe pasar antes de subir.
+4. No se copian datos ni código de software comercial (sus reportes solo se usan en local para comparar).
 
 ## ⚖️ Aviso y licencia
 
