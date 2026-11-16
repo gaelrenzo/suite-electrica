@@ -417,8 +417,8 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 
 ### Pendientes (en este orden)
 
-1. **Cruces en la app:** la verificación pasa `tests/cruces.rs`, pero falta revisarla en pantalla
-   (ventana «Cruces y distancias de seguridad…», marcas en el perfil, hoja «Cruces»).
+1. ✅ **Cruces en la app:** revisado en pantalla el 16/11 (marcas en el perfil con su distancia,
+   verde si cumple, y hoja «Cruces»); la verificación pasa `tests/cruces.rs`.
 2. **GridCraft:**
    - ✅ asignar la misma estructura a varios postes a la vez: Mayús+clic arma la selección; el
      panel copia solo los campos marcados (armado, soporte, PAT, caja, pastoral, retenida,
