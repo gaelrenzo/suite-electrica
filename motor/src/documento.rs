@@ -464,7 +464,14 @@ impl Documento {
             [c[0].min(p[0]), c[1].min(p[1]), c[2].max(p[0]), c[3].max(p[1])]
         });
         let caja = [caja[0] - margen_m, caja[1] - margen_m, caja[2] + margen_m, caja[3] + margen_m];
-        self.puntos = entrada::leer_hgt(ruta, &self.zona_utm, caja)?;
+        let eje = eje.clone();
+        let mut pts = entrada::leer_hgt(ruta, &self.zona_utm, caja)?;
+        // la caja es solo para leer menos; se conserva la franja a `margen_m` del eje
+        pts.retain(|p| crate::geo::proyectar_en_eje(&eje, [p.este, p.norte]).1 <= margen_m);
+        if pts.is_empty() {
+            return Err("La hoja SRTM no tiene puntos válidos en la franja del eje".into());
+        }
+        self.puntos = pts;
         self.cambio_topografia();
         if !self.fuentes.iter().any(|(k, _)| k == "topografia") {
             self.fuentes.push(("topografia".into(), "SRTM (NASA), resolución ~30-90 m: solo para anteproyecto; verificar con levantamiento".into()));

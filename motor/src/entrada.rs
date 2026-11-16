@@ -158,6 +158,91 @@ pub const RANGO_NORTE: (f64, f64) = (0.0, 10_000_000.0);
 pub const RANGO_COTA: (f64, f64) = (-500.0, 7_000.0);
 
 /// Índices de cotas atípicas (ajuste de plano a los `k` vecinos; ver `detectar_atipicos` en Python).
+/// Los `kk` vecinos más cercanos en planta de cada punto (sin el propio), ordenados por
+/// (distancia, índice): el mismo resultado que comparar con todos, pero con una grilla espacial
+/// (antes era O(n²): con 37 000 puntos de SRTM la app se colgaba sin memoria).
+fn vecinos_cercanos(p: &[[f64; 3]], kk: usize) -> Vec<Vec<usize>> {
+    let m = p.len();
+    let (x0, y0, x1, y1) = p.iter().fold((f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY), |a, q| {
+        (a.0.min(q[0]), a.1.min(q[1]), a.2.max(q[0]), a.3.max(q[1]))
+    });
+    // celda con ~kk puntos en promedio
+    let celda = (((x1 - x0) * (y1 - y0)).max(0.0) / m.max(1) as f64 * kk.max(1) as f64).sqrt().max(1e-6);
+    let pos = |q: &[f64; 3]| (((q[0] - x0) / celda).floor() as i64, ((q[1] - y0) / celda).floor() as i64);
+    let mut grilla: HashMap<(i64, i64), Vec<usize>> = HashMap::new();
+    for (j, q) in p.iter().enumerate() {
+        grilla.entry(pos(q)).or_default().push(j);
+    }
+    let lado = (((x1 - x0) / celda) as i64).max(((y1 - y0) / celda) as i64) + 2;
+    (0..m)
+        .map(|i| {
+            let (cx, cy) = pos(&p[i]);
+            let mut cand: Vec<(f64, usize)> = Vec::new();
+            let mut r = 0i64;
+            loop {
+                for gx in cx - r..=cx + r {
+                    for gy in cy - r..=cy + r {
+                        if (gx - cx).abs() != r && (gy - cy).abs() != r {
+                            continue; // solo el anillo r
+                        }
+                        for &j in grilla.get(&(gx, gy)).map_or(&[][..], |v| v.as_slice()) {
+                            if j != i {
+                                cand.push(((p[j][0] - p[i][0]).hypot(p[j][1] - p[i][1]), j));
+                            }
+                        }
+                    }
+                }
+                // los puntos fuera de los anillos 0..=r están a más de r·celda
+                if cand.len() >= kk {
+                    cand.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                    if cand[kk - 1].0 <= r as f64 * celda {
+                        break;
+                    }
+                }
+                if r > lado {
+                    cand.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                    break;
+                }
+                r += 1;
+            }
+            cand.into_iter().take(kk).map(|x| x.1).collect()
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod prueba_vecinos {
+    #[test]
+    fn grilla_igual_a_fuerza_bruta() {
+        // nube con duplicados, empates de distancia (grilla regular) y puntos dispersos
+        let mut p: Vec<[f64; 3]> = Vec::new();
+        let mut s = 12345u64;
+        let mut azar = || {
+            s = s.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+            (s >> 11) as f64 / (1u64 << 53) as f64
+        };
+        for i in 0..20 {
+            for j in 0..20 {
+                p.push([i as f64 * 10.0, j as f64 * 10.0, 0.0]);
+            }
+        }
+        for _ in 0..300 {
+            p.push([azar() * 500.0 - 50.0, azar() * 300.0, 0.0]);
+        }
+        p.push(p[5]);
+        for kk in [1, 4, 8] {
+            let g = super::vecinos_cercanos(&p, kk);
+            for i in 0..p.len() {
+                let mut d: Vec<(f64, usize)> =
+                    (0..p.len()).filter(|&j| j != i).map(|j| ((p[j][0] - p[i][0]).hypot(p[j][1] - p[i][1]), j)).collect();
+                d.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                let b: Vec<usize> = d.into_iter().take(kk).map(|x| x.1).collect();
+                assert_eq!(g[i], b, "punto {i}, k={kk}");
+            }
+        }
+    }
+}
+
 pub fn detectar_atipicos(xyz: &[[f64; 3]], k: usize, factor: f64, tol_abs: f64, max_iter: usize) -> Vec<usize> {
     let mut activos: Vec<usize> = (0..xyz.len()).collect();
     let mut hallados = Vec::new();
@@ -168,15 +253,7 @@ pub fn detectar_atipicos(xyz: &[[f64; 3]], k: usize, factor: f64, tol_abs: f64, 
         }
         let p: Vec<[f64; 3]> = activos.iter().map(|&i| xyz[i]).collect();
         let m = p.len();
-        // vecinos más cercanos (sin el propio punto), por fuerza bruta
-        let vec: Vec<Vec<usize>> = (0..m)
-            .map(|i| {
-                let mut d: Vec<(f64, usize)> =
-                    (0..m).filter(|&j| j != i).map(|j| ((p[j][0] - p[i][0]).hypot(p[j][1] - p[i][1]), j)).collect();
-                d.sort_by(|a, b| a.partial_cmp(b).unwrap());
-                d.into_iter().take(kk).map(|x| x.1).collect()
-            })
-            .collect();
+        let vec = vecinos_cercanos(&p, kk);
         let mut r = vec![0.0; m];
         let mut s = vec![0.0; m];
         for i in 0..m {

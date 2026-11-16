@@ -504,8 +504,14 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 
 1. **Retirar Python.** Bloquean: probar `suite-electrica.exe` en otra PC sin Python y la
    confirmación explícita del autor. (✅ Plantillas ya movidas a `data/plantillas`.)
-2. **Revisar en pantalla:** relieve SRTM (botón de importación; la lectura la cubre
-   `tests/srtm.rs`). ✅ Revisados el 17/11: cimentaciones (cantidades = cálculo a mano), autodiseño,
+2. ✅ **Revisar en pantalla el relieve SRTM** (17/11, hoja real S16W070 de Capachica con un eje
+   de 8 km): encontró dos defectos, corregidos:
+   - **la app se colgaba sin memoria** al procesar la nube: `detectar_atipicos` buscaba los 8
+     vecinos de cada punto comparando con todos (O(n²); 37 627 puntos). Ahora usa una grilla
+     espacial con el mismo resultado exacto (prueba `grilla_igual_a_fuerza_bruta` contra la fuerza
+     bruta, con empates y duplicados): limpiar 0,2 s, TIN 0,06 s, curvas 0,3 s;
+   - se importaba el **rectángulo** que contiene al eje (37 627 puntos) y no la franja de 300 m que
+     dice el mensaje: ahora se conservan solo los puntos a ≤ 300 m del eje (5 490). ✅ Revisados el 17/11: cimentaciones (cantidades = cálculo a mano), autodiseño,
    red primaria y catastro. Esa revisión encontró y corrigió (v0.2.1):
    - el autodiseño no cambiaba nada con catálogos sin `k_ohm_km` (K calculada de r y x, como el
      ejemplo): ahora usa la misma K que el cálculo (prueba `catalogo_con_k_calculada`);

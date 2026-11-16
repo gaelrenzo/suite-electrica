@@ -38,9 +38,11 @@ fn hoja_srtm_recortada_al_eje() {
     assert!(doc.importar_srtm(&ruta, 300.0).unwrap_err().contains("eje"));
     doc.eje = Some(vec![[e0, n0], [e0 + 800.0, n0 + 600.0]]);
     let k = doc.importar_srtm(&ruta, 300.0).unwrap();
-    // 1400 × 1200 m a ~89 × 92 m por muestra (3") → del orden de 200 puntos
-    assert!((150..=260).contains(&k), "{k} puntos");
+    // franja de 600 m de ancho en un eje de 1000 m, muestras de ~89 × 92 m (3") → del orden de 100
+    assert!((60..=160).contains(&k), "{k} puntos");
     for p in &doc.puntos {
+        // dentro de la franja de 300 m del eje
+        assert!(suite_motor::geo::proyectar_en_eje(doc.eje.as_ref().unwrap(), [p.este, p.norte]).1 <= 300.0);
         assert!(p.este >= e0 - 300.0 && p.este <= e0 + 1100.0 && p.norte >= n0 - 300.0 && p.norte <= n0 + 900.0);
         // la cota corresponde a la muestra de esas coordenadas
         let (lon, lat) = utm_a_geograficas(p.este, p.norte, "19S").unwrap();
