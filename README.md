@@ -2,6 +2,21 @@
 
 Suite libre (MIT) para ingeniería eléctrica de distribución en Perú.
 
+## ⬇️ Descargas (Windows)
+
+[![Descargar Suite Eléctrica](https://img.shields.io/badge/Descargar-suite--electrica.exe-2ea44f?style=for-the-badge&logo=windows)](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/suite-electrica.exe)
+
+| Programa | Descarga |
+|---|---|
+| **Suite Eléctrica** (app principal) | [suite-electrica.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/suite-electrica.exe) |
+| Comparador con REDLIN | [comparar-redlin.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-redlin.exe) |
+| Comparador con REDCAD | [comparar-redcad.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-redcad.exe) |
+| Comparador con PRESIO | [comparar-presio.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-presio.exe) |
+| Sumas de verificación | [SHA256SUMS.txt](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/SHA256SUMS.txt) |
+
+Versión de prueba 0.1.0 · [todas las versiones](https://github.com/gaelrenzo/suite-electrica/releases).
+Windows puede mostrar el aviso de SmartScreen (ejecutable sin firmar): *Más información → Ejecutar de todas formas*.
+
 | Módulo | Alcance | Estado |
 |---|---|---|
 | **TopoCraft** | Topografía: limpieza de puntos, TIN, curvas de nivel, perfil longitudinal | Fase 1 — MVP |
