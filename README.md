@@ -51,7 +51,7 @@ herramientas comerciales que se usan en Perú, construida a partir de la normati
 
 | Programa | Descarga | Tamaño |
 |---|---|---|
-| **Suite Eléctrica** (app principal) | [suite-electrica.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/suite-electrica.exe) | 22,7 MB |
+| **Suite Eléctrica** (app principal) | [suite-electrica.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/suite-electrica.exe) | 22,9 MB |
 | Comparador con REDLIN | [comparar-redlin.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-redlin.exe) | 1,4 MB |
 | Comparador con REDCAD | [comparar-redcad.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-redcad.exe) | 1,6 MB |
 | Comparador con PRESIO | [comparar-presio.exe](https://github.com/gaelrenzo/suite-electrica/releases/download/v0.1.0-rust/comparar-presio.exe) | 1,4 MB |
@@ -157,7 +157,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 **TopoCraft**
 - [x] Importar CSV, DXF, KML, GPX, MapSource, Excel RLT y TPG
 - [x] TIN, curvas de nivel, perfil longitudinal y relieve SRTM
-- [ ] Catastro: lotes y numeración de viviendas *(en desarrollo)*
+- [x] Catastro: predios afectados por la faja de servidumbre
+- [ ] Numeración y validación de viviendas
 - [ ] Ortofotos georreferenciadas como fondo
 - [ ] Edición de puntos y rutas (trasladar, rotar, proyectar, unir, invertir)
 - [ ] Códigos topográficos de campo (CTU)
