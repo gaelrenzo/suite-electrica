@@ -3,7 +3,13 @@
 //! ```text
 //! comparar-presio APU.xlsx --apu              # análisis de precios unitarios
 //! comparar-presio Presupuesto.xlsx --fp       # fórmula polinómica (hoja FP)
+//! comparar-presio Reporte-Presupuesto.xls BaseDatosPRESIO.xlsx --transporte
 //! ```
+//!
+//! `--transporte` arma con las hojas «Suministros» (peso y origen) y «Flete T» (flete por kg de
+//! cada origen) de la base de PRESIO un presupuesto de PresuCraft con una UC por suministro y el
+//! metrado de las hojas LP/RP/RS-Transporte del reporte, lo calcula y compara el transporte de cada
+//! renglón y el total de cada hoja.
 //!
 //! `--apu` recalcula cada partida desde sus insumos (cuadrilla, rendimiento, cantidades, precios,
 //! %mo) y compara cantidades, parciales, subtotales y total. `--fp` toma de la hoja FP los
@@ -263,11 +269,84 @@ fn comparar_fp(ruta: &str) -> Result<(), String> {
     Ok(())
 }
 
+/// Transporte por rutas frente a PRESIO.
+fn comparar_transporte(reporte: &str, base: &str) -> Result<(), String> {
+    use suite_motor::presupuesto::{calcular, ComponenteUc, ItemMetrado, Presupuesto, Suministro, TramoTransporte};
+    let ft = hoja(base, Some("Flete T"))?;
+    let mut tramos = Vec::new();
+    for f in ft.iter().skip(2) {
+        let (o, v) = (f.get(1).map(texto).unwrap_or_default(), f.get(2).map(num).unwrap_or(f64::NAN));
+        if !o.is_empty() && v.is_finite() {
+            tramos.push(TramoTransporte { ruta: o, precio_kg: v, fuente: "PRESIO Flete T".into(), ..Default::default() });
+        }
+    }
+    let su = hoja(base, Some("Suministros"))?;
+    // descripción -> (peso, origen, precio de transporte directo)
+    let mut base_s: BTreeMap<String, (f64, String, f64)> = BTreeMap::new();
+    for f in &su {
+        let d = f.get(1).map(texto).unwrap_or_default();
+        let peso = f.get(5).map(num).unwrap_or(f64::NAN);
+        if !d.is_empty() && peso.is_finite() {
+            base_s.entry(d).or_insert((peso, f.get(6).map(texto).unwrap_or_default(), f.get(4).map(num).unwrap_or(f64::NAN)));
+        }
+    }
+    println!("Base: {} suministros con peso, {} orígenes con flete", base_s.len(), tramos.len());
+    let mut err = Vec::new();
+    let (mut sin_base, mut directo) = (0, 0);
+    for rubro in ["LP", "RP", "RS"] {
+        let h = hoja(reporte, Some(&format!("{rubro}-Transporte")))?;
+        let mut p = Presupuesto { nombre: rubro.into(), transporte: tramos.clone(), moneda: "S/".into(), ..Default::default() };
+        let mut esperado: Vec<(String, f64)> = Vec::new();
+        let mut total_presio = f64::NAN;
+        // columnas «Metrado» y «TOTAL» por su encabezado (cambian con el número de derivaciones)
+        let fila_cab = h.iter().find(|f| f.iter().any(|c| texto(c) == "Metrado")).ok_or(format!("{rubro}-Transporte: sin encabezado «Metrado»"))?;
+        let col_q = fila_cab.iter().position(|c| texto(c) == "Metrado").unwrap();
+        let col_t = fila_cab.iter().rposition(|c| texto(c) == "TOTAL").ok_or(format!("{rubro}-Transporte: sin columna «TOTAL»"))?;
+        for f in &h {
+            let d = f.get(2).map(texto).unwrap_or_default();
+            if d.starts_with("TOTAL DE TRANSPORTE") {
+                total_presio = f.get(col_t).map(num).unwrap_or(f64::NAN);
+            }
+            let (q, tot) = (f.get(col_q).map(num).unwrap_or(f64::NAN), f.get(col_t).map(num).unwrap_or(f64::NAN));
+            if !q.is_finite() || !tot.is_finite() || d.is_empty() {
+                continue;
+            }
+            let Some((peso, origen, tr_directo)) = base_s.get(&d) else {
+                sin_base += 1;
+                println!("  {rubro} sin la base: {d} (transporte {tot:.2})");
+                continue;
+            };
+            if tr_directo.is_finite() {
+                directo += 1; // ponytail: precio de transporte por unidad fijado en la base; fuera del modelo por kg
+                continue;
+            }
+            let cod = format!("{rubro}-{}", esperado.len());
+            p.suministros.push(Suministro { codigo: cod.clone(), descripcion: d.clone(), unidad: "und".into(), precio: Some(0.0), peso_kg: Some(*peso), ruta: origen.clone(), ..Default::default() });
+            p.unidades.push(ComponenteUc { uc: cod.clone(), suministro: cod.clone(), cantidad: Some(1.0) });
+            p.metrado.push(ItemMetrado { rubro: rubro.into(), uc: cod.clone(), cantidad: Some(q) });
+            esperado.push((cod, tot));
+        }
+        let r = calcular(&p)?;
+        let mut suma = 0.0;
+        for (cod, tot) in &esperado {
+            let lc = r.suministro.iter().find(|x| &x.codigo == cod).map_or(f64::NAN, |x| x.transporte);
+            suma += lc;
+            err.push((lc - tot).abs());
+        }
+        let suma_presio: f64 = esperado.iter().map(|x| x.1).sum();
+        println!("{rubro}: {} renglones; PresuCraft {suma:.2} frente a PRESIO {suma_presio:.2} (total de la hoja {total_presio:.2})", esperado.len());
+    }
+    println!("sin el suministro en la base: {sin_base}; con precio de transporte directo (excluidos): {directo}");
+    estadistica("transporte por renglón (S/)", &mut err);
+    Ok(())
+}
+
 fn main() {
     let a: Vec<String> = std::env::args().skip(1).collect();
     let r = match a.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
         [p, "--apu"] => comparar_apu(p),
         [p, "--fp"] => comparar_fp(p),
+        [r, b, "--transporte"] => comparar_transporte(r, b),
         _ => Err("uso: comparar-presio APU.xlsx --apu | comparar-presio Presupuesto.xlsx --fp".into()),
     };
     if let Err(e) = r {

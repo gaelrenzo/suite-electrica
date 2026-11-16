@@ -14,6 +14,8 @@ pub struct Suministro {
     pub fuente: String,
     /// Índice Unificado (INEI) para la fórmula polinómica.
     pub iu: String,
+    /// Origen o ruta de flete (como PRESIO): su flete por kg sale de `transporte.csv`.
+    pub ruta: String,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -57,13 +59,18 @@ pub struct Presupuesto {
     /// Fórmula polinómica: índice -> índice similar (agrupación preliminar) y grupo -> monomio.
     pub fp_similar: BTreeMap<String, String>,
     pub fp_monomio: BTreeMap<String, String>,
-    /// Ruta de transporte (como PRESIO): si hay tramos, el flete por kg sale de ellos.
+    /// Rutas de flete: si hay, el flete por kg de cada suministro sale de su ruta (como PRESIO).
     pub transporte: Vec<TramoTransporte>,
 }
 
-/// Tramo de la ruta de transporte de los suministros: costo por tonelada-kilómetro según la vía.
+/// Fila de una ruta de flete: un precio por kg directo (como la hoja «Flete T» de PRESIO) y/o un
+/// tramo con distancia y costo por tonelada-kilómetro.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TramoTransporte {
+    /// Origen o ruta (vacío = la ruta única del proyecto).
+    pub ruta: String,
+    /// Precio directo (moneda/kg).
+    pub precio_kg: f64,
     pub tramo: String,
     /// Tipo de vía (asfaltada, afirmada, trocha, acémila, fluvial…): solo descriptivo.
     pub via: String,
@@ -72,9 +79,40 @@ pub struct TramoTransporte {
     pub fuente: String,
 }
 
-/// Flete por kg de una ruta: Σ distancia × costo por t·km / 1000.
+/// Flete por kg de un conjunto de filas: Σ precio por kg + Σ distancia × costo por t·km / 1000.
 pub fn flete_ruta(tramos: &[TramoTransporte]) -> f64 {
-    tramos.iter().map(|t| t.distancia_km * t.costo_t_km).sum::<f64>() / 1000.0
+    tramos.iter().map(|t| t.precio_kg + t.distancia_km * t.costo_t_km / 1000.0).sum()
+}
+
+/// Flete por kg de cada ruta.
+pub fn fletes(tramos: &[TramoTransporte]) -> BTreeMap<String, f64> {
+    let mut m: BTreeMap<String, f64> = BTreeMap::new();
+    for t in tramos {
+        *m.entry(t.ruta.clone()).or_default() += flete_ruta(std::slice::from_ref(t));
+    }
+    m
+}
+
+/// Flete por kg de cada suministro: el de su ruta; sin ruta, el de la ruta única (o el
+/// `flete_por_kg` del proyecto si no hay rutas).
+fn flete_suministros(p: &Presupuesto) -> Result<HashMap<String, f64>, String> {
+    let f = fletes(&p.transporte);
+    let mut out = HashMap::new();
+    for s in &p.suministros {
+        let v = if f.is_empty() {
+            p.flete_por_kg
+        } else if let Some(v) = f.get(s.ruta.trim()) {
+            *v
+        } else if s.ruta.trim().is_empty() && f.len() == 1 {
+            *f.values().next().unwrap()
+        } else if s.ruta.trim().is_empty() {
+            return Err(format!("Suministro {}: hay varias rutas de flete; indique la suya en la columna «ruta»", s.codigo));
+        } else {
+            return Err(format!("Suministro {}: la ruta «{}» no está en la tabla de transporte", s.codigo, s.ruta.trim()));
+        };
+        out.insert(s.codigo.clone(), v);
+    }
+    Ok(out)
 }
 
 /// Lee `transporte.csv` (columnas tramo, via, distancia_km, costo_t_km, fuente).
@@ -82,11 +120,24 @@ pub fn leer_transporte_csv(texto: &str) -> Result<Vec<TramoTransporte>, String> 
     let mut out = Vec::new();
     for (k, f) in leer_csv(texto)?.iter().enumerate() {
         let g = |c: &str| f.get(c).map(|s| s.trim().to_string()).unwrap_or_default();
-        if g("tramo").is_empty() && g("distancia_km").is_empty() {
+        if g("tramo").is_empty() && g("distancia_km").is_empty() && g("precio_kg").is_empty() {
             continue;
         }
-        let num = |c: &str| g(c).replace(',', ".").parse::<f64>().map_err(|_| format!("transporte, fila {}: '{c}' = «{}» no es un número", k + 1, g(c)));
-        out.push(TramoTransporte { tramo: g("tramo"), via: g("via"), distancia_km: num("distancia_km")?, costo_t_km: num("costo_t_km")?, fuente: g("fuente") });
+        let num = |c: &str| {
+            if g(c).is_empty() {
+                return Ok(0.0);
+            }
+            g(c).replace(',', ".").parse::<f64>().map_err(|_| format!("transporte, fila {}: '{c}' = «{}» no es un número", k + 1, g(c)))
+        };
+        out.push(TramoTransporte {
+            ruta: g("ruta"),
+            precio_kg: num("precio_kg")?,
+            tramo: g("tramo"),
+            via: g("via"),
+            distancia_km: num("distancia_km")?,
+            costo_t_km: num("costo_t_km")?,
+            fuente: g("fuente"),
+        });
     }
     Ok(out)
 }
@@ -248,6 +299,7 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
                 m.cantidad.unwrap_or(0.0) * u.cantidad.unwrap_or(f64::NAN);
         }
     }
+    let flete = flete_suministros(p)?;
     let suministro: Vec<FilaSuministro> = mat
         .iter()
         .map(|((rubro, cod), cant)| {
@@ -262,7 +314,7 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
                 precio: s.precio,
                 parcial: cant * s.precio.unwrap_or(0.0),
                 peso_kg: peso,
-                transporte: peso * p.flete_por_kg,
+                transporte: peso * flete[cod.as_str()],
             }
         })
         .collect();
@@ -284,12 +336,13 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
     let planilla_uc = me
         .iter()
         .map(|m| {
-            let (mut s, mut w) = (0.0, 0.0);
+            let (mut s, mut w, mut tr) = (0.0, 0.0, 0.0);
             for u in p.unidades.iter().filter(|u| u.uc == m.uc) {
                 let q = u.cantidad.unwrap_or(0.0);
                 let x = sm[u.suministro.as_str()];
                 s += q * x.precio.unwrap_or(0.0);
                 w += q * x.peso_kg.unwrap_or(0.0);
+                tr += q * x.peso_kg.unwrap_or(0.0) * flete[u.suministro.as_str()];
             }
             let mo: f64 = p_montaje.iter().filter(|x| x.uc == m.uc).map(|x| x.precio.unwrap_or(0.0)).sum();
             let q = m.cantidad.unwrap_or(0.0);
@@ -300,8 +353,8 @@ pub fn calcular(p: &Presupuesto) -> Result<ResultadoPresupuesto, String> {
                 suministro_unit: rd(s, 2),
                 montaje_unit: rd(mo, 2),
                 peso_unit: rd(w, 3),
-                transporte_unit: rd(w * p.flete_por_kg, 2),
-                total: rd(q * (s + mo + w * p.flete_por_kg), 2),
+                transporte_unit: rd(tr, 2),
+                total: rd(q * (s + mo + tr), 2),
             }
         })
         .collect();
@@ -413,6 +466,7 @@ pub fn leer_tablas(
                 peso_kg: num(f, "peso_kg"),
                 fuente: txt(f, "fuente"),
                     iu: txt(f, "iu"),
+                ruta: if f.contains_key("ruta") { txt(f, "ruta") } else { txt(f, "origen") },
             })
             .collect(),
         leer_csv(unidades)?
@@ -473,8 +527,10 @@ pub fn cargar(ruta: &std::path::Path) -> Result<Presupuesto, String> {
         },
     })
     .and_then(|mut p| {
-        if !p.transporte.is_empty() {
-            p.flete_por_kg = flete_ruta(&p.transporte);
+        // con una sola ruta, el flete por kg del proyecto es el de esa ruta
+        let f = fletes(&p.transporte);
+        if f.len() == 1 {
+            p.flete_por_kg = *f.values().next().unwrap();
         }
         if cfg.get("fp_agrupacion").and_then(|v| v.as_str()).is_some() {
             for f in leer_csv(&leer("fp_agrupacion")?)? {

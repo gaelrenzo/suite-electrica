@@ -40,3 +40,36 @@ fn flete_desde_la_ruta() {
     assert!(!r.avisos.iter().any(|a| a.contains("'flete_por_kg'")), "con ruta no se avisa del flete fijo");
     assert!(suite_motor::salidas::tablas_presupuesto(&r).iter().any(|t| t.nombre == "Transporte"));
 }
+
+/// Varias rutas (como la hoja «Flete T» de PRESIO): cada suministro paga el flete de su origen.
+#[test]
+fn flete_por_origen_del_suministro() {
+    use suite_motor::presupuesto::{calcular, fletes, ComponenteUc, ItemMetrado, Presupuesto, Suministro};
+    let t = leer_transporte_csv(
+        "ruta,tramo,via,distancia_km,costo_t_km,precio_kg,fuente\nLima,,,,,0.26,PRESIO\nJuliaca,carretera,asfaltada,40,0.5,,X\nJuliaca,trocha,afirmada,10,2,,X\n",
+    )
+    .unwrap();
+    let f = fletes(&t);
+    assert!((f["Lima"] - 0.26).abs() < 1e-12 && (f["Juliaca"] - 0.04).abs() < 1e-12);
+    let su = |c: &str, peso: f64, ruta: &str| Suministro { codigo: c.into(), peso_kg: Some(peso), precio: Some(0.0), ruta: ruta.into(), ..Default::default() };
+    let mut p = Presupuesto {
+        suministros: vec![su("CUT", 13.8, "Lima"), su("POSTE", 1000.0, "Juliaca")],
+        unidades: vec![
+            ComponenteUc { uc: "U1".into(), suministro: "CUT".into(), cantidad: Some(1.0) },
+            ComponenteUc { uc: "U1".into(), suministro: "POSTE".into(), cantidad: Some(1.0) },
+        ],
+        metrado: vec![ItemMetrado { rubro: "LP".into(), uc: "U1".into(), cantidad: Some(2.0) }],
+        transporte: t,
+        ..Default::default()
+    };
+    let r = calcular(&p).unwrap();
+    let tr = |c: &str| r.suministro.iter().find(|x| x.codigo == c).unwrap().transporte;
+    assert!((tr("CUT") - 2.0 * 3.588).abs() < 1e-9, "13,8 kg × 0,26 = 3,588 por unidad (como PRESIO)");
+    assert!((tr("POSTE") - 2.0 * 40.0).abs() < 1e-9);
+    assert!((r.planilla_uc[0].transporte_unit - 43.59).abs() < 1e-9, "por UC: 3,588 + 40");
+    // una ruta que no existe, o varias rutas y un suministro sin ruta: error claro
+    p.suministros[0].ruta = "Cusco".into();
+    assert!(calcular(&p).unwrap_err().contains("Cusco"));
+    p.suministros[0].ruta.clear();
+    assert!(calcular(&p).unwrap_err().contains("varias rutas"));
+}

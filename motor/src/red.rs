@@ -888,7 +888,7 @@ pub struct Autodiseno {
     pub avisos: Vec<String>,
 }
 
-/// Autodiseño de conductores BT (como el de REDCAD): a cada tramo le asigna la formación más
+/// Autodiseño de conductores BT (REDCAD no lo tiene: su «autodiseño» distribuye estructuras y\n/// suministros desde los lotes; ver su manual, cap. 6.1): a cada tramo le asigna la formación más
 /// chica del catálogo que cumple %ΔV (SP y AP), corriente máxima y pérdidas. «Más chica» =
 /// mayor K (Ω/km); solo se cambia entre formaciones con las mismas fases y con o sin hilo de AP.
 ///

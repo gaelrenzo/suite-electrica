@@ -476,11 +476,11 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      Reemplaza los puntos y anota en «Fuentes» que es SRTM, solo para anteproyecto. La hoja la
      descarga el usuario (p. ej. de EarthExplorer del USGS); la suite no descarga nada.
    - ✅ **Transporte por rutas** (como PRESIO; prueba `tests/presu_transporte.rs`): tabla opcional
-     `transporte.csv` (tramo, vía, distancia_km, costo_t_km, fuente) enlazada en el JSON con la
-     clave `transporte`. El flete por kg = Σ distancia × costo por t·km / 1000 y reemplaza al
-     `flete_por_kg` fijo; hoja «Transporte» en los resultados y el Excel; aviso por cada tramo sin
+     `transporte.csv` (ruta, tramo, vía, distancia_km, costo_t_km, precio_kg, fuente) enlazada en el
+     JSON con la clave `transporte`. Flete por kg de cada ruta = Σ precio_kg + Σ distancia × costo
+     por t·km / 1000; cada suministro usa el de su ruta (ver la validación con PRESIO); hoja «Transporte» en los resultados y el Excel; aviso por cada tramo sin
      fuente. En la app: «Crear ruta de transporte» en Parámetros y pestaña «Transporte (ruta)».
-     No se comparó con PRESIO (los costos por t·km los pone el usuario con su cotización).
+     Validado con PRESIO el 17/11 (ver punto 3 de Pendientes).
    - GridCraft: revisado en pantalla el 16/11 la selección múltiple (Mayús+clic, «Aplicar a 3
      postes» con armado y retenida), la simbología (SED, luminarias, retenidas) y el metrado.
      Se corrigió el redondeo del metrado (0.11500000000000002 km → 0.115).
@@ -531,7 +531,19 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      conservador.
    - `COMPARAR_DETALLE=texto` hace que `comparar-redlin --postes` imprima una línea por estructura
      cuyo armado contiene el texto (postes, retenida, FL, MRN y FS de REDLIN y de la suite).
-   - Falta: red primaria MT y autodiseño BT con REDCAD; transporte por rutas con PRESIO.
+   - ✅ **Transporte por rutas, con PRESIO** (17/11). PRESIO no usa una ruta única en t·km: su
+     hoja «Flete T» da un flete por kg para cada origen o ruta y cada suministro tiene su origen;
+     transporte = peso × flete de su origen. La suite se cambió a ese modelo (`Suministro.ruta`,
+     columna `ruta` u `origen` en `suministros.csv`; `transporte.csv` con `ruta` y `precio_kg`
+     directo y/o tramos en t·km; con una sola ruta funciona como antes). `comparar-presio
+     Reporte-Presupuesto.xls BaseDatosPRESIO.xlsx --transporte` con el ejemplo de PRESIO: 172
+     renglones de LP, RP y RS, 164 iguales y el resto con ≤ 0,005 S/ (redondeo); los 19 renglones
+     cuyos suministros no están en la base instalada cierran la diferencia con el total de cada hoja
+     (LP: 31 593,21 + 1 566,22 = 33 159,43). Prueba `flete_por_origen_del_suministro`.
+   - **No comparables con REDCAD:** REDCAD no tiene autodiseño de conductores (su «autodiseño»
+     distribuye estructuras y suministros desde los lotes, manual cap. 6.1) y su reporte de caída de
+     tensión es solo de baja tensión, así que la red primaria y el autodiseño de la suite quedan
+     validados solo con sus pruebas (cálculo a mano en `tests/red_primaria.rs`).
 4. **Valores de EJEMPLO** que hay que reemplazar por los de una fuente citada (norma DGE, CNE o
    fabricante): faja de servidumbre de 11 m; conductores AAAC de MT (r, x y DMG de 1,20 m); tabla
    de cimentaciones; hipótesis I-V, EDS de 18 % y tiro máximo de 40 %.

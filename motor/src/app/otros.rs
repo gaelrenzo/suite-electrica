@@ -314,7 +314,7 @@ const TABLAS_PRESU: [(&str, &str); 7] = [
     ("fp_agrupacion", "Agrupación FP"),
     ("transporte", "Transporte (ruta)"),
 ];
-const CABECERA_TRANSPORTE: &str = "tramo,via,distancia_km,costo_t_km,fuente";
+const CABECERA_TRANSPORTE: &str = "ruta,tramo,via,distancia_km,costo_t_km,precio_kg,fuente";
 const CABECERA_APU: &str = "partida,descripcion,unidad,rendimiento,tipo,insumo,unidad_insumo,cuadrilla,cantidad,precio,iu,base";
 const CABECERA_FP: &str = "iu,similar,monomio";
 
@@ -361,6 +361,7 @@ impl ModuloJson {
                 let mut a = ArchivoCsv::abrir(titulo, &base.join(f))?;
                 if k == "suministros" {
                     a.asegurar_columna("iu"); // índice unificado, para la fórmula polinómica
+                    a.asegurar_columna("ruta"); // origen o ruta de flete (transporte por rutas)
                 }
                 self.datos.push(a);
             }
