@@ -161,7 +161,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [ ] Numeración y validación de viviendas
 - [ ] Ortofotos georreferenciadas como fondo
 - [x] Edición de puntos (tabla, trasladar, rotar)
-- [ ] Edición de rutas (proyectar, unir, invertir)
+- [x] Invertir el sentido del eje
+- [ ] Edición de rutas (proyectar, unir)
 - [ ] Códigos topográficos de campo (CTU)
 
 **LineCraft**

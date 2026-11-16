@@ -739,6 +739,28 @@ impl Documento {
     }
 
     /// Solo inicio, fin y vértices del eje (para ubicar el resto a mano).
+    /// Invierte el sentido del eje (el fin pasa a ser el inicio). Las progresivas de estructuras y
+    /// cruces se convierten a s' = L − s, así siguen en el mismo lugar del terreno.
+    pub fn invertir_eje(&mut self) -> Result<(), String> {
+        let eje = self.eje.as_mut().ok_or("El proyecto no tiene eje de línea")?;
+        let l = *progresivas_eje(eje).last().unwrap_or(&0.0);
+        eje.reverse();
+        let inv = |s: f64| redondear(l - s, 3);
+        for e in &mut self.estructuras {
+            e.progresiva_m = inv(e.progresiva_m);
+        }
+        for c in &mut self.cruces {
+            if let Some(s) = c.first_mut() {
+                if let Ok(x) = s.trim().replace(',', ".").parse::<f64>() {
+                    *s = inv(x).to_string();
+                }
+            }
+        }
+        self.ordenar();
+        self.cambio_topografia();
+        Ok(())
+    }
+
     pub fn estructuras_minimas(&mut self) -> Result<(), String> {
         let eje = self.eje.as_ref().ok_or("El proyecto no tiene eje de línea")?;
         let nuevas = progresivas_eje(eje).into_iter().map(|s| FilaEstructura::en(redondear(s, 3))).collect();

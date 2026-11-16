@@ -571,7 +571,9 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    de cimentaciones; hipótesis I-V, EDS de 18 % y tiro máximo de 40 %.
 5. **Brechas con ESOLUTIONS según sus manuales** (también en la hoja de ruta del README):
    - TopoCraft: numeración y validación de viviendas; ortofotos georreferenciadas como fondo;
-     edición de rutas (proyectar, unir, invertir); códigos de campo (CTU). ✅ Edición de puntos
+     edición de rutas (proyectar, unir); códigos de campo (CTU). ✅ Invertir eje (17/11): botón
+     en TopoCraft; las progresivas de estructuras y cruces pasan a L − s y siguen en el mismo
+     punto del terreno (`Documento::invertir_eje`, prueba `invertir_eje_conserva_ubicaciones`). ✅ Edición de puntos
      (17/11): ventana «Editar puntos…» con la tabla (buscar, editar, agregar, eliminar; «Aplicar
      cambios» valida cada número) y transformación de la nube: traslación ΔE/ΔN/ΔZ y rotación
      alrededor del centroide, opcionalmente también del eje (`Documento::transformar_puntos`,

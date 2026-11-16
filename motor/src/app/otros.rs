@@ -103,6 +103,16 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
                 if ui.button("Importar eje…").clicked() {
                     importar_eje(app);
                 }
+                if ui.add_enabled(app.doc.eje.is_some(), egui::Button::new("Invertir eje"))
+                    .on_hover_text("El fin pasa a ser el inicio; las progresivas de estructuras y cruces se convierten (L − s)")
+                    .clicked()
+                {
+                    let r = app.doc.invertir_eje();
+                    if app.intentar(r).is_some() {
+                        app.calculo = None;
+                        app.estado = "Eje invertido — pulse Procesar / Calcular".into();
+                    }
+                }
                 if ui.add_enabled(!app.doc.puntos.is_empty(), egui::Button::new("Editar puntos…"))
                     .on_hover_text("Editar, agregar o eliminar puntos; trasladar o rotar la nube")
                     .clicked()
