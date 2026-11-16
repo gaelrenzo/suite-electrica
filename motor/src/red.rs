@@ -109,7 +109,8 @@ pub fn metrado(red: &Red) -> Vec<FilaMetradoRed> {
     }
     grupos
         .into_iter()
-        .flat_map(|(g, u, m)| m.into_iter().map(move |(k, v)| FilaMetradoRed { item: g.into(), codigo: k, unidad: u.into(), cantidad: v }))
+        // redondeo a 1e-6: la suma de vanos en km arrastra error binario (0.115 → 0.11500000000000002)
+        .flat_map(|(g, u, m)| m.into_iter().map(move |(k, v)| FilaMetradoRed { item: g.into(), codigo: k, unidad: u.into(), cantidad: (v * 1e6).round() / 1e6 }))
         .collect()
 }
 
