@@ -444,7 +444,7 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      y CIM-ELI (m³) al rubro RS o LP; sus precios van en `montaje.csv` (si faltan, PresuCraft
      avisa «costo 0»).
    - LineCraft: hoja «Cimentaciones» en la planilla.
-4. **Release:** ✅ `v0.2.1` (17/11/2026; `v0.2.0` sin las correcciones de la revisión en pantalla). `v0.1.0-rust` se volvió a subir
+4. **Release:** ✅ `v0.2.2` (17/11/2026: retenidas de biposte y transporte por origen como REDLIN y PRESIO, alerta H/w). Antes `v0.2.1` y `v0.2.0`. `v0.1.0-rust` se volvió a subir
    varias veces con el mismo nombre (último build: `4f13cf6`); desde ahora cada build publicado
    lleva un número de versión nuevo y el README enlaza a `releases/latest`.
 5. **Brechas con ESOLUTIONS de la primera lista:** ✅ todas tienen una primera versión.
