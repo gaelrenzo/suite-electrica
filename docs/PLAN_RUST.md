@@ -529,6 +529,15 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      la del ángulo queda en los postes (`catalogos::toma_biposte`, prueba `retenidas_de_biposte`).
      Antes la suite suponía que 2 retenidas tomaban todo en un H en ángulo: MRN −84 %, no
      conservador.
+   - **Abierto: terminales TS y suspensiones PS con retenida** (diferencias que ya estaban en la
+     comparación base: TS n=31 mediana 45 %, PS n=7 mediana 123 %). Análisis del 17/11 por
+     estructura: en las TS sin ángulo el MRN de REDLIN queda entre «la retenida toma la
+     longitudinal» y «sin retenida» (una, la fila 55, coincide −0,02 %): REDLIN deja en el poste el
+     momento de cada fase por su altura sobre el anclaje de la retenida (brazo implícito 0,24 a 4 m
+     según la estructura, coherente con armados verticales). En las TS con ángulo REDLIN da menos:
+     la retenida también toma parte de la transversal. Modelarlo exige las alturas de fase y de
+     anclaje de la retenida de cada armado, que el reporte de REDLIN no trae por separado; no se
+     cambió el motor para no introducir un error sin evidencia suficiente.
    - `COMPARAR_DETALLE=texto` hace que `comparar-redlin --postes` imprima una línea por estructura
      cuyo armado contiene el texto (postes, retenida, FL, MRN y FS de REDLIN y de la suite).
    - ✅ **Transporte por rutas, con PRESIO** (17/11). PRESIO no usa una ruta única en t·km: su
