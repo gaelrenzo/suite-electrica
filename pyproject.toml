@@ -39,7 +39,6 @@ suite-electrica = "suite_electrica.gui.app:main"
 include = ["suite_electrica*"]
 
 [tool.setuptools.package-data]
-"suite_electrica.plantillas" = ["*.json", "*.csv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

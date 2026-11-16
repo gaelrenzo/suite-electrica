@@ -6,9 +6,9 @@ normativos inventados (las filas sin fuente se marcan PENDIENTE).
 
 from __future__ import annotations
 
+from suite_electrica._plantillas import plantillas
 import math
 from dataclasses import dataclass, field
-from importlib.resources import files
 from pathlib import Path
 
 import numpy as np
@@ -61,8 +61,8 @@ class Catalogos:
 
     @classmethod
     def plantilla(cls) -> Catalogos:
-        """Catálogos por defecto (``suite_electrica/plantillas``)."""
-        base = files("suite_electrica.plantillas")
+        """Catálogos por defecto (``data/plantillas``)."""
+        base = plantillas()
         tablas = {}
         for nombre in COLUMNAS:
             with base.joinpath(f"{nombre}.csv").open("r", encoding="utf-8") as fh:

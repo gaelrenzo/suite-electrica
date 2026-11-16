@@ -319,11 +319,11 @@ const CABECERA_APU: &str = "partida,descripcion,unidad,rendimiento,tipo,insumo,u
 const CABECERA_FP: &str = "iu,similar,monomio";
 
 const PLANTILLAS_PRESU: [(&str, &str); 5] = [
-    ("presupuesto.json", include_str!("../../../suite_electrica/plantillas/presu_presupuesto.json")),
-    ("suministros.csv", include_str!("../../../suite_electrica/plantillas/presu_suministros.csv")),
-    ("unidades.csv", include_str!("../../../suite_electrica/plantillas/presu_unidades.csv")),
-    ("montaje.csv", include_str!("../../../suite_electrica/plantillas/presu_montaje.csv")),
-    ("metrado.csv", include_str!("../../../suite_electrica/plantillas/presu_metrado.csv")),
+    ("presupuesto.json", include_str!("../../../data/plantillas/presu_presupuesto.json")),
+    ("suministros.csv", include_str!("../../../data/plantillas/presu_suministros.csv")),
+    ("unidades.csv", include_str!("../../../data/plantillas/presu_unidades.csv")),
+    ("montaje.csv", include_str!("../../../data/plantillas/presu_montaje.csv")),
+    ("metrado.csv", include_str!("../../../data/plantillas/presu_metrado.csv")),
 ];
 
 impl ModuloJson {

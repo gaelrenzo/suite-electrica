@@ -11,7 +11,7 @@
 use crate::catalogos::leer_csv;
 
 /// Plantilla de la tabla (valores de EJEMPLO).
-pub const PLANTILLA: &str = include_str!("../../suite_electrica/plantillas/cimentaciones.csv");
+pub const PLANTILLA: &str = include_str!("../../data/plantillas/cimentaciones.csv");
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Cimentacion {

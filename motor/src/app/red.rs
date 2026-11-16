@@ -14,9 +14,9 @@ use suite_motor::dxf;
 use crate::{abrir_externo, elegir_carpeta, num, ver_tabla, App};
 
 const PLANTILLAS: [(&str, &str); 4] = [
-    ("red.json", include_str!("../../../suite_electrica/plantillas/red_proyecto.json")),
-    ("nodos.csv", include_str!("../../../suite_electrica/plantillas/red_nodos.csv")),
-    ("conductores_bt.csv", include_str!("../../../suite_electrica/plantillas/conductores_bt.csv")),
+    ("red.json", include_str!("../../../data/plantillas/red_proyecto.json")),
+    ("nodos.csv", include_str!("../../../data/plantillas/red_nodos.csv")),
+    ("conductores_bt.csv", include_str!("../../../data/plantillas/conductores_bt.csv")),
     (suite_motor::cimentacion::ARCHIVO, suite_motor::cimentacion::PLANTILLA),
 ];
 
@@ -172,9 +172,9 @@ pub fn cimentaciones_red(rd: &Red, ruta: Option<&Path>) -> Result<Option<(Vec<su
 
 /// Red primaria (MT): mismo motor que la secundaria, con cargas por subestación y conductores AAAC.
 const PLANTILLAS_MT: [(&str, &str); 4] = [
-    ("red.json", include_str!("../../../suite_electrica/plantillas/red_mt_proyecto.json")),
-    ("nodos.csv", include_str!("../../../suite_electrica/plantillas/red_mt_nodos.csv")),
-    ("conductores_mt.csv", include_str!("../../../suite_electrica/plantillas/conductores_mt.csv")),
+    ("red.json", include_str!("../../../data/plantillas/red_mt_proyecto.json")),
+    ("nodos.csv", include_str!("../../../data/plantillas/red_mt_nodos.csv")),
+    ("conductores_mt.csv", include_str!("../../../data/plantillas/conductores_mt.csv")),
     (suite_motor::cimentacion::ARCHIVO, suite_motor::cimentacion::PLANTILLA),
 ];
 

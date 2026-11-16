@@ -320,13 +320,13 @@ pub struct Documento {
     pila: Vec<Vec<FilaEstructura>>,
 }
 
-const PLANTILLA_PROYECTO: &str = include_str!("../../suite_electrica/plantillas/proyecto.json");
-const PLANTILLA_CONDUCTORES: &str = include_str!("../../suite_electrica/plantillas/conductores.csv");
+const PLANTILLA_PROYECTO: &str = include_str!("../../data/plantillas/proyecto.json");
+const PLANTILLA_CONDUCTORES: &str = include_str!("../../data/plantillas/conductores.csv");
 const PLANTILLA_CAT: [(&str, &str); 4] = [
-    ("postes", include_str!("../../suite_electrica/plantillas/postes.csv")),
-    ("armados", include_str!("../../suite_electrica/plantillas/armados.csv")),
-    ("retenidas", include_str!("../../suite_electrica/plantillas/retenidas.csv")),
-    ("materiales", include_str!("../../suite_electrica/plantillas/materiales.csv")),
+    ("postes", include_str!("../../data/plantillas/postes.csv")),
+    ("armados", include_str!("../../data/plantillas/armados.csv")),
+    ("retenidas", include_str!("../../data/plantillas/retenidas.csv")),
+    ("materiales", include_str!("../../data/plantillas/materiales.csv")),
 ];
 
 fn redondear(x: f64, d: usize) -> f64 {

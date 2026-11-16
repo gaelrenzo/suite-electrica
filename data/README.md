@@ -11,5 +11,5 @@ Reglas:
 3. No se copian tablas de software comercial.
 
 Estado: `conductores_PENDIENTE_REVISION.csv` (AAAC 35 del proyecto Capachica).
-Copia usada por `linecraft nuevo`: `suite_electrica/plantillas/conductores.csv`
+Copia usada por `linecraft nuevo` y por la versión Rust: `data/plantillas/conductores.csv`
 (mantener ambas iguales).

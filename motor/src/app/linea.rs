@@ -16,7 +16,7 @@ use suite_motor::{dxf, pdf};
 
 use crate::{abrir_externo, elegir_carpeta, num, ver_tabla, App};
 
-const CONDUCTORES: &str = include_str!("../../../suite_electrica/plantillas/conductores.csv");
+const CONDUCTORES: &str = include_str!("../../../data/plantillas/conductores.csv");
 const TIPOS: [&str; 5] = ["", "FIN", "ANCLAJE", "ANGULO", "SUSPENSION"];
 
 pub struct EstadoLinea {

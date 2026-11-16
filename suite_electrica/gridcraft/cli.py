@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+from suite_electrica._plantillas import plantillas
 import argparse
 import shutil
 import sys
 from collections.abc import Sequence
-from importlib.resources import files
 from pathlib import Path
 
 import pandas as pd
@@ -79,7 +79,7 @@ def cmd_calcular(args: argparse.Namespace) -> int:
 def cmd_nuevo(args: argparse.Namespace) -> int:
     destino = Path(args.carpeta)
     destino.mkdir(parents=True, exist_ok=True)
-    base = files("suite_electrica.plantillas")
+    base = plantillas()
     for nombre, origen in PLANTILLAS.items():
         ruta = destino / nombre
         if ruta.exists():

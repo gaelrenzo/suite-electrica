@@ -6,6 +6,7 @@ campo indica otra (``_mm``, ``_kN``…), igual que en los catálogos.
 
 from __future__ import annotations
 
+from suite_electrica._plantillas import plantillas
 import copy
 import json
 import math
@@ -99,13 +100,12 @@ class Topografia:
 
 
 def _plantilla_json() -> dict[str, Any]:
-    from importlib.resources import files
-    return json.loads(files("suite_electrica.plantillas").joinpath("proyecto.json").read_text("utf-8"))
+    return json.loads(plantillas().joinpath("proyecto.json").read_text("utf-8"))
 
 
 def _conductor_plantilla() -> Conductor:
-    from importlib.resources import as_file, files
-    with as_file(files("suite_electrica.plantillas").joinpath("conductores.csv")) as ruta:
+    from importlib.resources import as_file
+    with as_file(plantillas().joinpath("conductores.csv")) as ruta:
         return next(iter(leer_catalogo(ruta).values()))
 
 

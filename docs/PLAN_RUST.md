@@ -185,7 +185,7 @@ motivo; los archivos de referencia ya no se regeneran con Python.
 
 Antes de borrar `suite_electrica/`, hay que:
 
-1. Mover `suite_electrica/plantillas/` (Rust las incluye con `include_str!`) a `data/plantillas/`.
+1. ✅ Plantillas movidas a `data/plantillas/` (17/11): Rust las incluye desde ahí con `include_str!` y la versión Python las lee con `suite_electrica/_plantillas.py` (102 pruebas Python y 66 Rust pasan).
 2. ✅ Portar `examples/validacion/comparar_redlin.py`: binario `comparar-redlin`
    (`motor/src/bin/comparar-redlin.rs`), mismos 5 modos y argumentos. Con los reportes del
    ejemplo de REDLIN (`SER-ejemplo.len`, exportados en local; no se distribuyen) imprime **las

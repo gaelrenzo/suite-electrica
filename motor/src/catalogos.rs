@@ -167,10 +167,10 @@ impl Catalogos {
     /// Catálogos por defecto (plantillas del repositorio, incluidas en el binario).
     pub fn plantilla() -> Self {
         Self::desde_csv(
-            include_str!("../../suite_electrica/plantillas/postes.csv"),
-            include_str!("../../suite_electrica/plantillas/armados.csv"),
-            include_str!("../../suite_electrica/plantillas/retenidas.csv"),
-            include_str!("../../suite_electrica/plantillas/materiales.csv"),
+            include_str!("../../data/plantillas/postes.csv"),
+            include_str!("../../data/plantillas/armados.csv"),
+            include_str!("../../data/plantillas/retenidas.csv"),
+            include_str!("../../data/plantillas/materiales.csv"),
         )
         .expect("plantillas válidas")
     }

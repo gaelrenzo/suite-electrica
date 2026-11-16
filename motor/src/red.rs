@@ -115,7 +115,7 @@ pub fn metrado(red: &Red) -> Vec<FilaMetradoRed> {
 }
 
 /// Materiales por armado de la Norma DGE RD 023-2003 (plantilla `materiales_bt.csv`).
-pub const MATERIALES_BT: &str = include_str!("../../suite_electrica/plantillas/materiales_bt.csv");
+pub const MATERIALES_BT: &str = include_str!("../../data/plantillas/materiales_bt.csv");
 
 /// Materiales del metrado (cantidad por unidad × unidades): armados (`E'n` usa los de `En`),
 /// retenidas, puesta a tierra, pastorales y acometidas cuyo código esté en la tabla.

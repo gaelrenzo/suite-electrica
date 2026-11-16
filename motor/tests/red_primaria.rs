@@ -7,7 +7,7 @@ use suite_motor::red::{calcular, cargar};
 
 #[test]
 fn plantilla_mt_y_caida_a_mano() {
-    let pl = PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().join("suite_electrica").join("plantillas");
+    let pl = PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().join("data").join("plantillas");
     let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("red_mt");
     std::fs::create_dir_all(&dir).unwrap();
     for (de, a) in [("red_mt_proyecto.json", "red.json"), ("red_mt_nodos.csv", "nodos.csv"), ("conductores_mt.csv", "conductores_mt.csv")] {

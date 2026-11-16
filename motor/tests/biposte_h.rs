@@ -100,7 +100,7 @@ fn linea_con_biposte() {
 #[test]
 fn plantillas_con_columnas_fijas() {
     // un campo con coma sin comillas desplaza las columnas (pandas lo rechaza)
-    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("suite_electrica").join("plantillas");
+    let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("data").join("plantillas");
     for (archivo, n) in [("materiales.csv", 5), ("armados.csv", 14)] {
         let t = std::fs::read_to_string(base.join(archivo)).unwrap();
         let limpio = t.lines().filter(|l| !l.starts_with('#')).collect::<Vec<_>>().join("\n");

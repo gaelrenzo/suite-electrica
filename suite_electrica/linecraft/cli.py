@@ -6,11 +6,11 @@
 
 from __future__ import annotations
 
+from suite_electrica._plantillas import plantillas
 import argparse
 import shutil
 import sys
 from collections.abc import Sequence
-from importlib.resources import files
 from pathlib import Path
 
 from suite_electrica.linecraft import proyecto, salidas
@@ -85,14 +85,14 @@ def crear_proyecto(carpeta: str | Path) -> tuple[list[Path], list[Path]]:
     """
     destino = Path(carpeta)
     destino.mkdir(parents=True, exist_ok=True)
-    plantillas = files("suite_electrica.plantillas")
+    base = plantillas()
     creados, existentes = [], []
     for nombre in ("proyecto.json", "conductores.csv", "estructuras.csv"):
         ruta = destino / nombre
         if ruta.exists():
             existentes.append(ruta)
             continue
-        with plantillas.joinpath(nombre).open("rb") as src, open(ruta, "wb") as dst:
+        with base.joinpath(nombre).open("rb") as src, open(ruta, "wb") as dst:
             shutil.copyfileobj(src, dst)
         creados.append(ruta)
     return creados, existentes
