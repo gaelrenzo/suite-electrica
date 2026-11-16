@@ -577,7 +577,10 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      alrededor del centroide, opcionalmente también del eje (`Documento::transformar_puntos`,
      prueba `tests/puntos_transformar.rs`). Revisado en pantalla: 2 601 puntos girados 30° con
      el eje, perfil sin cambios.
-   - LineCraft: amortiguadores (cantidad por vano según fabricante); verificación de crucetas y
+   - LineCraft: ✅ amortiguadores por vano (17/11; tabla «Amortiguadores por vano…» en el `.sel`
+     con vano_hasta_m, cantidad_por_conductor y fuente del fabricante; el vano usa la primera fila
+     que lo cubre y el total entra al metrado como AMORT, también hacia PresuCraft; prueba
+     `tests/amortiguadores.rs`); verificación de crucetas y
      esquemas de aisladores; planos con plantilla de bloques. ✅ Vibraciones eólicas, criterio H/w
      de CIGRE TB 273 (prueba `tests/vibraciones_hw.rs`): parámetro «H/w máx.» en las alertas
      (0 = no verificar; el límite según la categoría de terreno lo pone el usuario con su fuente,

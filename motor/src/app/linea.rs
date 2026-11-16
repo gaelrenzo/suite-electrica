@@ -32,6 +32,8 @@ pub struct EstadoLinea {
     cat_filtro: String,
     planta: bool,
     cruces_abierto: bool,
+    amort_abierto: bool,
+    amort_filtro: String,
     cruces_filtro: String,
 }
 
@@ -50,6 +52,8 @@ impl Default for EstadoLinea {
             cat_filtro: String::new(),
             planta: false,
             cruces_abierto: false,
+            amort_abierto: false,
+            amort_filtro: String::new(),
             cruces_filtro: String::new(),
         }
     }
@@ -251,6 +255,13 @@ fn datos(app: &mut App, ui: &mut egui::Ui) {
         app.linea.cruces_abierto = true;
     }
     cambio |= ventana_cruces(app, &ui.ctx().clone());
+    if ui.button(format!("Amortiguadores por vano… ({})", app.doc.amortiguadores.len()))
+        .on_hover_text("Cantidad de amortiguadores por conductor según la longitud del vano (fabricante); se suman al metrado")
+        .clicked()
+    {
+        app.linea.amort_abierto = true;
+    }
+    cambio |= ventana_amortiguadores(app, &ui.ctx().clone());
     egui::CollapsingHeader::new("Conductor").show(ui, |ui| {
         let c = &mut app.doc.conductor;
         egui::ComboBox::from_id_salt("cond").selected_text(c.nombre.as_str()).show_ui(ui, |ui| {
@@ -746,5 +757,26 @@ fn ventana_cruces(app: &mut App, ctx: &egui::Context) -> bool {
         cambio |= crate::tablas::editar(ui, "cruces", &cols, &mut doc.cruces, &mut st.cruces_filtro);
     });
     st.cruces_abierto = abierto;
+    cambio
+}
+
+/// Ventana de la tabla de amortiguadores por vano (se guarda en el `.sel`).
+fn ventana_amortiguadores(app: &mut App, ctx: &egui::Context) -> bool {
+    if !app.linea.amort_abierto {
+        return false;
+    }
+    let mut abierto = true;
+    let mut cambio = false;
+    let (doc, st) = (&mut app.doc, &mut app.linea);
+    egui::Window::new("Amortiguadores por vano").open(&mut abierto).default_size([640.0, 300.0]).show(ctx, |ui| {
+        ui.label(egui::RichText::new(
+            "Una fila por rango: el vano usa la primera fila con «vano_hasta_m» mayor o igual a su longitud. \
+             «cantidad_por_conductor» = amortiguadores de un conductor en ese vano (ambos extremos). Cite la \
+             recomendación del fabricante en «fuente». Al calcular se suman al metrado (código AMORT).",
+        ).small());
+        let cols: Vec<String> = suite_motor::documento::COLS_AMORTIGUADORES.iter().map(|c| c.to_string()).collect();
+        cambio |= crate::tablas::editar(ui, "amortiguadores", &cols, &mut doc.amortiguadores, &mut st.amort_filtro);
+    });
+    st.amort_abierto = abierto;
     cambio
 }

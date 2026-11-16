@@ -316,6 +316,8 @@ pub struct Documento {
     pub estructuras: Vec<FilaEstructura>,
     /// Cruces y obstáculos bajo la línea (columnas `COLS_CRUCES`, texto como en la planilla).
     pub cruces: Vec<Vec<String>>,
+    /// Amortiguadores por vano (columnas `COLS_AMORTIGUADORES`; vacía = no se metran).
+    pub amortiguadores: Vec<Vec<String>>,
     /// Predios del catastro y ancho de la faja de servidumbre (m).
     pub catastro: Vec<crate::catastro::Predio>,
     pub ancho_servidumbre_m: f64,
@@ -399,6 +401,7 @@ impl Documento {
             fuentes,
             estructuras: Vec::new(),
             cruces: Vec::new(),
+            amortiguadores: Vec::new(),
             catastro: Vec::new(),
             ancho_servidumbre_m: ANCHO_SERVIDUMBRE_EJEMPLO,
             catalogos,
@@ -647,7 +650,13 @@ impl Documento {
         let nret = self.n_retenidas(&r);
         let ret = if l.retenida.is_empty() { None } else { Some(l.retenida.as_str()) };
         let ver = catalogos::verificar(&r, &p, &cat, l.fs_poste, l.fs_retenida, ret, &nret);
-        let met = catalogos::metrado(&r, &p, &cat, l.desperdicio_pct, ret, &nret);
+        let mut met = catalogos::metrado(&r, &p, &cat, l.desperdicio_pct, ret, &nret);
+        if let Some(f) = metrado_amortiguadores(&self.amortiguadores, &r, &p)? {
+            if f.1.is_empty() || f.1.to_uppercase().contains("PENDIENTE") || f.1.to_uppercase().contains("EJEMPLO") {
+                r.avisos.push(format!("PENDIENTE_REVISION: tabla de amortiguadores -> {}", if f.1.is_empty() { "sin fuente" } else { &f.1 }));
+            }
+            met.push(f.0);
+        }
         r.avisos.extend(cat.avisos());
         let hay_sistema = cat.armados.iter().any(|a| a.fases.unwrap_or(3.0) as i64 == l.fases && a.neutro == l.neutro);
         if !hay_sistema {
@@ -937,6 +946,11 @@ impl Documento {
                 "predios": self.catastro.iter().map(|p| json!({"nombre": p.nombre, "xy": p.xy})).collect::<Vec<_>>(),
             }));
         }
+        if !self.amortiguadores.is_empty() {
+            d.insert("amortiguadores".into(), Value::Array(self.amortiguadores.iter().map(|f| {
+                Value::Object(COLS_AMORTIGUADORES.iter().zip(f).map(|(c, v)| (c.to_string(), json!(v))).collect())
+            }).collect()));
+        }
         if !self.cruces.is_empty() {
             d.insert("cruces".into(), Value::Array(self.cruces.iter().map(|f| {
                 Value::Object(COLS_CRUCES.iter().zip(f).map(|(c, v)| (c.to_string(), json!(v))).collect())
@@ -1097,6 +1111,19 @@ impl Documento {
                 })
                 .unwrap_or_default();
         }
+        doc.amortiguadores = d
+            .get("amortiguadores")
+            .and_then(|x| x.as_array())
+            .map(|a| {
+                a.iter()
+                    .map(|r| COLS_AMORTIGUADORES.iter().map(|c| match r.get(*c) {
+                        Some(Value::String(t)) => t.clone(),
+                        Some(Value::Number(x)) => x.to_string(),
+                        _ => String::new(),
+                    }).collect())
+                    .collect()
+            })
+            .unwrap_or_default();
         doc.cruces = d
             .get("cruces")
             .and_then(|x| x.as_array())
@@ -1321,3 +1348,44 @@ pub fn tabla_cruces(c: &[FilaCruce]) -> crate::salidas::Tabla {
 
 /// Ancho de faja de servidumbre por defecto (m): valor de EJEMPLO, el usuario cita el del CNE.
 pub const ANCHO_SERVIDUMBRE_EJEMPLO: f64 = 11.0;
+
+// ------------------------------------------------------------------ amortiguadores
+
+/// Columnas de la tabla de amortiguadores: hasta qué longitud de vano (m) rige la fila, cuántos
+/// amortiguadores lleva cada conductor en ese vano (los dos extremos) y la fuente (fabricante).
+pub const COLS_AMORTIGUADORES: [&str; 3] = ["vano_hasta_m", "cantidad_por_conductor", "fuente"];
+
+/// Metrado de amortiguadores: por vano, la primera fila (de menor a mayor `vano_hasta_m`) que lo
+/// cubre; total = Σ conductores × cantidad. Devuelve la fila de metrado y las fuentes citadas.
+pub fn metrado_amortiguadores(tabla: &[Vec<String>], r: &Resultado, p: &Proyecto) -> Result<Option<(crate::catalogos::FilaMetrado, String)>, String> {
+    let mut filas: Vec<(f64, f64, String)> = Vec::new();
+    for (k, f) in tabla.iter().enumerate().filter(|(_, f)| f.iter().any(|c| !c.trim().is_empty())) {
+        let num = |j: usize| {
+            let t = f.get(j).map(|s| s.trim().replace(',', ".")).unwrap_or_default();
+            t.parse::<f64>().map_err(|_| format!("Amortiguadores, fila {}: «{t}» no es un número de {}", k + 1, COLS_AMORTIGUADORES[j]))
+        };
+        filas.push((num(0)?, num(1)?, f.get(2).map(|s| s.trim().to_string()).unwrap_or_default()));
+    }
+    if filas.is_empty() {
+        return Ok(None);
+    }
+    filas.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    let mut total = 0.0;
+    for v in &r.vanos {
+        let c = filas
+            .iter()
+            .find(|f| v.longitud <= f.0)
+            .ok_or(format!("Amortiguadores: el vano de {:.1} m supera el mayor de la tabla ({} m)", v.longitud, filas.last().unwrap().0))?;
+        total += p.n_conductores as f64 * c.1;
+    }
+    let mut fuentes: Vec<String> = filas.iter().map(|f| f.2.clone()).filter(|f| !f.is_empty()).collect();
+    fuentes.dedup();
+    let fila = crate::catalogos::FilaMetrado {
+        item: "Amortiguador".into(),
+        codigo: "AMORT".into(),
+        descripcion: "Amortiguador de vibraciones (tabla del proyecto)".into(),
+        unidad: "und".into(),
+        cantidad: total,
+    };
+    Ok(Some((fila, fuentes.join("; "))))
+}
