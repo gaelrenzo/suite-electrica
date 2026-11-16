@@ -430,6 +430,21 @@ impl Documento {
         Ok(())
     }
 
+    /// Relieve SRTM (`.hgt`) en una franja de `margen_m` alrededor del eje: reemplaza los puntos.
+    pub fn importar_srtm(&mut self, ruta: &Path, margen_m: f64) -> Result<usize, String> {
+        let eje = self.eje.as_ref().ok_or("Importe primero el eje: el SRTM se recorta alrededor de él")?;
+        let caja = eje.iter().fold([f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY], |c, p| {
+            [c[0].min(p[0]), c[1].min(p[1]), c[2].max(p[0]), c[3].max(p[1])]
+        });
+        let caja = [caja[0] - margen_m, caja[1] - margen_m, caja[2] + margen_m, caja[3] + margen_m];
+        self.puntos = entrada::leer_hgt(ruta, &self.zona_utm, caja)?;
+        self.cambio_topografia();
+        if !self.fuentes.iter().any(|(k, _)| k == "topografia") {
+            self.fuentes.push(("topografia".into(), "SRTM (NASA), resolución ~30-90 m: solo para anteproyecto; verificar con levantamiento".into()));
+        }
+        Ok(self.puntos.len())
+    }
+
     /// Eje desde DXF/CSV, o la ruta `nombre` (por defecto la primera) de KML/GPX/XLS.
     pub fn importar_eje(&mut self, ruta: &Path, nombre: Option<&str>) -> Result<(), String> {
         let ext = ruta.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();

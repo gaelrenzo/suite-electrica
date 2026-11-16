@@ -98,6 +98,18 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
                 if ui.button("Importar eje…").clicked() {
                     importar_eje(app);
                 }
+                if ui.button("Relieve SRTM (.hgt)…")
+                    .on_hover_text("Sin levantamiento: terreno del modelo SRTM de la NASA en una franja de 300 m alrededor del eje (importe antes el eje). Solo para anteproyecto.")
+                    .clicked()
+                {
+                    if let Some(r) = rfd::FileDialog::new().add_filter("Hoja SRTM", &["hgt"]).pick_file() {
+                        let res = app.doc.importar_srtm(&r, 300.0);
+                        if let Some(n) = app.intentar(res) {
+                            app.calculo = None;
+                            app.estado = format!("{n} puntos SRTM de {} (franja de 300 m alrededor del eje)", r.display());
+                        }
+                    }
+                }
             });
             ui.label(format!("Puntos: {}", app.doc.puntos.len()));
             ui.label(match &app.doc.eje {

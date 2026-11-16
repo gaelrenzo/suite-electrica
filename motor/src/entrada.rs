@@ -959,3 +959,61 @@ pub fn leer(ruta: &Path) -> Result<Vec<Punto>, String> {
     }
 }
 
+
+// ------------------------------------------------------------------ SRTM (.hgt)
+
+/// Esquina suroeste (lat, lon en grados) de una hoja SRTM por su nombre, p. ej. `S16W070.hgt`.
+pub fn esquina_hgt(nombre: &str) -> Result<(i32, i32), String> {
+    let n = nombre.to_uppercase();
+    let b = n.as_bytes();
+    let err = || format!("{nombre}: el nombre de una hoja SRTM es como S16W070.hgt");
+    if b.len() < 7 || !matches!(b[0], b'N' | b'S') || !matches!(b[3], b'E' | b'W') {
+        return Err(err());
+    }
+    let lat: i32 = n[1..3].parse().map_err(|_| err())?;
+    let lon: i32 = n[4..7].parse().map_err(|_| err())?;
+    Ok((if b[0] == b'S' { -lat } else { lat }, if b[3] == b'W' { -lon } else { lon }))
+}
+
+/// Puntos de una hoja SRTM (`.hgt`: n×n enteros de 16 bits big-endian, fila 0 al norte, n = 1201
+/// o 3601) en UTM de `zona`, solo los que caen en `caja` [xmin, ymin, xmax, ymax]. Los vacíos
+/// (−32768) se descartan. Cota = altura del modelo (EGM96), no del terreno levantado.
+pub fn leer_hgt(ruta: &Path, zona: &str, caja: [f64; 4]) -> Result<Vec<Punto>, String> {
+    let nombre = ruta.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    let (lat0, lon0) = esquina_hgt(&nombre)?;
+    let b = std::fs::read(ruta).map_err(|e| format!("{}: {e}", ruta.display()))?;
+    let n = ((b.len() / 2) as f64).sqrt() as usize;
+    if n * n * 2 != b.len() || !(n == 1201 || n == 3601) {
+        return Err(format!("{}: tamaño {} B no es de una hoja SRTM (1201² o 3601² muestras)", ruta.display(), b.len()));
+    }
+    let paso = 1.0 / (n - 1) as f64;
+    // filas/columnas que pueden caer en la caja (con holgura), para no convertir la hoja entera
+    let esquinas = [[caja[0], caja[1]], [caja[2], caja[1]], [caja[0], caja[3]], [caja[2], caja[3]]];
+    let geo: Vec<(f64, f64)> = esquinas.iter().map(|p| crate::utm::utm_a_geograficas(p[0], p[1], zona)).collect::<Result<_, _>>()?;
+    let (lonmin, lonmax) = geo.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |a, g| (a.0.min(g.0), a.1.max(g.0)));
+    let (latmin, latmax) = geo.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |a, g| (a.0.min(g.1), a.1.max(g.1)));
+    let hol = 2.0 * paso;
+    let col = |lon: f64| (((lon - lon0 as f64) / paso).clamp(0.0, (n - 1) as f64)) as usize;
+    let fila = |lat: f64| (((lat0 as f64 + 1.0 - lat) / paso).clamp(0.0, (n - 1) as f64)) as usize;
+    let (c0, c1) = (col(lonmin - hol), col(lonmax + hol));
+    let (f0, f1) = (fila(latmax + hol), fila(latmin - hol));
+    let mut out = Vec::new();
+    for f in f0..=f1 {
+        for c in c0..=c1 {
+            let k = 2 * (f * n + c);
+            let z = i16::from_be_bytes([b[k], b[k + 1]]);
+            if z == i16::MIN {
+                continue;
+            }
+            let (lat, lon) = (lat0 as f64 + 1.0 - f as f64 * paso, lon0 as f64 + c as f64 * paso);
+            let (e, no) = crate::utm::geograficas_a_utm(lon, lat, zona)?;
+            if e >= caja[0] && e <= caja[2] && no >= caja[1] && no <= caja[3] {
+                out.push(Punto { punto: format!("SRTM-{f}-{c}"), este: e, norte: no, cota: z as f64, descripcion: "SRTM".into() });
+            }
+        }
+    }
+    if out.is_empty() {
+        return Err(format!("{}: la hoja no cubre la zona del eje (o solo tiene vacíos)", ruta.display()));
+    }
+    Ok(out)
+}

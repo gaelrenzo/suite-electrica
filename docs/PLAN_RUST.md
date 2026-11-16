@@ -447,7 +447,13 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
 4. **Release:** ✅ `v0.1.0-rust` actualizado al commit `a3f193a` (14/11/2026) con el build (editor de GridCraft, editores de
    tablas, planta de LineCraft, láminas, interfaz y cruces).
 5. **Otras brechas con ESOLUTIONS:** terminal con retenida a media línea, redes primarias,
-   SRTM/catastro en TopoCraft.
+   catastro en TopoCraft.
+   - ✅ **Relieve SRTM** (`entrada::leer_hgt`, `Documento::importar_srtm`, prueba `tests/srtm.rs`):
+     botón «Relieve SRTM (.hgt)…» en TopoCraft. Lee la hoja (1201² o 3601² enteros big-endian; la
+     esquina sale del nombre, p. ej. `S16W070.hgt`), descarta vacíos, convierte a UTM de la zona del
+     proyecto y se queda con una franja de 300 m alrededor del eje (hay que importar antes el eje).
+     Reemplaza los puntos y anota en «Fuentes» que es SRTM, solo para anteproyecto. La hoja la
+     descarga el usuario (p. ej. de EarthExplorer del USGS); la suite no descarga nada.
    - ✅ **Transporte por rutas** (como PRESIO; prueba `tests/presu_transporte.rs`): tabla opcional
      `transporte.csv` (tramo, vía, distancia_km, costo_t_km, fuente) enlazada en el JSON con la
      clave `transporte`. El flete por kg = Σ distancia × costo por t·km / 1000 y reemplaza al
