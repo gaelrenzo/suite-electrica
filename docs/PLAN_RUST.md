@@ -614,7 +614,9 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      (0 = no verificar; el límite según la categoría de terreno lo pone el usuario con su fuente,
      `hw_max_m`); alerta «V» por tramo con H/w en la hipótesis inicial y L·D/m del vano mayor para
      decidir amortiguadores.
-   - GridCraft: autodistribución de estructuras BT desde los lotes; capas. ✅ Varias redes juntas
+   - GridCraft: autodistribución de estructuras BT desde los lotes. ✅ Capas (18/11): menú «Capas ▾»
+     (fondo DXF, topografía, longitud de vanos, nombres y %ΔV, retenidas, alumbrado, SED y tipo de
+     poste); queda abierto para marcar varias. Revisado en pantalla. ✅ Varias redes juntas
      (17/11): «Metrado de varias redes (RS)…» en PresuCraft suma el metrado y las cimentaciones de
      varios `red.json` en el rubro RS (`presupuesto::sumar_metrado_csv`, prueba
      `sumar_metrado_de_varias_redes`). ✅ Rehacer (17/11): botón y Ctrl+Y; deshacer guarda el estado para rehacerlo y

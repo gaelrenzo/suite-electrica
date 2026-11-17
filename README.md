@@ -181,7 +181,7 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [ ] Autodistribución de estructuras BT desde los lotes del catastro
 - [x] Revisión automática del diseño
 - [x] Rehacer (Ctrl+Y)
-- [ ] Capas
+- [x] Capas
 - [x] Metrado de varias redes juntas (PresuCraft, rubro RS)
 
 **PresuCraft**

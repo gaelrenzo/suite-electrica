@@ -60,7 +60,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | Autodiseño de suministros MT (§6.1.5) | sí | ✗ | armados MT por regla de la base de datos |
 | Autodiseño de conductores | no | ✔ | exclusivo de la suite |
 | Robot supervisor del diseño (fig. 28) | sí | ✔ | revisión automática (hoja «Revisión») |
-| **Capas (§6.5)** | sí | ✗ | mostrar/ocultar MT, BT, AP, catastro |
+| Capas (§6.5) | sí | ✔ | menú «Capas»: fondo DXF, topografía, vanos, nombres, retenidas, alumbrado, SED y tipo de poste |
 | Metrado y materiales | sí | ✅ | 33/33 renglones; 18/22 materiales de cantidad fija |
 | Plantilla DXF personalizada y bloques (§8) | sí | ✗ | |
 | Reportes de varias redes (§9.4) | sí | ◐ | metrado sumado en PresuCraft; sin planillas combinadas |
@@ -120,7 +120,7 @@ ahorra en un proyecto como el LP Capachica–Llachón; al final la comodidad.
    numeración de viviendas (6).
 6. **Numeración y validación de viviendas** sobre el catastro.
 7. ✅ **Exportar KML** y **puntos a CSV** (18/11; `motor/src/kml.rs`, prueba `tests/kml.rs`).
-8. **Capas** en GridCraft y TopoCraft (mostrar/ocultar MT, BT, AP, catastro, fondo).
+8. ✅ **Capas** en GridCraft (18/11; revisado en pantalla).
 9. **Unir, separar y empalmar rutas**; proyectar puntos sobre la ruta.
 
 ### Prioridad 3: entrega y presentación

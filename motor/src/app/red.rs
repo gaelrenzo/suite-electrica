@@ -45,6 +45,7 @@ pub struct EstadoRed {
     fondo: Vec<Vec<[f64; 2]>>,
     ver_topo: bool,
     ver_simbolos: bool,
+    capas: Capas,
     conductor_nuevo: String,
     obsoleto: bool,
     pila: Vec<Vec<Nodo>>,
@@ -72,6 +73,7 @@ impl Default for EstadoRed {
             fondo: Vec::new(),
             ver_topo: true,
             ver_simbolos: true,
+            capas: Capas::default(),
             conductor_nuevo: String::new(),
             obsoleto: false,
             pila: Vec::new(),
@@ -347,8 +349,23 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
                 abrir_externo(&r);
             }
         }
-        ui.checkbox(&mut st.ver_topo, "Topografía");
-        ui.checkbox(&mut st.ver_simbolos, "Simbología").on_hover_text("SED, retenidas, pastorales con luminaria y tipo de poste");
+        egui::containers::menu::MenuButton::new("Capas ▾")
+            .config(egui::containers::menu::MenuConfig::new().close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside))
+            .ui(ui, |ui| {
+            let c = &mut st.capas;
+            ui.checkbox(&mut c.fondo, "Fondo DXF");
+            ui.checkbox(&mut st.ver_topo, "Topografía (curvas y puntos)");
+            ui.separator();
+            ui.checkbox(&mut c.vanos, "Longitud de vanos");
+            ui.checkbox(&mut c.etiquetas, "Nombres y %ΔV de postes");
+            ui.separator();
+            ui.checkbox(&mut st.ver_simbolos, "Simbología");
+            ui.add_enabled_ui(st.ver_simbolos, |ui| {
+                ui.checkbox(&mut c.retenidas, "  Retenidas");
+                ui.checkbox(&mut c.alumbrado, "  Alumbrado (pastoral y luminaria)");
+                ui.checkbox(&mut c.tipos, "  SED y tipo de poste");
+            });
+        });
     });
     ui.horizontal(|ui| {
         ui.label("Herramienta:");
@@ -408,10 +425,11 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
         let u = if xy.len() > 1 { (ext(0).max(ext(1)) / 80.0).max(0.5) } else { 1.0 };
         simbolos_red(rd, u)
     });
+    let capas = st.capas;
     let plot = Plot::new("plano_red").legend(Legend::default()).data_aspect(1.0).height(alto).x_axis_label("Este (m)").y_axis_label("Norte (m)")
         .allow_drag(!(mover && modo == Modo::Seleccionar)).allow_double_click_reset(false);
     plot.show(ui, |pu| {
-        for (k, l) in st.fondo.iter().enumerate() {
+        for (k, l) in st.fondo.iter().enumerate().filter(|_| capas.fondo) {
             pu.line(Line::new(if k == 0 { "Fondo DXF" } else { "" }, PlotPoints::from(l.clone())).color(egui::Color32::from_gray(140)).width(0.6));
         }
         if let Some((curvas, puntos)) = &topo {
@@ -425,28 +443,30 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
             let (Some(a), Some(p)) = (pos(n), nodos.iter().find(|x| x.nodo == n.padre).and_then(pos)) else { continue };
             let color = pct.get(&n.nodo).map_or(egui::Color32::from_rgb(70, 130, 220), |&x| color_caida(x, max));
             pu.line(Line::new("", PlotPoints::from(vec![p, a])).color(color).width(3.0));
-            pu.text(Text::new("", PlotPoint::new((a[0] + p[0]) / 2.0, (a[1] + p[1]) / 2.0),
-                egui::RichText::new(format!("{:.0} m", n.longitud_m)).small()).color(egui::Color32::from_gray(170)));
+            if capas.vanos {
+                pu.text(Text::new("", PlotPoint::new((a[0] + p[0]) / 2.0, (a[1] + p[1]) / 2.0),
+                    egui::RichText::new(format!("{:.0} m", n.longitud_m)).small()).color(egui::Color32::from_gray(170)));
+            }
         }
         // simbología (solo dibujo)
         if let Some(s) = &simbolos {
-            if let Some(p) = s.sed {
+            if let Some(p) = s.sed.filter(|_| capas.tipos) {
                 pu.points(Points::new("SED", vec![p]).shape(MarkerShape::Square).radius(9.0).filled(false).color(egui::Color32::from_rgb(200, 60, 200)));
             }
             let c_ret = egui::Color32::from_rgb(0, 170, 190);
-            for (k, [a, b]) in s.retenidas.iter().enumerate() {
+            for (k, [a, b]) in s.retenidas.iter().enumerate().filter(|_| capas.retenidas) {
                 pu.line(Line::new(if k == 0 { "Retenida" } else { "" }, PlotPoints::from(vec![*a, *b])).color(c_ret).width(1.2));
                 pu.points(Points::new("", vec![*b]).radius(2.5).filled(false).color(c_ret));
             }
             let c_lum = egui::Color32::from_rgb(240, 200, 30);
-            for (k, ([a, b], (_, nl))) in s.pastorales.iter().zip(&s.luminarias).enumerate() {
+            for (k, ([a, b], (_, nl))) in s.pastorales.iter().zip(&s.luminarias).enumerate().filter(|_| capas.alumbrado) {
                 pu.line(Line::new(if k == 0 { "Luminaria" } else { "" }, PlotPoints::from(vec![*a, *b])).color(c_lum).width(1.2));
                 pu.points(Points::new("", vec![*b]).shape(MarkerShape::Cross).radius(4.0).color(c_lum));
                 if *nl > 1.0 {
                     pu.text(Text::new("", PlotPoint::new(b[0], b[1]), egui::RichText::new(format!("{nl:.0}L")).small()).anchor(egui::Align2::LEFT_CENTER).color(c_lum));
                 }
             }
-            for (p, t) in &s.tipos {
+            for (p, t) in s.tipos.iter().filter(|_| capas.tipos) {
                 pu.text(Text::new("", PlotPoint::new(p[0], p[1]), egui::RichText::new(t).small()).anchor(egui::Align2::LEFT_TOP).color(egui::Color32::from_gray(150)));
             }
         }
@@ -460,7 +480,9 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
                 Some(x) => format!("{} ({x:.1} %)", n.nodo),
                 None => n.nodo.clone(),
             };
-            pu.text(Text::new("", PlotPoint::new(a[0], a[1]), egui::RichText::new(etiqueta).small()).anchor(egui::Align2::LEFT_BOTTOM).color(c));
+            if capas.etiquetas || sel == Some(i) {
+                pu.text(Text::new("", PlotPoint::new(a[0], a[1]), egui::RichText::new(etiqueta).small()).anchor(egui::Align2::LEFT_BOTTOM).color(c));
+            }
         }
         // interacción
         let resp = pu.response().clone();
@@ -838,4 +860,21 @@ pub fn panel(app: &mut App, ui: &mut egui::Ui) {
             ver_tabla(ui, &t, &format!("red_{}", t.nombre));
         }
     });
+}
+
+/// Capas del plano de GridCraft (además de topografía y simbología).
+#[derive(Clone, Copy)]
+struct Capas {
+    fondo: bool,
+    vanos: bool,
+    etiquetas: bool,
+    retenidas: bool,
+    alumbrado: bool,
+    tipos: bool,
+}
+
+impl Default for Capas {
+    fn default() -> Self {
+        Capas { fondo: true, vanos: true, etiquetas: true, retenidas: true, alumbrado: true, tipos: true }
+    }
 }
