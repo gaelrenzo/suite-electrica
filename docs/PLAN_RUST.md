@@ -609,7 +609,8 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      con vano_hasta_m, cantidad_por_conductor y fuente del fabricante; el vano usa la primera fila
      que lo cubre y el total entra al metrado como AMORT, también hacia PresuCraft; prueba
      `tests/amortiguadores.rs`); verificación de crucetas y
-     esquemas de aisladores; planos con plantilla de bloques. ✅ Vibraciones eólicas, criterio H/w
+     esquemas de aisladores; ◐ planos con plantilla del usuario (18/11: `plantilla_lamina.dxf` junto al
+      proyecto reemplaza el marco y cajetín propios en todos los planos; faltan los bloques INSERT). ✅ Vibraciones eólicas, criterio H/w
      de CIGRE TB 273 (prueba `tests/vibraciones_hw.rs`): parámetro «H/w máx.» en las alertas
      (0 = no verificar; el límite según la categoría de terreno lo pone el usuario con su fuente,
      `hw_max_m`); alerta «V» por tramo con H/w en la hipótesis inicial y L·D/m del vano mayor para

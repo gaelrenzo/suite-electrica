@@ -534,3 +534,73 @@ mod prueba_lamina {
         assert!(Dxf::nuevo().lamina(&Cajetin::default()).is_none());
     }
 }
+
+/// Nombre de la plantilla de lámina del usuario junto al proyecto.
+pub const PLANTILLA_LAMINA: &str = "plantilla_lamina.dxf";
+
+impl Dxf {
+    /// Lámina con la plantilla del usuario (dibujada en mm de papel, con el origen en su esquina
+    /// inferior izquierda). El área del dibujo es la hoja menos 25 mm a la izquierda, 10 mm arriba y
+    /// a la derecha y 55 mm abajo (como la lámina propia). Los textos `{PROYECTO}`, `{PLANO}`,
+    /// `{AUTOR}`, `{LAMINA}`, `{ESCALA}`, `{FECHA}` y `{NOTA}` se reemplazan. Devuelve la escala 1:n.
+    pub fn lamina_con_plantilla(&mut self, c: &Cajetin, plantilla: &[crate::entrada::ElementoPlantilla]) -> Option<f64> {
+        use crate::entrada::ElementoPlantilla as E;
+        let [x0, y0, x1, y1] = self.ext?;
+        let mut ext = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
+        let mut ampliar = |p: [f64; 2]| ext = [ext[0].min(p[0]), ext[1].min(p[1]), ext[2].max(p[0]), ext[3].max(p[1])];
+        for e in plantilla {
+            match e {
+                E::Linea(v, _) => v.iter().for_each(|p| ampliar(*p)),
+                E::Texto(p, ..) => ampliar(*p),
+            }
+        }
+        let (w, h) = (ext[2] - ext[0], ext[3] - ext[1]);
+        let (aw, ah) = (w - 35.0, h - 65.0);
+        if aw <= 0.0 || ah <= 0.0 {
+            return None;
+        }
+        let e = *ESCALAS.iter().find(|e| (x1 - x0) * 1000.0 / **e <= aw && (y1 - y0) * 1000.0 / **e <= ah).unwrap_or(&ESCALAS[ESCALAS.len() - 1]);
+        let k = e / 1000.0;
+        let (pcx, pcy) = ((25.0 + w - 10.0) / 2.0, (55.0 + h - 10.0) / 2.0);
+        let o = [(x0 + x1) / 2.0 - pcx * k, (y0 + y1) / 2.0 - pcy * k];
+        let q = |p: [f64; 2]| [o[0] + (p[0] - ext[0]) * k, o[1] + (p[1] - ext[1]) * k];
+        let campos = [
+            ("{PROYECTO}", c.proyecto.clone()),
+            ("{PLANO}", c.titulo.clone()),
+            ("{AUTOR}", c.autor.clone()),
+            ("{LAMINA}", c.lamina.clone()),
+            ("{ESCALA}", format!("1:{}", formato_g(e))),
+            ("{FECHA}", fecha_hoy()),
+            ("{NOTA}", c.nota.clone()),
+        ];
+        self.capa("LAMINA", 7);
+        for el in plantilla {
+            match el {
+                E::Linea(v, cerrada) => {
+                    let pts: Vec<[f64; 2]> = v.iter().map(|p| q(*p)).collect();
+                    self.polilinea("LAMINA", &pts, *cerrada, 0.0);
+                }
+                E::Texto(p, alto, rot, t) => {
+                    let t = campos.iter().fold(t.clone(), |acc, (k, v)| acc.replace(k, v));
+                    self.texto("LAMINA", q(*p), alto * k, *rot, &t);
+                }
+            }
+        }
+        Some(e)
+    }
+}
+
+/// Lámina del plano: la plantilla del usuario si hay `plantilla_lamina.dxf` en `carpeta`; si no, la
+/// lámina propia (A3/A1 con cajetín).
+pub fn aplicar_lamina(d: &mut Dxf, c: &Cajetin, carpeta: Option<&Path>) -> Result<(), String> {
+    match carpeta.map(|p| p.join(PLANTILLA_LAMINA)).filter(|r| r.exists()) {
+        Some(r) => {
+            let pl = crate::entrada::leer_plantilla_lamina(&r)?;
+            d.lamina_con_plantilla(c, &pl).ok_or(format!("{}: la plantilla es demasiado chica para el área del dibujo", r.display()))?;
+        }
+        None => {
+            d.lamina(c);
+        }
+    }
+    Ok(())
+}

@@ -170,12 +170,13 @@ impl EstadoRed {
         let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &self.tablas)?];
         if let Some(mut d) = dxf::construir_plano_red(rd, r, 2.0)? {
             dxf::simbologia_red(&mut d, rd, 2.0);
-            d.lamina(&dxf::Cajetin {
+            let caj = dxf::Cajetin {
                 proyecto: rd.nombre.clone(),
                 titulo: "RED SECUNDARIA - CAÍDA DE TENSIÓN".into(),
                 lamina: "RS-01".into(),
                 ..Default::default()
-            });
+            };
+            dxf::aplicar_lamina(&mut d, &caj, self.ruta.as_deref().and_then(Path::parent))?;
             out.push(d.guardar(&c.join("plano_red.dxf"))?);
             // KML (Google Earth) en la zona UTM del proyecto
             let mut k = suite_motor::kml::Kml::nuevo(&rd.nombre, zona);

@@ -136,7 +136,7 @@ fn exportar(app: &mut App) {
     };
     let res = (|| {
         let mut d = dxf::construir_perfil_linea(r, p, 10.0);
-        d.lamina(&caj);
+        dxf::aplicar_lamina(&mut d, &caj, app.doc.ruta.as_deref().and_then(std::path::Path::parent))?;
         Ok::<_, String>(vec![
             d.guardar(&dir.join("perfil_linea.dxf"))?,
             escribir_excel(&dir.join("planilla_estructuras.xlsx"), &{

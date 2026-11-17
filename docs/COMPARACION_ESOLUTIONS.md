@@ -39,7 +39,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | Esquemas de aislamiento y ensambles (fig. 25) | sí | ✗ | proyección de ensambles-aislador y oscilación de cadenas |
 | Distancias de seguridad a cruces | sí | ✔ | tabla de cruces con fuente del CNE |
 | Base de datos editable, export/import (§7) | sí | ◐ | catálogos editables en la app; sin importar/exportar la base completa |
-| **Plantilla de planos con bloques (§8)** | sí | ✗ | la suite exporta DXF con cajetín, sin bloques del usuario |
+| Plantilla de planos con bloques (§8) | sí | ◐ | `plantilla_lamina.dxf` junto al proyecto (marco, cajetín, logos en mm de papel; campos {PROYECTO} {PLANO} {LAMINA} {ESCALA} {FECHA}…); sin insertar BLOCK del usuario |
 | Reportes de planos y planillas (§10.2–10.3) | sí | ✔ | perfil DXF con lámina, planilla Excel, memoria PDF |
 | Reportes de todas las derivaciones (§10.4) | sí | ◐ | una línea por proyecto |
 | Teclas rápidas (§11.1) | sí | ◐ | Ctrl+N/O/S/Z, F6, Supr |
@@ -62,7 +62,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | Robot supervisor del diseño (fig. 28) | sí | ✔ | revisión automática (hoja «Revisión») |
 | Capas (§6.5) | sí | ✔ | menú «Capas»: fondo DXF, topografía, vanos, nombres, retenidas, alumbrado, SED y tipo de poste |
 | Metrado y materiales | sí | ✅ | 33/33 renglones; 18/22 materiales de cantidad fija |
-| Plantilla DXF personalizada y bloques (§8) | sí | ✗ | |
+| Plantilla DXF personalizada y bloques (§8) | sí | ◐ | `plantilla_lamina.dxf` junto al proyecto (marco, cajetín, logos en mm de papel; campos {PROYECTO} {PLANO} {LAMINA} {ESCALA} {FECHA}…); sin insertar BLOCK del usuario |
 | Reportes de varias redes (§9.4) | sí | ◐ | metrado sumado en PresuCraft; sin planillas combinadas |
 | Importar base de datos a varias redes (§7.5) | sí | ✗ | |
 
@@ -123,7 +123,8 @@ ahorra en un proyecto como el LP Capachica–Llachón; al final la comodidad.
 9. **Unir, separar y empalmar rutas**; proyectar puntos sobre la ruta.
 
 ### Prioridad 3: entrega y presentación
-10. **Plantilla de planos con bloques** del usuario (DXF), además del cajetín actual.
+10. ◐ **Plantilla de planos** del usuario (18/11; `dxf::aplicar_lamina`, prueba `tests/plantilla_lamina.rs`).
+    Falta: insertar bloques (BLOCK/INSERT) del usuario en postes y retenidas.
 11. **Esquemas de aislamiento**: ensambles por armado y oscilación de cadenas de suspensión.
 12. **Base de precios por región** y desagregado de gastos generales en PresuCraft.
 13. **Ortofotos** como fondo georreferenciado.

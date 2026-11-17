@@ -173,7 +173,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] Vibraciones eólicas: criterio H/w (CIGRE 273)
 - [x] Amortiguadores por vano (tabla del fabricante, al metrado)
 - [ ] Verificación de crucetas y esquemas de aisladores
-- [ ] Planos con plantilla de bloques
+- [x] Planos con plantilla del usuario (`plantilla_lamina.dxf` junto al proyecto, en mm de papel; campos `{PROYECTO}`, `{PLANO}`, `{LAMINA}`, `{ESCALA}`, `{FECHA}`)
+- [ ] Bloques del usuario (INSERT) en postes y retenidas
 
 **GridCraft**
 - [x] Editor en planta, caída de tensión, metrado y materiales (igual a REDCAD)

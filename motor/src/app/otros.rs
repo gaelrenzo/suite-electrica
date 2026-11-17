@@ -69,6 +69,7 @@ fn exportar_topo(app: &mut App) {
     let eje = app.doc.eje.clone();
     let predios = if app.doc.catastro.is_empty() { None } else { app.doc.predios_afectados().ok() };
     let ancho = app.doc.ancho_servidumbre_m;
+    let carpeta_proyecto = app.doc.ruta.as_deref().and_then(Path::parent).map(Path::to_path_buf);
     // KML (Google Earth): eje, estructuras (códigos del último cálculo) y predios
     let (zona, puntos, catastro, titulo) = (app.doc.zona_utm.clone(), app.doc.puntos.clone(), app.doc.catastro.clone(), app.doc.nombre.clone());
     let est_kml: Vec<(String, f64, String)> = match &app.calculo {
@@ -77,7 +78,7 @@ fn exportar_topo(app: &mut App) {
     };
     let r = app.doc.topografia().and_then(|t| {
         let mut d = dxf::construir_plano_topo(&t.puntos, Some(&t.tin), &t.curvas, eq, mayor, eje.as_deref(), 1.0);
-        d.lamina(&c_plano);
+        dxf::aplicar_lamina(&mut d, &c_plano, carpeta_proyecto.as_deref())?;
         let mut out = vec![d.guardar(&c.join("plano.dxf"))?];
         out.push(suite_motor::kml::escribir_puntos_csv(&c.join("puntos.csv"), &puntos)?);
         if let Some(e) = &eje {
@@ -99,7 +100,7 @@ fn exportar_topo(app: &mut App) {
             out.push(c.join("perfil.pdf"));
             out.push(escribir_excel(&c.join("perfil.xlsx"), &tablas_perfil(p, &[("Proyecto".into(), Celda::Txt(nombre))]))?);
             let mut d = dxf::construir_perfil_topo(p, 10.0);
-            d.lamina(&c_perfil);
+            dxf::aplicar_lamina(&mut d, &c_perfil, carpeta_proyecto.as_deref())?;
             out.push(d.guardar(&c.join("perfil.dxf"))?);
         }
         Ok(out)

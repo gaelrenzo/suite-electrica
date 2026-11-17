@@ -1122,3 +1122,35 @@ pub fn leer_hgt(ruta: &Path, zona: &str, caja: [f64; 4]) -> Result<Vec<Punto>, S
     }
     Ok(out)
 }
+
+/// Elemento de una plantilla de lámina dibujada en DXF (coordenadas en mm de papel).
+#[derive(Debug, Clone, PartialEq)]
+pub enum ElementoPlantilla {
+    /// Línea o polilínea (cerrada o no).
+    Linea(Vec<[f64; 2]>, bool),
+    /// Texto: posición, altura (mm), rotación (°) y contenido (puede llevar `{PROYECTO}` y otros campos).
+    Texto([f64; 2], f64, f64, String),
+}
+
+/// Lee una plantilla de lámina (marco, cajetín y logotipos de líneas y textos) de un DXF.
+pub fn leer_plantilla_lamina(ruta: &Path) -> Result<Vec<ElementoPlantilla>, String> {
+    let ents = entidades_dxf(ruta)?;
+    let mut out: Vec<ElementoPlantilla> = ents
+        .iter()
+        .filter(|e| e.tipo == "LINE")
+        .filter_map(|e| Some(ElementoPlantilla::Linea(vec![[num(e, 10)?, num(e, 20)?], [num(e, 11)?, num(e, 21)?]], false)))
+        .collect();
+    for (_, _, v, cerrada) in polilineas(&ents) {
+        out.push(ElementoPlantilla::Linea(v.iter().map(|p| [p[0], p[1]]).collect(), cerrada));
+    }
+    for e in ents.iter().filter(|e| e.tipo == "TEXT" || e.tipo == "MTEXT") {
+        let t = e.pares.iter().find(|p| p.0 == 1).map(|p| p.1.clone()).unwrap_or_default();
+        if let (Some(x), Some(y)) = (num(e, 10), num(e, 20)) {
+            out.push(ElementoPlantilla::Texto([x, y], num(e, 40).unwrap_or(2.5), num(e, 50).unwrap_or(0.0), t));
+        }
+    }
+    if out.is_empty() {
+        return Err(format!("{}: la plantilla no tiene líneas ni textos", ruta.display()));
+    }
+    Ok(out)
+}
