@@ -99,7 +99,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | **Unir, separar, empalmar rutas (§7.12–7.15)** | sí | ✗ | |
 | Invertir ruta (§7.14) | sí | ✔ | conserva estructuras y cruces |
 | Perfil desde geoservidor (§7.16) | sí | ◐ | SRTM desde archivo `.hgt`, sin descarga |
-| Perfil desde curvas de nivel (§7.17) | sí | ✗ | |
+| Perfil desde curvas de nivel (§7.17) | sí | ✔ | «Importar puntos» de un DXF de curvas (polilíneas con elevación); prueba `tests/curvas_perfil.rs` |
 | Ver en Planeta (§7.18) | sí | ✔ | `linea.kml` (eje, estructuras, predios) y `red.kml` para Google Earth |
 | Códigos de campo y CTU (§8–9) | sí | ✗ | levantamiento de lotes con prefijos |
 
