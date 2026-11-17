@@ -233,7 +233,16 @@ fn datos(app: &mut App, ui: &mut egui::Ui) {
             cambio |= num(ui, "Separación: k·√f", &mut l.sep_k_flecha, 0.01, "");
             cambio |= num(ui, "Ángulo de salida mín.", &mut l.angulo_salida_min, 0.5, "°");
             cambio |= num(ui, "Ángulo de salida máx.", &mut l.angulo_salida_max, 0.5, "°");
-            cambio |= num(ui, "Carga máx. por espiga", &mut l.tiro_max_espiga, 10.0, " N");
+            cambio |= num(ui, "Rotura del aislador (pin)", &mut l.rotura_espiga_n, 100.0, " N");
+            cambio |= num(ui, "FS del aislador", &mut l.fs_espiga, 0.1, "");
+            if l.rotura_espiga_n > 0.0 && l.fs_espiga > 0.0 {
+                ui.label("Carga máx. por espiga");
+                ui.label(format!("{:.0} N = rotura / FS", l.tiro_espiga()))
+                    .on_hover_text("Pin ANSI 56-2/56-3/56-4: 13 kN a la flexión (DGE 026-2003 ETS-LP-06). El FS lo fija el proyecto: cítelo en «Fuentes» (fs_espiga).");
+                ui.end_row();
+            } else {
+                cambio |= num(ui, "Carga máx. por espiga", &mut l.tiro_max_espiga, 10.0, " N");
+            }
             cambio |= num(ui, "EDS máx. (vibraciones)", &mut l.eds_max_pct, 0.1, " %");
             cambio |= num(ui, "H/w máx. (CIGRE TB 273)", &mut l.hw_max_m, 25.0, " m");
         });

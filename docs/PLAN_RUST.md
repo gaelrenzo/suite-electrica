@@ -615,7 +615,10 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      Aisladores (DGE 026, datos de rotura, para `tiro_max_espiga` con el FS que fije el proyecto): pin
      ANSI 56-2/56-3/56-4 13 kN a la flexión (ETS-LP-06); line post polimérico 10 kN flexión (ETS-LP-10);
      suspensión porcelana/vidrio ANSI 52-3 67 kN electromecánica, 44 kN carga continua (ETS-LP-07/08);
-     polimérico de suspensión SML 70 kN, RTL 35 kN (ETS-LP-09); carrete ANSI 53-2 13,3 kN (ETS-LP-11). El arrancamiento (S↑) se revisa con aislador rígido o en
+     polimérico de suspensión SML 70 kN, RTL 35 kN (ETS-LP-09); carrete ANSI 53-2 13,3 kN (ETS-LP-11).
+     ✅ FS del aislador por proyecto (18/11): parámetros `rotura_espiga_n` y `fs_espiga` en LineCraft,
+     cada uno con su fuente (avisa PENDIENTE_REVISION si falta); con ambos, la carga máxima por espiga
+     de la alerta I→ es rotura / FS (reemplaza el valor directo). Prueba `tests/fs_espiga.rs`. El arrancamiento (S↑) se revisa con aislador rígido o en
      estructuras de suspensión (antes solo rígido; las cadenas de anclaje trabajan horizontales) y,
      con vano peso máximo, su exceso es % de ese máximo como en REDLIN. Paridad con Python intacta.
      Prueba `tests/alertas_armado.rs`.

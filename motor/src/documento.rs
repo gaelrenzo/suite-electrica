@@ -23,8 +23,10 @@ pub const FORMATO: &str = "suite-electrica";
 pub const VERSION: i64 = 1;
 pub const EXTENSION: &str = "sel";
 pub const FUENTES_EXTRA: [&str; 2] = ["factor_seguridad_poste", "factor_seguridad_retenida"];
-pub const FUENTES_ALERTAS: [&str; 7] =
-    ["sep_k_tension", "sep_k_flecha", "angulo_salida_min", "angulo_salida_max", "tiro_max_espiga", "eds_max_pct", "hw_max_m"];
+pub const FUENTES_ALERTAS: [&str; 9] = [
+    "sep_k_tension", "sep_k_flecha", "angulo_salida_min", "angulo_salida_max", "tiro_max_espiga", "eds_max_pct", "hw_max_m",
+    "rotura_espiga_n", "fs_espiga",
+];
 /// Separación mínima entre estructuras al editar (m).
 pub const SEPARACION_MIN: f64 = 1.0;
 /// Tolerancia para reconocer un vértice del eje (m).
@@ -88,6 +90,10 @@ pub struct ParamLinea {
     pub eds_max_pct: f64,
     /// H/w máximo (m), CIGRE TB 273 (0 = no verificar).
     pub hw_max_m: f64,
+    /// Carga de rotura del aislador/espiga (N) y factor de seguridad del proyecto, cada uno con su
+    /// fuente. Con ambos > 0 la carga máxima por espiga es rotura / FS (reemplaza `tiro_max_espiga`).
+    pub rotura_espiga_n: f64,
+    pub fs_espiga: f64,
 }
 
 impl Default for ParamLinea {
@@ -120,6 +126,8 @@ impl Default for ParamLinea {
             tiro_max_espiga: 0.0,
             eds_max_pct: 0.0,
             hw_max_m: 0.0,
+            rotura_espiga_n: 0.0,
+            fs_espiga: 0.0,
         }
     }
 }
@@ -137,6 +145,7 @@ impl ParamLinea {
             "sep_k_tension": self.sep_k_tension, "sep_k_flecha": self.sep_k_flecha,
             "angulo_salida_min": self.angulo_salida_min, "angulo_salida_max": self.angulo_salida_max,
             "tiro_max_espiga": self.tiro_max_espiga, "eds_max_pct": self.eds_max_pct, "hw_max_m": self.hw_max_m,
+            "rotura_espiga_n": self.rotura_espiga_n, "fs_espiga": self.fs_espiga,
         })
     }
 
@@ -172,7 +181,14 @@ impl ParamLinea {
             tiro_max_espiga: f("tiro_max_espiga", 0.0),
             eds_max_pct: f("eds_max_pct", 0.0),
             hw_max_m: f("hw_max_m", 0.0),
+            rotura_espiga_n: f("rotura_espiga_n", 0.0),
+            fs_espiga: f("fs_espiga", 0.0),
         }
+    }
+
+    /// Carga máxima por espiga efectiva (N): rotura / FS si ambos están, si no `tiro_max_espiga`.
+    pub fn tiro_espiga(&self) -> f64 {
+        if self.rotura_espiga_n > 0.0 && self.fs_espiga > 0.0 { self.rotura_espiga_n / self.fs_espiga } else { self.tiro_max_espiga }
     }
 
     pub fn config_alertas(&self) -> ConfigAlertas {
@@ -184,7 +200,7 @@ impl ParamLinea {
             sep_k_flecha: self.sep_k_flecha,
             angulo_salida_min: self.angulo_salida_min,
             angulo_salida_max: self.angulo_salida_max,
-            tiro_max_espiga: self.tiro_max_espiga,
+            tiro_max_espiga: self.tiro_espiga(),
             eds_max_pct: self.eds_max_pct,
             hw_max_m: self.hw_max_m,
         }
@@ -199,6 +215,8 @@ impl ParamLinea {
             "angulo_salida_max" => self.angulo_salida_max,
             "tiro_max_espiga" => self.tiro_max_espiga,
             "hw_max_m" => self.hw_max_m,
+            "rotura_espiga_n" => self.rotura_espiga_n,
+            "fs_espiga" => self.fs_espiga,
             _ => self.eds_max_pct,
         }
     }
