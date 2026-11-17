@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="LICENSE"><img alt="Licencia MIT" src="https://img.shields.io/badge/licencia-MIT-blue"></a>
-  <a href="https://github.com/gaelrenzo/suite-electrica/releases"><img alt="Versión" src="https://img.shields.io/badge/versión-0.2.4%20(prueba)-orange"></a>
+  <a href="https://github.com/gaelrenzo/suite-electrica/releases"><img alt="Versión" src="https://img.shields.io/badge/versión-0.2.5%20(prueba)-orange"></a>
   <a href="https://github.com/gaelrenzo/suite-electrica/actions/workflows/rust.yml"><img alt="Pruebas Rust" src="https://github.com/gaelrenzo/suite-electrica/actions/workflows/rust.yml/badge.svg"></a>
   <a href="https://github.com/gaelrenzo/suite-electrica/actions/workflows/pruebas.yml"><img alt="Pruebas Python" src="https://github.com/gaelrenzo/suite-electrica/actions/workflows/pruebas.yml/badge.svg"></a>
   <img alt="Hecho en Rust" src="https://img.shields.io/badge/hecho%20en-Rust-b7410e?logo=rust">
