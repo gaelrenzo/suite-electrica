@@ -25,6 +25,7 @@ pub enum Modo {
     Seleccionar,
     Agregar,
     Eliminar,
+    Medir,
 }
 
 pub struct EstadoRed {
@@ -47,6 +48,8 @@ pub struct EstadoRed {
     ver_simbolos: bool,
     capas: Capas,
     autodist: Option<red::ParamAutodistribucion>,
+    /// Primer punto de la medición en curso.
+    medir_desde: Option<[f64; 2]>,
     conductor_nuevo: String,
     obsoleto: bool,
     pila: Vec<Vec<Nodo>>,
@@ -76,6 +79,7 @@ impl Default for EstadoRed {
             ver_simbolos: true,
             capas: Capas::default(),
             autodist: None,
+            medir_desde: None,
             conductor_nuevo: String::new(),
             obsoleto: false,
             pila: Vec::new(),
@@ -381,6 +385,7 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
         ui.selectable_value(&mut st.modo, Modo::Seleccionar, "Seleccionar / mover");
         ui.selectable_value(&mut st.modo, Modo::Agregar, "Agregar poste");
         ui.selectable_value(&mut st.modo, Modo::Eliminar, "Eliminar poste");
+        ui.selectable_value(&mut st.modo, Modo::Medir, "Medir").on_hover_text("Clic en dos puntos: distancia en planta");
         ui.separator();
         ui.checkbox(&mut st.mover_con_raton, "Arrastrar mueve postes").on_hover_text("Desactívelo para desplazar la vista. Rueda = zoom.");
         if let Some(rd) = &st.red {
@@ -423,6 +428,7 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
     let pos = |n: &Nodo| Some([n.este?, n.norte?]);
     let mut accion: Option<Box<dyn FnOnce(&mut EstadoRed)>> = None;
     let (modo, sel, mover) = (st.modo, st.sel, st.mover_con_raton);
+    let medir_desde = st.medir_desde.filter(|_| modo == Modo::Medir);
     let multi = st.multi.clone();
     let mayus = ui.input(|i| i.modifiers.shift);
     let arrastre = st.arrastre;
@@ -492,6 +498,10 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
             if capas.etiquetas || sel == Some(i) {
                 pu.text(Text::new("", PlotPoint::new(a[0], a[1]), egui::RichText::new(etiqueta).small()).anchor(egui::Align2::LEFT_BOTTOM).color(c));
             }
+        }
+        // medición en curso: línea elástica hasta el puntero
+        if let (Some(a), Some(x)) = (medir_desde, pu.pointer_coordinate()) {
+            pu.line(Line::new("", PlotPoints::from(vec![a, [x.x, x.y]])).color(egui::Color32::from_rgb(255, 120, 200)).width(1.5));
         }
         // interacción
         let resp = pu.response().clone();
@@ -578,6 +588,25 @@ fn plano(app: &mut App, ui: &mut egui::Ui, alto: f32) {
                             let i = rd.nodos.len() - 1;
                             ajustar_longitudes(rd, i);
                             st.sel = Some(i);
+                        }));
+                    }
+                }
+            }
+            Modo::Medir => {
+                // el segundo clic da la distancia (la línea elástica se dibuja antes)
+                if resp.clicked() {
+                    if let Some(x) = puntero {
+                        // se engancha al poste más cercano si el clic cae sobre uno
+                        let q = cerca(puntero).and_then(|i| pos(&nodos[i])).unwrap_or([x.x, x.y]);
+                        accion = Some(Box::new(move |st: &mut EstadoRed| match st.medir_desde.take() {
+                            None => {
+                                st.medir_desde = Some(q);
+                                st.resumen = "Medir: haga clic en el segundo punto".into();
+                            }
+                            Some(a) => {
+                                let (de, dn) = (q[0] - a[0], q[1] - a[1]);
+                                st.resumen = format!("Distancia {:.2} m (ΔE {de:.2} m, ΔN {dn:.2} m)", de.hypot(dn));
+                            }
                         }));
                     }
                 }

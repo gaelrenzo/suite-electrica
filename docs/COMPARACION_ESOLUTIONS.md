@@ -90,7 +90,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | Insertar puntos manualmente (§6.2) | sí | ◐ | en la tabla, no en el plano |
 | Crear rutas y vértices (§6.3–6.4) | sí | ✗ | el eje se importa |
 | **Vías (§6.5–6.7)** | sí | ✗ | |
-| Medición (§6.8) | sí | ✗ | |
+| Medición (§6.8) | sí | ◐ | herramienta «Medir» en el plano de GridCraft (se engancha a los postes) |
 | Catastro (§7.1) | sí | ✔ | predios afectados por la faja |
 | Curvas de nivel (§7.3) | sí | ✔ | |
 | **Numeración y validación de viviendas (§7.4–7.5)** | sí | ✗ | entrada del autodiseño BT |
