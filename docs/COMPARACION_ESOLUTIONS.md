@@ -85,7 +85,7 @@ equivalente) · ◐ parcial · ✗ falta.
 |---|---|---|---|
 | Importar topografía (§4.1–4.3) | sí | ✔ | sin importación masiva de varios archivos |
 | **Importar ortofotos (§4.4)** | sí | ✗ | fondo georreferenciado |
-| Exportar topografía (§4.5) | sí | ◐ | plano DXF; sin exportar puntos a CSV/Excel |
+| Exportar topografía (§4.5) | sí | ✔ | plano DXF y `puntos.csv` (se reimporta igual) |
 | Selección de puntos y objetos (§5.1–5.3) | sí | ◐ | tabla de puntos; sin selección en el plano |
 | Insertar puntos manualmente (§6.2) | sí | ◐ | en la tabla, no en el plano |
 | Crear rutas y vértices (§6.3–6.4) | sí | ✗ | el eje se importa |
@@ -100,7 +100,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | Invertir ruta (§7.14) | sí | ✔ | conserva estructuras y cruces |
 | Perfil desde geoservidor (§7.16) | sí | ◐ | SRTM desde archivo `.hgt`, sin descarga |
 | Perfil desde curvas de nivel (§7.17) | sí | ✗ | |
-| Ver en Planeta (§7.18) | sí | ✗ | exportar KML para Google Earth |
+| Ver en Planeta (§7.18) | sí | ✔ | `linea.kml` (eje, estructuras, predios) y `red.kml` para Google Earth |
 | Códigos de campo y CTU (§8–9) | sí | ✗ | levantamiento de lotes con prefijos |
 
 ## 6. Mejoras priorizadas
@@ -119,7 +119,7 @@ ahorra en un proyecto como el LP Capachica–Llachón; al final la comodidad.
    importados) y de vanos mínimo/promedio/máximo, ubicar los postes de la red secundaria. Base:
    numeración de viviendas (6).
 6. **Numeración y validación de viviendas** sobre el catastro.
-7. **Exportar KML** (planta de la línea y la red, «Ver en Planeta») y **exportar puntos** a CSV.
+7. ✅ **Exportar KML** y **puntos a CSV** (18/11; `motor/src/kml.rs`, prueba `tests/kml.rs`).
 8. **Capas** en GridCraft y TopoCraft (mostrar/ocultar MT, BT, AP, catastro, fondo).
 9. **Unir, separar y empalmar rutas**; proyectar puntos sobre la ruta.
 

@@ -159,6 +159,7 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] TIN, curvas de nivel, perfil longitudinal y relieve SRTM
 - [x] Catastro: predios afectados por la faja de servidumbre
 - [ ] Numeración y validación de viviendas
+- [x] Exportar a Google Earth (KML) y puntos a CSV
 - [ ] Ortofotos georreferenciadas como fondo
 - [x] Edición de puntos (tabla, trasladar, rotar)
 - [x] Invertir el sentido del eje

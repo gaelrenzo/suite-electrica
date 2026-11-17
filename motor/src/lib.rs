@@ -1,4 +1,4 @@
-﻿//! Núcleo de cálculo de Suite Eléctrica en Rust.
+//! Núcleo de cálculo de Suite Eléctrica en Rust.
 //!
 //! Port de `suite_electrica` (Python). Cada módulo se valida contra los resultados de la
 //! versión Python (`tests/referencia*.txt`, generados por `motor/generar_referencia*.py`),
@@ -25,4 +25,5 @@ pub mod dxf;
 pub mod pdf;
 pub mod apu;
 pub mod catastro;
+pub mod kml;
 pub mod cimentacion;

@@ -157,7 +157,7 @@ impl EstadoRed {
         Ok(ruta)
     }
 
-    fn exportar(&self, c: &Path) -> Result<Vec<PathBuf>, String> {
+    fn exportar(&self, c: &Path, zona: &str) -> Result<Vec<PathBuf>, String> {
         let (rd, r) = (self.red.as_ref().ok_or("No hay red")?, self.resultado.as_ref().ok_or("Calcule primero")?);
         let mut out = vec![escribir_excel(&c.join("caida_tension.xlsx"), &self.tablas)?];
         if let Some(mut d) = dxf::construir_plano_red(rd, r, 2.0)? {
@@ -169,6 +169,20 @@ impl EstadoRed {
                 ..Default::default()
             });
             out.push(d.guardar(&c.join("plano_red.dxf"))?);
+            // KML (Google Earth) en la zona UTM del proyecto
+            let mut k = suite_motor::kml::Kml::nuevo(&rd.nombre, zona);
+            let xy = |n: &str| rd.nodos.iter().find(|x| x.nodo == n).and_then(|x| Some([x.este?, x.norte?]));
+            for t in &r.tramos {
+                if let (Some(a), Some(b)) = (xy(&t.padre), xy(&t.nodo)) {
+                    k.linea(&format!("{} {:.0} m", t.formacion, t.longitud_m), &[a, b], "ff00a5ff", 2.0)?;
+                }
+            }
+            for n in &rd.nodos {
+                if let (Some(e), Some(no)) = (n.este, n.norte) {
+                    k.punto(&n.nodo, [e, no], &n.estructura.armado)?;
+                }
+            }
+            out.push(k.guardar(&c.join("red.kml"))?);
         }
         Ok(out)
     }
@@ -272,7 +286,7 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
         }
         if ui.add_enabled(st.resultado.is_some(), egui::Button::new("Exportar…")).clicked() {
             if let Some(c) = elegir_carpeta("Carpeta de salida (GridCraft)", st.ruta.as_deref().and_then(Path::parent)) {
-                match st.exportar(&c) {
+                match st.exportar(&c, &app.doc.zona_utm) {
                     Ok(out) => {
                         app.estado = format!("Exportados {} archivo(s) en {}", out.len(), c.display());
                         abrir_externo(&c);

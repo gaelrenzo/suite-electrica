@@ -69,10 +69,28 @@ fn exportar_topo(app: &mut App) {
     let eje = app.doc.eje.clone();
     let predios = if app.doc.catastro.is_empty() { None } else { app.doc.predios_afectados().ok() };
     let ancho = app.doc.ancho_servidumbre_m;
+    // KML (Google Earth): eje, estructuras (códigos del último cálculo) y predios
+    let (zona, puntos, catastro, titulo) = (app.doc.zona_utm.clone(), app.doc.puntos.clone(), app.doc.catastro.clone(), app.doc.nombre.clone());
+    let est_kml: Vec<(String, f64, String)> = match &app.calculo {
+        Some(c) => c.resultado.estructuras.iter().map(|e| (e.codigo(), e.progresiva, e.armado.clone())).collect(),
+        None => app.doc.estructuras.iter().enumerate().map(|(i, e)| (format!("E-{:02}", i + 1), e.progresiva_m, e.armado.clone())).collect(),
+    };
     let r = app.doc.topografia().and_then(|t| {
         let mut d = dxf::construir_plano_topo(&t.puntos, Some(&t.tin), &t.curvas, eq, mayor, eje.as_deref(), 1.0);
         d.lamina(&c_plano);
         let mut out = vec![d.guardar(&c.join("plano.dxf"))?];
+        out.push(suite_motor::kml::escribir_puntos_csv(&c.join("puntos.csv"), &puntos)?);
+        if let Some(e) = &eje {
+            let mut k = suite_motor::kml::Kml::nuevo(&titulo, &zona);
+            k.linea("Eje", e, "ff0000ff", 3.0)?;
+            for (n, s, arm) in &est_kml {
+                k.punto(n, suite_motor::geo::punto_en_progresiva(e, *s), arm)?;
+            }
+            for p in &catastro {
+                k.poligono(&p.nombre, &p.xy)?;
+            }
+            out.push(k.guardar(&c.join("linea.kml"))?);
+        }
         if let Some(f) = &predios {
             out.push(escribir_excel(&c.join("predios_afectados.xlsx"), &[suite_motor::catastro::tabla_predios(f, ancho)])?);
         }
