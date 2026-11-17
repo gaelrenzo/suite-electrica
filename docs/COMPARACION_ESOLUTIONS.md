@@ -55,7 +55,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | Diseño de baja tensión (§4.6) | sí | ✔ | editor en planta |
 | Caída de tensión, vista semáforo (§4.7) | sí | ✅ | 106 tramos, ≤ 0,06 % |
 | Selección, mover, deshacer/rehacer (§5) | sí | ✔ | Mayús+clic, Ctrl+Z, Ctrl+Y |
-| **Autodistribución de estructuras BT desde lotes (§6.1.3)** | sí | ✗ | vanos mín./prom./máx. y vano flojo |
+| Autodistribución de estructuras BT desde lotes (§6.1.3) | sí | ◐ | desde el catastro o un DXF de lotes; no sigue calles (hay que mover postes) |
 | Autodistribución de suministros BT (§6.1.4) | sí | ◐ | asignación múltiple manual; sin regla automática por normativa |
 | Autodiseño de suministros MT (§6.1.5) | sí | ✗ | armados MT por regla de la base de datos |
 | Autodiseño de conductores | no | ✔ | exclusivo de la suite |
@@ -115,9 +115,8 @@ ahorra en un proyecto como el LP Capachica–Llachón; al final la comodidad.
    (ya existe `derivaciones.rs`); validar con REDLIN mientras dure la demo.
 
 ### Prioridad 2: lo que más tiempo ahorra
-5. **Autodistribución de estructuras BT desde lotes**: a partir de los predios del catastro (ya
-   importados) y de vanos mínimo/promedio/máximo, ubicar los postes de la red secundaria. Base:
-   numeración de viviendas (6).
+5. ◐ **Autodistribución de estructuras BT desde lotes** (18/11; `red::autodistribuir`, prueba
+   `tests/red_autodistribucion.rs`, revisado en pantalla). Falta: seguir el trazo de las calles.
 6. **Numeración y validación de viviendas** sobre el catastro.
 7. ✅ **Exportar KML** y **puntos a CSV** (18/11; `motor/src/kml.rs`, prueba `tests/kml.rs`).
 8. ✅ **Capas** en GridCraft (18/11; revisado en pantalla).

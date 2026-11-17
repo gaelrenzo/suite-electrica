@@ -614,7 +614,13 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      (0 = no verificar; el límite según la categoría de terreno lo pone el usuario con su fuente,
      `hw_max_m`); alerta «V» por tramo con H/w en la hipótesis inicial y L·D/m del vano mayor para
      decidir amortiguadores.
-   - GridCraft: autodistribución de estructuras BT desde los lotes. ✅ Capas (18/11): menú «Capas ▾»
+   - GridCraft: ◐ autodistribución de la red BT desde los lotes (18/11; `red::autodistribuir`, prueba
+     `tests/red_autodistribucion.rs`): botón «Autodistribuir desde lotes…» con lotes del catastro del
+     proyecto o de un DXF (centro de cada polilínea cerrada, o puntos). Cobertura voraz (cada lote a
+     ≤ acometida larga de un poste; 15/30 m de las láminas 007/008 de la DGE RD 023-2003), árbol de
+     menor longitud hasta la SED (poste seleccionado o centro de los lotes) y postes intermedios en
+     vanos > máximo; cada poste lleva sus lotes y acometidas C/L. Revisado en pantalla (40 lotes,
+     10 postes, cumple). No sigue calles: las líneas pueden cruzar predios. ✅ Capas (18/11): menú «Capas ▾»
      (fondo DXF, topografía, longitud de vanos, nombres y %ΔV, retenidas, alumbrado, SED y tipo de
      poste); queda abierto para marcar varias. Revisado en pantalla. ✅ Varias redes juntas
      (17/11): «Metrado de varias redes (RS)…» en PresuCraft suma el metrado y las cimentaciones de

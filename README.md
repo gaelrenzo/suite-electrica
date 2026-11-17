@@ -178,7 +178,7 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 **GridCraft**
 - [x] Editor en planta, caída de tensión, metrado y materiales (igual a REDCAD)
 - [x] Autodiseño de conductores BT, simbología, red primaria 22,9 kV
-- [ ] Autodistribución de estructuras BT desde los lotes del catastro
+- [x] Autodistribución de la red BT desde los lotes (sin seguir calles)
 - [x] Revisión automática del diseño
 - [x] Rehacer (Ctrl+Y)
 - [x] Capas

@@ -46,6 +46,7 @@ pub struct EstadoRed {
     ver_topo: bool,
     ver_simbolos: bool,
     capas: Capas,
+    autodist: Option<red::ParamAutodistribucion>,
     conductor_nuevo: String,
     obsoleto: bool,
     pila: Vec<Vec<Nodo>>,
@@ -74,6 +75,7 @@ impl Default for EstadoRed {
             ver_topo: true,
             ver_simbolos: true,
             capas: Capas::default(),
+            autodist: None,
             conductor_nuevo: String::new(),
             obsoleto: false,
             pila: Vec::new(),
@@ -296,6 +298,13 @@ fn barra(app: &mut App, ui: &mut egui::Ui) {
                     Err(e) => app.error = Some(e),
                 }
             }
+        }
+        if ui.add_enabled(hay, egui::Button::new("Autodistribuir desde lotes…"))
+            .on_hover_text("Ubica los postes BT para que cada lote quede al alcance de una acometida y los une a la SED (como REDCAD). Reemplaza los nodos; Ctrl+Z deshace.")
+            .clicked()
+        {
+            let conductor = st.red.as_ref().and_then(|r| r.conductores.first().map(|c| c.formacion.clone())).unwrap_or_default();
+            st.autodist = Some(red::ParamAutodistribucion { conductor, ..Default::default() });
         }
         if ui.add_enabled(hay, egui::Button::new("Autodiseñar conductores"))
             .on_hover_text("Asigna a cada tramo la formación más chica (mayor K) que cumple %ΔV, corriente y pérdidas, sin mezclar fases. Mayús+clic: parte de las formaciones actuales. Ctrl+Z deshace.")
@@ -819,6 +828,7 @@ fn propiedades(app: &mut App, ui: &mut egui::Ui) {
 }
 
 pub fn panel(app: &mut App, ui: &mut egui::Ui) {
+    ventana_autodistribucion(app, &ui.ctx().clone());
     egui::Panel::top("red_barra").show(ui, |ui| barra(app, ui));
     egui::Panel::right("red_prop").resizable(true).default_size(330.0).show(ui, |ui| propiedades(app, ui));
     egui::CentralPanel::default().show(ui, |ui| {
@@ -876,5 +886,84 @@ struct Capas {
 impl Default for Capas {
     fn default() -> Self {
         Capas { fondo: true, vanos: true, etiquetas: true, retenidas: true, alumbrado: true, tipos: true }
+    }
+}
+
+/// Ventana de la autodistribución BT desde lotes: parámetros y origen de los lotes.
+fn ventana_autodistribucion(app: &mut App, ctx: &egui::Context) {
+    let Some(mut par) = app.red.autodist.clone() else { return };
+    let mut abierto = true;
+    let mut desde: Option<bool> = None; // Some(true) catastro del proyecto, Some(false) DXF
+    let formaciones: Vec<String> = app.red.red.as_ref().map(|r| r.conductores.iter().map(|c| c.formacion.clone()).collect()).unwrap_or_default();
+    let n_catastro = app.doc.catastro.len();
+    egui::Window::new("Autodistribuir red BT desde lotes").open(&mut abierto).default_width(460.0).show(ctx, |ui| {
+        ui.label(egui::RichText::new(
+            "Cada lote queda a no más de la acometida larga de un poste; los postes se unen a la SED por el árbol de menor \
+             longitud y los vanos largos se parten. La SED es el poste seleccionado o el centro de los lotes. No sigue calles: \
+             revise y mueva los postes después. Reemplaza los nodos de la red (Ctrl+Z deshace).",
+        ).small());
+        egui::Grid::new("autodist").num_columns(2).show(ui, |ui| {
+            num(ui, "Vano máximo", &mut par.vano_max_m, 1.0, " m");
+            num(ui, "Acometida corta hasta", &mut par.acometida_corta_m, 1.0, " m");
+            num(ui, "Acometida larga hasta", &mut par.acometida_larga_m, 1.0, " m");
+            ui.label("Conductor");
+            egui::ComboBox::from_id_salt("autodist_cond").selected_text(par.conductor.as_str()).show_ui(ui, |ui| {
+                for f in &formaciones {
+                    ui.selectable_value(&mut par.conductor, f.clone(), f);
+                }
+            });
+            ui.end_row();
+        });
+        ui.label(egui::RichText::new("Acometidas 15 m / 30 m: longitud de conductor de las láminas 007 y 008 de la DGE RD 023-2003; el vano máximo es dato del proyecto.").small());
+        ui.horizontal(|ui| {
+            if ui.add_enabled(n_catastro > 0, egui::Button::new(format!("Desde el catastro del proyecto ({n_catastro} predios)"))).clicked() {
+                desde = Some(true);
+            }
+            if ui.button("Desde un DXF de lotes…").on_hover_text("Polilíneas cerradas (centro de cada una) o puntos").clicked() {
+                desde = Some(false);
+            }
+        });
+    });
+    app.red.autodist = if abierto { Some(par.clone()) } else { None };
+    let Some(cat) = desde else { return };
+    let lotes: Result<Vec<[f64; 2]>, String> = if cat {
+        Ok(app.doc.catastro.iter().map(|p| {
+            let n = p.xy.len() as f64;
+            p.xy.iter().fold([0.0, 0.0], |a, q| [a[0] + q[0] / n, a[1] + q[1] / n])
+        }).collect())
+    } else {
+        match rfd::FileDialog::new().add_filter("DXF de lotes", &["dxf"]).pick_file() {
+            None => return,
+            Some(r) => suite_motor::entrada::predios_dxf(&r)
+                .map(|ps| ps.iter().map(|p| {
+                    let n = p.xy.len() as f64;
+                    p.xy.iter().fold([0.0, 0.0], |a, q| [a[0] + q[0] / n, a[1] + q[1] / n])
+                }).collect())
+                .or_else(|_| suite_motor::entrada::leer_puntos_dxf(&r, None).map(|v| v.iter().map(|q| [q[0], q[1]]).collect())),
+        }
+    };
+    let st = &mut app.red;
+    let r = lotes.and_then(|lotes| {
+        let sed = st
+            .sel
+            .and_then(|i| st.red.as_ref().and_then(|rd| rd.nodos.get(i)).and_then(|n| Some([n.este?, n.norte?])))
+            .unwrap_or_else(|| {
+                let n = lotes.len().max(1) as f64;
+                lotes.iter().fold([0.0, 0.0], |a, q| [a[0] + q[0] / n, a[1] + q[1] / n])
+            });
+        let nodos = red::autodistribuir(&lotes, sed, &par)?;
+        st.apilar();
+        let (n, l) = (nodos.len(), lotes.len());
+        if let Some(rd) = &mut st.red {
+            rd.nodos = nodos;
+        }
+        st.sel = None;
+        st.autodist = None;
+        let m = st.calcular()?;
+        Ok(format!("Red autodistribuida: {} postes para {l} lotes. {m}", n - 1))
+    });
+    match r {
+        Ok(m) => app.estado = m,
+        Err(e) => app.error = Some(e),
     }
 }

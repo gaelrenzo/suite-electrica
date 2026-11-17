@@ -1041,3 +1041,119 @@ pub fn revisar(red: &Red) -> Vec<String> {
     }
     obs
 }
+
+/// Parámetros de la autodistribución de la red BT desde los lotes.
+#[derive(Clone, Debug)]
+pub struct ParamAutodistribucion {
+    /// Vano máximo entre postes (m); los tramos más largos se parten con postes intermedios.
+    pub vano_max_m: f64,
+    /// Distancia máxima lote–poste de una acometida corta y de una larga (m).
+    pub acometida_corta_m: f64,
+    pub acometida_larga_m: f64,
+    /// Formación de conductor de los tramos.
+    pub conductor: String,
+}
+
+impl Default for ParamAutodistribucion {
+    fn default() -> Self {
+        // acometidas: longitud de conductor de las láminas 007 (corta, 15 m) y 008 (larga, 30 m) de la
+        // DGE RD 023-2003; el vano máximo es un dato de diseño del proyecto
+        ParamAutodistribucion { vano_max_m: 50.0, acometida_corta_m: 15.0, acometida_larga_m: 30.0, conductor: String::new() }
+    }
+}
+
+/// Red BT radial desde los lotes (como la autodistribución de REDCAD): postes que cubren cada lote
+/// con una acometida (cobertura voraz), árbol de menor longitud entre postes y SED, y postes
+/// intermedios donde el vano supera el máximo. Cada poste lleva sus lotes y acometidas (C/L).
+/// ponytail: no sigue calles ni límites de lotes (las líneas pueden cruzar predios); el usuario
+/// mueve los postes en el plano. Árbol de Prim O(n²) y cobertura O(n²): bien para cientos de lotes.
+pub fn autodistribuir(lotes: &[[f64; 2]], sed: [f64; 2], p: &ParamAutodistribucion) -> Result<Vec<Nodo>, String> {
+    if lotes.is_empty() {
+        return Err("No hay lotes para distribuir".into());
+    }
+    if !(p.vano_max_m > 0.0 && p.acometida_larga_m > 0.0) {
+        return Err("Vano máximo y acometida larga deben ser positivos".into());
+    }
+    let d = |a: [f64; 2], b: [f64; 2]| (a[0] - b[0]).hypot(a[1] - b[1]);
+    // 1. cobertura: el lote con más lotes sin cubrir a su alcance pasa a ser poste
+    let mut sin_cubrir: Vec<usize> = (0..lotes.len()).collect();
+    let mut postes: Vec<([f64; 2], Vec<usize>)> = Vec::new();
+    while !sin_cubrir.is_empty() {
+        let (mejor, cubre) = sin_cubrir
+            .iter()
+            .map(|&c| (c, sin_cubrir.iter().copied().filter(|&l| d(lotes[c], lotes[l]) <= p.acometida_larga_m).collect::<Vec<_>>()))
+            .max_by_key(|x| x.1.len())
+            .unwrap();
+        // el poste va al centro de sus lotes si desde ahí los sigue alcanzando a todos
+        let n = cubre.len() as f64;
+        let centro = cubre.iter().fold([0.0, 0.0], |a, &l| [a[0] + lotes[l][0] / n, a[1] + lotes[l][1] / n]);
+        let pos = if cubre.iter().all(|&l| d(centro, lotes[l]) <= p.acometida_larga_m) { centro } else { lotes[mejor] };
+        sin_cubrir.retain(|l| !cubre.contains(l));
+        postes.push((pos, cubre));
+    }
+    // 2. árbol de menor longitud (Prim) desde la SED
+    let mut xy: Vec<[f64; 2]> = vec![sed];
+    xy.extend(postes.iter().map(|x| x.0));
+    let m = xy.len();
+    let mut en = vec![false; m];
+    let mut mejor = vec![(f64::INFINITY, 0usize); m];
+    en[0] = true;
+    for j in 1..m {
+        mejor[j] = (d(xy[0], xy[j]), 0);
+    }
+    let mut padre = vec![usize::MAX; m];
+    for _ in 1..m {
+        let j = (1..m).filter(|&j| !en[j]).min_by(|&a, &b| mejor[a].0.partial_cmp(&mejor[b].0).unwrap()).unwrap();
+        en[j] = true;
+        padre[j] = mejor[j].1;
+        for k in 1..m {
+            if !en[k] && d(xy[j], xy[k]) < mejor[k].0 {
+                mejor[k] = (d(xy[j], xy[k]), j);
+            }
+        }
+    }
+    // 3. nodos en orden de conexión, con postes intermedios en los vanos largos
+    let mut orden: Vec<usize> = vec![0];
+    let mut i = 0;
+    while i < orden.len() {
+        let a = orden[i];
+        orden.extend((1..m).filter(|&k| padre[k] == a));
+        i += 1;
+    }
+    let mut nombre = vec![String::new(); m];
+    nombre[0] = "SED".into();
+    let mut nodos = vec![Nodo { nodo: "SED".into(), este: Some(sed[0]), norte: Some(sed[1]), ..Default::default() }];
+    let mut k = 0;
+    let mut nuevo = |nodos: &mut Vec<Nodo>, padre: &str, pos: [f64; 2], lotes_n: f64, acometidas: Vec<String>| -> String {
+        k += 1;
+        let n = format!("P{k:02}");
+        let pp = nodos.iter().find(|x| x.nodo == padre).map(|x| [x.este.unwrap(), x.norte.unwrap()]).unwrap();
+        let mut e = EstructuraBt::default();
+        e.acometidas = acometidas;
+        nodos.push(Nodo {
+            nodo: n.clone(),
+            padre: padre.into(),
+            longitud_m: (d(pp, pos) * 100.0).round() / 100.0,
+            conductor: p.conductor.clone(),
+            lotes: lotes_n,
+            este: Some(pos[0]),
+            norte: Some(pos[1]),
+            estructura: e,
+            ..Default::default()
+        });
+        n
+    };
+    for &j in orden.iter().skip(1) {
+        let (a, b) = (xy[padre[j]], xy[j]);
+        let tramos = (d(a, b) / p.vano_max_m).ceil().max(1.0) as usize;
+        let mut ant = nombre[padre[j]].clone();
+        for t in 1..tramos {
+            let f = t as f64 / tramos as f64;
+            ant = nuevo(&mut nodos, &ant, [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f], 0.0, Vec::new());
+        }
+        let cubre = &postes[j - 1].1;
+        let acom = cubre.iter().map(|&l| if d(b, lotes[l]) <= p.acometida_corta_m { "C".to_string() } else { "L".to_string() }).collect();
+        nombre[j] = nuevo(&mut nodos, &ant, b, cubre.len() as f64, acom);
+    }
+    Ok(nodos)
+}
