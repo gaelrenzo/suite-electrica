@@ -608,7 +608,9 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      referencia de esa empresa, no se carga en la plantilla). La plantilla trae V de las crucetas de
      madera 90x115 mm calculado con DGE 018-2003 §5.3 (RC = Ma/Ws), MOR 50 MPa (DGE 026-2003 ETS-LP-04)
      y FS 4 (DGE 018 §5.2): 2 254 N por fase (PS1), 4 509 N (PA1, doble cruceta), 4 723 N (PR3, PTH);
-     los H quedan vacíos (falta el brazo de la cruceta de 4,30 m). V no incluye el peso del aislador.
+     H (cruceta 102x127 mm 4,30 m, voladizo de 1,00 m; fase central entre postes, P = 4M/L): PSH 3 427 N,
+     PA1H y PRH 6 855 N (dobles), PA2H 5 484 N (brazo 0,95 + 0,30 m). Brazos verificados en las láminas
+     004, 008, 019, 020, 025-030 del PDF de la RD 024-2003. V no incluye el peso del aislador.
      Fuentes en `C:\Users\renzo\investigacion_catalogo_armados_lineas` (README_investigacion.md).
      Aisladores (DGE 026, datos de rotura, para `tiro_max_espiga` con el FS que fije el proyecto): pin
      ANSI 56-2/56-3/56-4 13 kN a la flexión (ETS-LP-06); line post polimérico 10 kN flexión (ETS-LP-10);
