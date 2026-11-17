@@ -512,6 +512,67 @@ impl Documento {
 
     /// Eje desde DXF/CSV, o la ruta `nombre` (por defecto la primera) de KML/GPX/XLS.
     pub fn importar_eje(&mut self, ruta: &Path, nombre: Option<&str>) -> Result<(), String> {
+        let eje = leer_eje(ruta, nombre)?;
+        self.eje = Some(eje);
+        self.estructuras.clear();
+        self.cambio_topografia();
+        Ok(())
+    }
+
+    /// Separa el eje en la progresiva `s`: el proyecto conserva 0..s (y las estructuras y cruces hasta
+    /// ahí) y se devuelve el tramo s..fin para guardarlo como otra ruta.
+    pub fn separar_eje(&mut self, s: f64) -> Result<Vec<[f64; 2]>, String> {
+        let eje = self.eje.as_ref().ok_or("El proyecto no tiene eje de línea")?;
+        let l = *progresivas_eje(eje).last().unwrap_or(&0.0);
+        if !(s > 0.0 && s < l) {
+            return Err(format!("La progresiva de corte debe estar entre 0 y {l:.2} m"));
+        }
+        let (a, b) = crate::geo::cortar_eje(eje, s);
+        self.recortar_a(s);
+        self.eje = Some(a);
+        self.cambio_topografia();
+        Ok(b)
+    }
+
+    /// Une otra ruta al final del eje (orientada por su extremo más cercano); `desde` corta antes el
+    /// eje en esa progresiva (empalme de una variante). Las estructuras hasta el empalme se conservan.
+    pub fn unir_eje(&mut self, otra: &[[f64; 2]], desde: Option<f64>) -> Result<(), String> {
+        let eje = self.eje.clone().ok_or("El proyecto no tiene eje de línea")?;
+        if otra.len() < 2 {
+            return Err("La ruta a unir necesita al menos 2 vértices".into());
+        }
+        let base = match desde {
+            Some(s) => {
+                let l = *progresivas_eje(&eje).last().unwrap_or(&0.0);
+                if !(s > 0.0 && s <= l) {
+                    return Err(format!("La progresiva de empalme debe estar entre 0 y {l:.2} m"));
+                }
+                self.recortar_a(s);
+                crate::geo::cortar_eje(&eje, s).0
+            }
+            None => eje,
+        };
+        self.eje = Some(crate::geo::unir_ejes(&base, otra));
+        self.cambio_topografia();
+        Ok(())
+    }
+
+    /// Quita estructuras y cruces más allá de la progresiva `s`.
+    fn recortar_a(&mut self, s: f64) {
+        self.estructuras.retain(|e| e.progresiva_m <= s + 1e-6);
+        self.cruces.retain(|c| c.first().and_then(|x| x.trim().replace(',', ".").parse::<f64>().ok()).map_or(true, |x| x <= s + 1e-6));
+    }
+
+    /// Numera los predios del catastro (ver `catastro::numerar`).
+    pub fn numerar_predios(&mut self, prefijo: &str, solo_vacios: bool) -> usize {
+        let eje = self.eje.clone();
+        crate::catastro::numerar(&mut self.catastro, prefijo, eje.as_deref(), solo_vacios, 15.0)
+    }
+}
+
+/// Eje desde DXF/CSV, o la ruta `nombre` (por defecto la primera) de KML/GPX/XLS.
+pub fn leer_eje(ruta: &Path, nombre: Option<&str>) -> Result<Vec<[f64; 2]>, String> {
+    {
         let ext = ruta.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
         let eje: Vec<[f64; 2]> = match ext.as_str() {
             "kml" | "gpx" | "xls" | "xlsx" => {
@@ -533,11 +594,11 @@ impl Documento {
         if eje.len() < 2 {
             return Err(format!("{}: el eje necesita al menos 2 vértices", ruta.display()));
         }
-        self.eje = Some(eje);
-        self.estructuras.clear();
-        self.cambio_topografia();
-        Ok(())
+        Ok(eje)
     }
+}
+
+impl Documento {
 
     /// Limpieza, TIN, curvas y perfil (en caché).
     pub fn topografia(&mut self) -> Result<&Topografia, String> {

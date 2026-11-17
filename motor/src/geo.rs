@@ -212,3 +212,44 @@ mod prueba_proyeccion {
         assert!((super::proyectar_en_eje(&eje, p).0 - s).abs() < 1e-9);
     }
 }
+
+/// Corta el eje en la progresiva `s`: (tramo 0..s, tramo s..fin). El punto de corte va en ambos.
+pub fn cortar_eje(eje: &[[f64; 2]], s: f64) -> (Vec<[f64; 2]>, Vec<[f64; 2]>) {
+    let acum = progresivas_eje(eje);
+    let s = s.clamp(0.0, *acum.last().unwrap_or(&0.0));
+    let p = punto_en_progresiva(eje, s);
+    let mut a: Vec<[f64; 2]> = eje.iter().zip(&acum).filter(|(_, &x)| x < s).map(|(q, _)| *q).collect();
+    let mut b: Vec<[f64; 2]> = vec![p];
+    b.extend(eje.iter().zip(&acum).filter(|(_, &x)| x > s).map(|(q, _)| *q));
+    a.push(p);
+    (a, b)
+}
+
+/// Une `b` al final de `a`, orientando `b` para que empiece por su extremo más cercano al final de
+/// `a` (el inicio de `a` no cambia, así sus progresivas siguen valiendo). Si los extremos coinciden
+/// (< 1 mm) no se repite el vértice.
+pub fn unir_ejes(a: &[[f64; 2]], b: &[[f64; 2]]) -> Vec<[f64; 2]> {
+    let (Some(fin), Some(b0), Some(b1)) = (a.last(), b.first(), b.last()) else {
+        return if a.is_empty() { b.to_vec() } else { a.to_vec() };
+    };
+    let d = |p: &[f64; 2], q: &[f64; 2]| (p[0] - q[0]).hypot(p[1] - q[1]);
+    let mut b = b.to_vec();
+    if d(fin, b1) < d(fin, b0) {
+        b.reverse();
+    }
+    let salto = usize::from(d(fin, &b[0]) < 1e-3);
+    let mut out = a.to_vec();
+    out.extend_from_slice(&b[salto..]);
+    out
+}
+
+/// Lado del eje en que cae `p` respecto del sentido de avance: +1 izquierda, −1 derecha, 0 sobre él.
+pub fn lado_del_eje(eje: &[[f64; 2]], p: [f64; 2]) -> f64 {
+    let (s, d) = proyectar_en_eje(eje, p);
+    if d < 1e-9 {
+        return 0.0;
+    }
+    let l = *progresivas_eje(eje).last().unwrap_or(&0.0);
+    let (a, b) = if s + 0.01 <= l { (punto_en_progresiva(eje, s), punto_en_progresiva(eje, s + 0.01)) } else { (punto_en_progresiva(eje, s - 0.01), punto_en_progresiva(eje, s)) };
+    ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0])).signum()
+}

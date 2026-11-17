@@ -158,7 +158,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] Importar CSV, DXF, KML, GPX, MapSource, Excel RLT y TPG
 - [x] TIN, curvas de nivel, perfil longitudinal y relieve SRTM
 - [x] Catastro: predios afectados por la faja de servidumbre
-- [ ] Numeración y validación de viviendas
+- [x] Numeración y validación de viviendas
+- [x] Separar, unir y empalmar rutas; proyectar puntos sobre el eje
 - [x] Exportar a Google Earth (KML) y puntos a CSV
 - [ ] Ortofotos georreferenciadas como fondo
 - [x] Edición de puntos (tabla, trasladar, rotar)

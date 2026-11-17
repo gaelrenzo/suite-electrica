@@ -587,7 +587,8 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
    - La prueba Python `test_nuevo_proyecto_desde_plantilla` cuenta ahora los parámetros que siguen
      PENDIENTE en la plantilla (antes suponía que lo estaban todos).
 5. **Brechas con ESOLUTIONS según sus manuales** (también en la hoja de ruta del README):
-   - TopoCraft: numeración y validación de viviendas; ortofotos georreferenciadas como fondo;
+   - TopoCraft: ✅ numeración y validación de viviendas, separar/unir/empalmar rutas y puntos sobre
+     el eje (18/11, `tests/rutas_viviendas.rs`, revisado en pantalla). Pendiente: ortofotos georreferenciadas como fondo;
      edición de rutas (proyectar, unir); códigos de campo (CTU). ✅ Exportar KML y puntos (18/11,
      `motor/src/kml.rs`, prueba `tests/kml.rs` que reimporta ambos): al exportar TopoCraft escribe
      `puntos.csv` y `linea.kml` (eje, estructuras con su armado y predios); GridCraft escribe

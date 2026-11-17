@@ -126,3 +126,91 @@ pub fn tabla_predios(f: &[FilaPredio], ancho_m: f64) -> crate::salidas::Tabla {
             .collect(),
     }
 }
+
+/// Centroide (promedio de vértices) de un predio.
+pub fn centro(poli: &[[f64; 2]]) -> [f64; 2] {
+    let n = poli.len().max(1) as f64;
+    poli.iter().fold([0.0, 0.0], |a, q| [a[0] + q[0] / n, a[1] + q[1] / n])
+}
+
+/// Numera los predios `{prefijo}{n:03}` en orden de recorrido: por la progresiva de su centro sobre
+/// el eje si hay, si no por filas (norte a sur, oeste a este, en franjas de `fila_m`). Con `solo_vacios`
+/// conserva los nombres existentes y numera los que no tienen. Devuelve cuántos renombró.
+/// ponytail: el orden por filas es un barrido simple; no sigue calles ni manzanas.
+pub fn numerar(predios: &mut [Predio], prefijo: &str, eje: Option<&[[f64; 2]]>, solo_vacios: bool, fila_m: f64) -> usize {
+    let clave = |p: &Predio| -> (f64, f64) {
+        let c = centro(&p.xy);
+        match eje {
+            Some(e) if e.len() >= 2 => (crate::geo::proyectar_en_eje(e, c).0, 0.0),
+            _ => (-(c[1] / fila_m.max(1.0)).floor(), c[0]),
+        }
+    };
+    let mut orden: Vec<usize> = (0..predios.len()).collect();
+    orden.sort_by(|&a, &b| clave(&predios[a]).partial_cmp(&clave(&predios[b])).unwrap_or(std::cmp::Ordering::Equal));
+    let usados: std::collections::HashSet<String> = predios.iter().filter(|p| solo_vacios && !p.nombre.trim().is_empty()).map(|p| p.nombre.clone()).collect();
+    let (mut n, mut cambios) = (0, 0);
+    for i in orden {
+        if solo_vacios && !predios[i].nombre.trim().is_empty() {
+            continue;
+        }
+        let nombre = loop {
+            n += 1;
+            let x = format!("{prefijo}{n:03}");
+            if !usados.contains(&x) {
+                break x;
+            }
+        };
+        predios[i].nombre = nombre;
+        cambios += 1;
+    }
+    cambios
+}
+
+/// Validación de las viviendas/predios: sin nombre, nombres repetidos, polígonos degenerados
+/// (< 3 vértices o área < `area_min_m2`) y predios superpuestos (el centro de uno dentro de otro).
+pub fn validar(predios: &[Predio], area_min_m2: f64) -> Vec<String> {
+    let mut avisos = Vec::new();
+    let mut vistos: std::collections::HashMap<&str, usize> = std::collections::HashMap::new();
+    for (i, p) in predios.iter().enumerate() {
+        let n = p.nombre.trim();
+        if n.is_empty() {
+            avisos.push(format!("Predio {} sin nombre", i + 1));
+        } else if let Some(j) = vistos.insert(n, i) {
+            avisos.push(format!("{n}: nombre repetido (predios {} y {})", j + 1, i + 1));
+        }
+        if p.xy.len() < 3 || area(&p.xy) < area_min_m2 {
+            avisos.push(format!("{}: polígono degenerado (área {:.1} m²)", if n.is_empty() { format!("Predio {}", i + 1) } else { n.to_string() }, area(&p.xy)));
+        }
+    }
+    for (i, p) in predios.iter().enumerate() {
+        let c = centro(&p.xy);
+        for (j, q) in predios.iter().enumerate() {
+            if i < j && q.xy.len() >= 3 && p.xy.len() >= 3 && (dentro(c, &q.xy) || dentro(centro(&q.xy), &p.xy)) {
+                avisos.push(format!("{} y {} se superponen", p.nombre, q.nombre));
+            }
+        }
+    }
+    avisos
+}
+
+/// Puntos proyectados sobre el eje: progresiva, distancia y lado (I/D).
+pub fn tabla_puntos_en_eje(eje: &[[f64; 2]], puntos: &[crate::entrada::Punto]) -> crate::salidas::Tabla {
+    use crate::salidas::Celda::{Num, Txt};
+    let r = |x: f64| Num((x * 1000.0).round() / 1000.0);
+    crate::salidas::Tabla {
+        nombre: "Puntos sobre el eje".into(),
+        columnas: ["Punto", "Descripción", "Progresiva", "Progresiva (m)", "Distancia al eje (m)", "Lado", "Cota (m)"].iter().map(|x| x.to_string()).collect(),
+        filas: puntos
+            .iter()
+            .map(|p| {
+                let (s, d) = crate::geo::proyectar_en_eje(eje, [p.este, p.norte]);
+                let lado = match crate::geo::lado_del_eje(eje, [p.este, p.norte]) {
+                    x if x > 0.0 => "I",
+                    x if x < 0.0 => "D",
+                    _ => "eje",
+                };
+                vec![Txt(p.punto.clone()), Txt(p.descripcion.clone()), Txt(crate::salidas::formato_progresiva(s, 2)), r(s), r(d), Txt(lado.into()), r(p.cota)]
+            })
+            .collect(),
+    }
+}

@@ -14,7 +14,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | REDLIN | ✅ mismas cifras (catenaria, flechado, creep, cargas, postes, biposte H, terminal a media línea) | ◐ | Plantilla de planos con bloques; esquemas de aislamiento; terminales de derivación (TS) |
 | REDCAD | ✅ caída de tensión BT, metrado, materiales | ◐ | Autodistribución BT desde lotes, capas, catastro como geodata, plantillas DXF |
 | PRESIO | ✅ APU, fórmula polinómica, transporte | ◐ | Base de precios por región y desagregado de gastos generales |
-| TOPOMAGIC | sin comparar (validado contra la versión Python) | ◐ | Numeración de viviendas, ortofotos, vías, unir/separar rutas, códigos de campo |
+| TOPOMAGIC | sin comparar (validado contra la versión Python) | ◐ | Ortofotos, vías, códigos de campo |
 
 ## 2. REDLIN (líneas primarias)
 
@@ -93,10 +93,10 @@ equivalente) · ◐ parcial · ✗ falta.
 | Medición (§6.8) | sí | ◐ | herramienta «Medir» en el plano de GridCraft (se engancha a los postes) |
 | Catastro (§7.1) | sí | ✔ | predios afectados por la faja |
 | Curvas de nivel (§7.3) | sí | ✔ | |
-| **Numeración y validación de viviendas (§7.4–7.5)** | sí | ✗ | entrada del autodiseño BT |
+| Numeración y validación de viviendas (§7.4–7.5) | sí | ✔ | «Rutas y viviendas ▾»: por progresiva o por filas; sin nombre, repetidas, degeneradas, superpuestas |
 | Traslación, rotación, elevación (§7.7–7.9) | sí | ✔ | editor de puntos |
-| Proyectar puntos sobre ruta (§7.11) | sí | ✗ | |
-| **Unir, separar, empalmar rutas (§7.12–7.15)** | sí | ✗ | |
+| Proyectar puntos sobre ruta (§7.11) | sí | ✔ | `puntos_sobre_eje.xlsx` al exportar: progresiva, distancia y lado I/D |
+| Unir, separar, empalmar rutas (§7.12–7.15) | sí | ✔ | conserva estructuras hasta el corte/empalme |
 | Invertir ruta (§7.14) | sí | ✔ | conserva estructuras y cruces |
 | Perfil desde geoservidor (§7.16) | sí | ◐ | SRTM desde archivo `.hgt`, sin descarga |
 | Perfil desde curvas de nivel (§7.17) | sí | ✔ | «Importar puntos» de un DXF de curvas (polilíneas con elevación); prueba `tests/curvas_perfil.rs` |
@@ -117,10 +117,10 @@ ahorra en un proyecto como el LP Capachica–Llachón; al final la comodidad.
 ### Prioridad 2: lo que más tiempo ahorra
 5. ◐ **Autodistribución de estructuras BT desde lotes** (18/11; `red::autodistribuir`, prueba
    `tests/red_autodistribucion.rs`, revisado en pantalla). Falta: seguir el trazo de las calles.
-6. **Numeración y validación de viviendas** sobre el catastro.
+6. ✅ **Numeración y validación de viviendas** (18/11; `tests/rutas_viviendas.rs`, revisado en pantalla).
 7. ✅ **Exportar KML** y **puntos a CSV** (18/11; `motor/src/kml.rs`, prueba `tests/kml.rs`).
 8. ✅ **Capas** en GridCraft (18/11; revisado en pantalla).
-9. **Unir, separar y empalmar rutas**; proyectar puntos sobre la ruta.
+9. ✅ **Unir, separar y empalmar rutas**; proyectar puntos sobre la ruta (18/11; revisado en pantalla).
 
 ### Prioridad 3: entrega y presentación
 10. ◐ **Plantilla de planos** del usuario (18/11; `dxf::aplicar_lamina`, prueba `tests/plantilla_lamina.rs`).

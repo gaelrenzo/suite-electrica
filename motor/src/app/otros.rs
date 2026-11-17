@@ -95,6 +95,9 @@ fn exportar_topo(app: &mut App) {
         if let Some(f) = &predios {
             out.push(escribir_excel(&c.join("predios_afectados.xlsx"), &[suite_motor::catastro::tabla_predios(f, ancho)])?);
         }
+        if let Some(e) = eje.as_deref().filter(|_| !puntos.is_empty()) {
+            out.push(escribir_excel(&c.join("puntos_sobre_eje.xlsx"), &[suite_motor::catastro::tabla_puntos_en_eje(e, &puntos)])?);
+        }
         if let Some(p) = &t.perfil {
             pdf::perfil_pdf(&c.join("perfil.pdf"), p, None, None, "PERFIL LONGITUDINAL")?;
             out.push(c.join("perfil.pdf"));
@@ -132,6 +135,7 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
                         app.estado = "Eje invertido — pulse Procesar / Calcular".into();
                     }
                 }
+                rutas_y_viviendas(app, ui);
                 if ui.add_enabled(!app.doc.puntos.is_empty(), egui::Button::new("Editar puntos…"))
                     .on_hover_text("Editar, agregar o eliminar puntos; trasladar o rotar la nube")
                     .clicked()
@@ -923,4 +927,68 @@ fn metrado_varias_redes(app: &mut App) {
     if let Some(m) = app.intentar(r) {
         app.estado = m;
     }
+}
+
+/// Menú de operaciones de ruta (separar, unir, empalmar) y de viviendas (numerar, validar).
+fn rutas_y_viviendas(app: &mut App, ui: &mut egui::Ui) {
+    let id = ui.scope_id().with("rutas_viv");
+    let (mut s, mut prefijo, mut solo_vacios): (f64, String, bool) =
+        ui.data_mut(|d| d.get_temp(id)).unwrap_or((0.0, "V-".into(), false));
+    let hay_eje = app.doc.eje.is_some();
+    let largo = app.doc.eje.as_deref().map(|e| *suite_motor::geo::progresivas_eje(e).last().unwrap_or(&0.0)).unwrap_or(0.0);
+    let cambio_eje = |app: &mut App, r: Result<(), String>, msg: String| {
+        if app.intentar(r).is_some() {
+            app.calculo = None;
+            app.estado = msg;
+        }
+    };
+    egui::containers::menu::MenuButton::new("Rutas y viviendas ▾")
+        .config(egui::containers::menu::MenuConfig::new().close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside))
+        .ui(ui, |ui| {
+            ui.add_enabled_ui(hay_eje, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Progresiva");
+                    ui.add(egui::DragValue::new(&mut s).range(0.0..=largo).suffix(" m").speed(1.0));
+                });
+                if ui.button("Separar el eje aquí…").on_hover_text("El proyecto conserva 0..s; el resto se guarda como otra ruta (CSV este,norte). Se quitan estructuras y cruces después del corte.").clicked() {
+                    if let Some(f) = rfd::FileDialog::new().set_file_name("ruta_resto.csv").add_filter("CSV", &["csv"]).save_file() {
+                        let r = app.doc.separar_eje(s).and_then(|resto| {
+                            let txt = std::iter::once("este,norte".to_string()).chain(resto.iter().map(|p| format!("{:.3},{:.3}", p[0], p[1]))).collect::<Vec<_>>().join("\n");
+                            std::fs::write(&f, txt + "\n").map_err(|e| format!("{}: {e}", f.display()))
+                        });
+                        cambio_eje(app, r, format!("Eje separado en {s:.2} m; el resto se guardó en {}", f.display()));
+                        ui.close();
+                    }
+                }
+                for (texto, empalme) in [("Unir una ruta al final…", false), ("Empalmar una ruta en la progresiva…", true)] {
+                    if ui.button(texto).on_hover_text("DXF, CSV, KML, GPX o XLS; se orienta por el extremo más cercano").clicked() {
+                        if let Some(f) = rfd::FileDialog::new().add_filter("Ruta", &["dxf", "csv", "kml", "gpx", "xls", "xlsx"]).pick_file() {
+                            let r = suite_motor::documento::leer_eje(&f, None).and_then(|o| app.doc.unir_eje(&o, empalme.then_some(s)));
+                            cambio_eje(app, r, format!("Ruta {} {} — pulse Procesar / Calcular", f.display(), if empalme { "empalmada" } else { "unida" }));
+                            ui.close();
+                        }
+                    }
+                }
+            });
+            ui.separator();
+            ui.add_enabled_ui(!app.doc.catastro.is_empty(), |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Prefijo");
+                    ui.add(egui::TextEdit::singleline(&mut prefijo).desired_width(50.0));
+                    ui.checkbox(&mut solo_vacios, "solo sin nombre");
+                });
+                if ui.button("Numerar viviendas").on_hover_text("En orden de progresiva sobre el eje, o por filas (norte a sur, oeste a este) si no hay eje").clicked() {
+                    let n = app.doc.numerar_predios(&prefijo, solo_vacios);
+                    let av = suite_motor::catastro::validar(&app.doc.catastro, 1.0);
+                    app.estado = format!("{n} vivienda(s) numerada(s); {}", if av.is_empty() { "validación sin observaciones".into() } else { av.join("; ") });
+                    ui.close();
+                }
+                if ui.button("Validar viviendas").on_hover_text("Sin nombre, repetidas, polígonos degenerados y superpuestos").clicked() {
+                    let av = suite_motor::catastro::validar(&app.doc.catastro, 1.0);
+                    app.estado = if av.is_empty() { format!("{} viviendas sin observaciones", app.doc.catastro.len()) } else { format!("{} observación(es): {}", av.len(), av.join("; ")) };
+                    ui.close();
+                }
+            });
+        });
+    ui.data_mut(|d| d.insert_temp(id, (s, prefijo, solo_vacios)));
 }
