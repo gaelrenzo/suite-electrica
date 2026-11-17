@@ -152,7 +152,7 @@ Estado de la migración a Rust y validación contra los comerciales:
 
 ## 🗺️ Hoja de ruta
 
-Lo que falta para estar a la par de la suite comercial, según sus manuales de usuario.
+Lo que falta para estar a la par de la suite comercial, según sus manuales de usuario. Comparación función por función y mejoras priorizadas: [`docs/COMPARACION_ESOLUTIONS.md`](docs/COMPARACION_ESOLUTIONS.md).
 
 **TopoCraft**
 - [x] Importar CSV, DXF, KML, GPX, MapSource, Excel RLT y TPG
