@@ -537,6 +537,58 @@ impl Documento {
         Ok(())
     }
 
+    /// Perfil longitudinal directo (RLT ACUMULADA/ANGULO de REDLIN/TOPOMAGIC o `.tpg`), sin nube de
+    /// puntos: el eje es el de la ruta y la topografía es una franja de ±1 m con la cota de cada
+    /// estación, así el TIN reproduce el perfil (lineal entre estaciones). Devuelve las estaciones.
+    /// ponytail: la franja es angosta a propósito; no sirve para curvas de nivel ni para cruces
+    /// alejados del eje (para eso importe la nube de puntos).
+    pub fn importar_perfil(&mut self, ruta: &Path, nombre: Option<&str>) -> Result<usize, String> {
+        let (p, mut eje) = entrada::leer_perfil_ruta(ruta, nombre)?;
+        // sin coordenadas reales (.tpg o RLT sin Este/Norte) el eje sale en coordenadas locales desde
+        // (0, 0): se desplaza a un origen UTM válido para que la limpieza no descarte los puntos
+        let local = eje.iter().any(|q| q[0] < entrada::RANGO_ESTE.0 || q[1] < entrada::RANGO_NORTE.0);
+        if local {
+            for q in &mut eje {
+                *q = [q[0] + 500_000.0, q[1] + 1_000_000.0];
+            }
+        }
+        if eje.len() < 2 {
+            return Err(format!("{}: el perfil necesita al menos 2 vértices", ruta.display()));
+        }
+        let largo = *progresivas_eje(&eje).last().unwrap_or(&0.0);
+        let mut pts = Vec::with_capacity(p.progresiva.len() * 3);
+        for i in 0..p.progresiva.len() {
+            let s = p.progresiva[i].clamp(0.0, largo);
+            let a = crate::geo::punto_en_progresiva(&eje, (s - 0.5).max(0.0));
+            let b = crate::geo::punto_en_progresiva(&eje, (s + 0.5).min(largo));
+            let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+            let l = dx.hypot(dy).max(1e-9);
+            let (nx, ny) = (-dy / l, dx / l);
+            let c = crate::geo::punto_en_progresiva(&eje, s);
+            for (k, d) in [(0, 0.0), (1, 1.0), (2, -1.0)] {
+                pts.push(Punto {
+                    punto: format!("P{}{}", i + 1, ["", "I", "D"][k]),
+                    este: c[0] + d * nx,
+                    norte: c[1] + d * ny,
+                    cota: p.cota[i],
+                    descripcion: "PERFIL".into(),
+                });
+            }
+        }
+        let n = p.progresiva.len();
+        self.puntos = pts;
+        self.eje = Some(eje);
+        self.estructuras.clear();
+        self.cambio_topografia();
+        let r = nombre.filter(|x| !x.is_empty()).map(|x| format!(", ruta {x}")).unwrap_or_default();
+        let f = format!("Perfil importado de {}{r} ({n} estaciones)", ruta.file_name().map(|x| x.to_string_lossy()).unwrap_or_default());
+        match self.fuentes.iter_mut().find(|(k, _)| k == "topografia") {
+            Some(x) => x.1 = f,
+            None => self.fuentes.push(("topografia".into(), f)),
+        }
+        Ok(n)
+    }
+
     /// Separa el eje en la progresiva `s`: el proyecto conserva 0..s (y las estructuras y cruces hasta
     /// ahí) y se devuelve el tramo s..fin para guardarlo como otra ruta.
     pub fn separar_eje(&mut self, s: f64) -> Result<Vec<[f64; 2]>, String> {
@@ -738,6 +790,17 @@ impl Documento {
             met.push(f.0);
         }
         r.avisos.extend(cat.avisos());
+        if l.condicion_final == "creep" && self.conductor.curva_creep.is_empty() {
+            r.avisos.insert(
+                0,
+                format!(
+                    "ATENCIÓN: condición final «creep» sin curva de creep del conductor {}: el estado final se calcula igual \
+                     que el inicial y las flechas finales salen menores (despejes optimistas). Ingrese las curvas σ(ε) del \
+                     fabricante en «Conductor» o cambie la condición final.",
+                    self.conductor.nombre
+                ),
+            );
+        }
         let hay_sistema = cat.armados.iter().any(|a| a.fases.unwrap_or(3.0) as i64 == l.fases && a.neutro == l.neutro);
         if !hay_sistema {
             r.avisos.push(format!(
@@ -888,6 +951,47 @@ impl Documento {
         if self.pila.len() > 50 {
             self.pila.remove(0);
         }
+    }
+
+    /// Reemplaza las estructuras por una lista `progresiva[;tipo[;armado]]` (una por línea; separador
+    /// `;` o tabulación; progresiva en m o como `1+322.00`). Inicio, fin y vértices del eje se agregan
+    /// si faltan. Devuelve cuántas quedaron.
+    pub fn fijar_estructuras(&mut self, texto: &str) -> Result<usize, String> {
+        let acum = self.acumuladas();
+        let l = *acum.last().ok_or("El proyecto no tiene eje de línea")?;
+        let mut nuevas: Vec<FilaEstructura> = Vec::new();
+        for (k, linea) in texto.lines().enumerate() {
+            let c: Vec<&str> = linea.split(|ch| ch == ';' || ch == '\t').map(str::trim).collect();
+            if c[0].is_empty() || c[0].starts_with('#') {
+                continue;
+            }
+            let s = leer_progresiva(c[0]).ok_or(format!("Línea {}: progresiva inválida «{}»", k + 1, c[0]))?;
+            if !(-TOL_VERTICE..=l + TOL_VERTICE).contains(&s) {
+                return Err(format!("Línea {}: {s:.2} m está fuera del eje (0 a {l:.2} m)", k + 1));
+            }
+            let mut e = FilaEstructura::en(redondear(s.clamp(0.0, l), 3));
+            if let Some(t) = c.get(1).filter(|t| !t.is_empty()) {
+                Tipo::desde_str(&t.to_uppercase()).map_err(|_| format!("Línea {}: tipo inválido «{t}»", k + 1))?;
+                e.tipo = t.to_uppercase();
+            }
+            if let Some(a) = c.get(2).filter(|a| !a.is_empty()) {
+                e.armado = a.to_string();
+            }
+            nuevas.push(e);
+        }
+        for a in acum {
+            if !nuevas.iter().any(|e| (e.progresiva_m - a).abs() <= TOL_VERTICE) {
+                nuevas.push(FilaEstructura::en(redondear(a, 3)));
+            }
+        }
+        nuevas.sort_by(|a, b| a.progresiva_m.partial_cmp(&b.progresiva_m).unwrap());
+        if let Some(w) = nuevas.windows(2).find(|w| w[1].progresiva_m - w[0].progresiva_m < SEPARACION_MIN) {
+            return Err(format!("Dos estructuras a menos de {SEPARACION_MIN} m ({:.2} y {:.2} m)", w[0].progresiva_m, w[1].progresiva_m));
+        }
+        self.apilar();
+        self.estructuras = nuevas;
+        self.modificado = true;
+        Ok(self.estructuras.len())
     }
 
     fn ordenar(&mut self) {
@@ -1490,4 +1594,13 @@ pub fn metrado_amortiguadores(tabla: &[Vec<String>], r: &Resultado, p: &Proyecto
         cantidad: total,
     };
     Ok(Some((fila, fuentes.join("; "))))
+}
+
+/// Progresiva en metros (`1322.5` o `1322,5`) o en formato `1+322.50`.
+pub fn leer_progresiva(t: &str) -> Option<f64> {
+    let t = t.trim().replace(',', ".");
+    match t.split_once('+') {
+        Some((km, m)) => Some(km.trim().parse::<f64>().ok()? * 1000.0 + m.trim().parse::<f64>().ok()?),
+        None => t.parse().ok(),
+    }
 }

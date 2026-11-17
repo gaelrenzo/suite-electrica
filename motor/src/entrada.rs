@@ -867,7 +867,10 @@ fn col(enc: &[String], claves: &[&str]) -> Option<usize> {
 pub fn leer_xls_utm(ruta: &Path) -> Result<(Vec<Punto>, Vec<Ruta>), String> {
     let (formato, enc, filas) = rlt(ruta)?;
     if formato != "UTM" {
-        return Err(format!("{}: formato RLT '{formato}'; use leer_perfil_tabular", nombre_archivo(ruta)));
+        return Err(format!(
+            "{}: es un perfil RLT '{formato}' (progresiva y cota), no puntos: use «Importar perfil (RLT/TPG)…»",
+            nombre_archivo(ruta)
+        ));
     }
     let get = |f: &Vec<calamine::Data>, k: Option<usize>| k.and_then(|k| f.get(k)).cloned().unwrap_or(calamine::Data::Empty);
     let (cn, cv, cx, cy, cz, cc) =
@@ -1153,4 +1156,81 @@ pub fn leer_plantilla_lamina(ruta: &Path) -> Result<Vec<ElementoPlantilla>, Stri
         return Err(format!("{}: la plantilla no tiene líneas ni textos", ruta.display()));
     }
     Ok(out)
+}
+
+/// Nombres de las rutas de un perfil RLT ACUMULADA/ANGULO (un `.tpg` tiene una sola, sin nombre).
+pub fn rutas_perfil_tabular(ruta: &Path) -> Result<Vec<String>, String> {
+    let ext = ruta.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
+    if ext == "tpg" {
+        return Ok(vec![String::new()]);
+    }
+    let (formato, enc, filas) = rlt(ruta)?;
+    if !formato.contains("ACUMULADA") {
+        return Err(format!("{}: formato RLT '{formato}' no es ACUMULADA/ANGULO", nombre_archivo(ruta)));
+    }
+    let cn = col(&enc, &["nombre"]);
+    Ok(filas.iter().filter_map(|f| cn.and_then(|k| f.get(k)).and_then(celda_texto)).filter(|t| !t.trim().is_empty()).collect())
+}
+
+/// Perfil de la ruta `nombre` (por defecto la primera) de un RLT ACUMULADA/ANGULO, o de un `.tpg`.
+/// Si el RLT trae Este/Norte en los vértices, el eje usa esas coordenadas reales (las progresivas
+/// siguen siendo las de la tabla); si no, se arma con los ángulos como `leer_perfil_tabular`.
+pub fn leer_perfil_ruta(ruta: &Path, nombre: Option<&str>) -> Result<(Perfil, Vec<[f64; 2]>), String> {
+    let ext = ruta.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default();
+    if ext == "tpg" {
+        return leer_perfil_tabular(ruta);
+    }
+    let (formato, enc, filas) = rlt(ruta)?;
+    if !formato.contains("ACUMULADA") {
+        return Err(format!("{}: formato RLT '{formato}' no es ACUMULADA/ANGULO", nombre_archivo(ruta)));
+    }
+    let cn = col(&enc, &["nombre"]);
+    let nombre_de = |f: &Vec<calamine::Data>| cn.and_then(|k| f.get(k)).and_then(celda_texto).filter(|t| !t.trim().is_empty());
+    let inicios: Vec<usize> = (0..filas.len()).filter(|&i| nombre_de(&filas[i]).is_some()).collect();
+    let i0 = match nombre {
+        None => inicios.first().copied().unwrap_or(0),
+        Some(n) => *inicios
+            .iter()
+            .find(|&&i| nombre_de(&filas[i]).is_some_and(|t| t.trim() == n.trim()))
+            .ok_or_else(|| format!("{}: no hay una ruta llamada {n:?}", nombre_archivo(ruta)))?,
+    };
+    let i1 = inicios.iter().copied().find(|&i| i > i0).unwrap_or(filas.len());
+    let filas = &filas[i0..i1];
+    let get = |f: &Vec<calamine::Data>, k: Option<usize>| k.and_then(|k| f.get(k)).cloned().unwrap_or(calamine::Data::Empty);
+    let (ca, cz, cg, cv) = (col(&enc, &["acumulada"]), col(&enc, &["altitud"]), col(&enc, &["ngulo"]), col(&enc, &["rtice"]));
+    let (ce, cno) = (col(&enc, &["este"]), col(&enc, &["norte"]));
+    let prog: Vec<f64> = filas.iter().map(|f| celda_num(&get(f, ca))).collect();
+    let cota: Vec<f64> = filas.iter().map(|f| celda_num(&get(f, cz))).collect();
+    let ang: Vec<f64> = filas
+        .iter()
+        .map(|f| match get(f, cg) {
+            calamine::Data::Empty => Ok(f64::NAN),
+            calamine::Data::Float(x) => Ok(x),
+            calamine::Data::Int(x) => Ok(x as f64),
+            d => angulo_grados(&celda_texto(&d).unwrap_or_default()),
+        })
+        .collect::<Result<_, _>>()?;
+    let vert: Vec<bool> = filas.iter().map(|f| !celda_texto(&get(f, cv)).unwrap_or_default().trim().is_empty()).collect();
+    if prog.len() < 2 || prog.iter().chain(&cota).any(|x| x.is_nan()) {
+        return Err(format!("{}: la ruta necesita al menos 2 filas con acumulada y altitud", nombre_archivo(ruta)));
+    }
+    let (mut p, eje) = perfil_de_tabla(&prog, &cota, &ang, &vert);
+    // coordenadas reales de los vértices, si las trae
+    let xy: Vec<Option<[f64; 2]>> = filas
+        .iter()
+        .map(|f| {
+            let (x, y) = (celda_num(&get(f, ce)), celda_num(&get(f, cno)));
+            (x.is_finite() && y.is_finite()).then_some([x, y])
+        })
+        .collect();
+    let idx: Vec<usize> = (0..p.tipo.len()).filter(|&i| p.tipo[i] == crate::geo::VERTICE).collect();
+    if idx.iter().all(|&i| xy[i].is_some()) {
+        let sv: Vec<f64> = idx.iter().map(|&i| prog[i]).collect();
+        let xs: Vec<f64> = idx.iter().map(|&i| xy[i].unwrap()[0]).collect();
+        let ys: Vec<f64> = idx.iter().map(|&i| xy[i].unwrap()[1]).collect();
+        p.este = prog.iter().map(|&s| crate::geo::interp(s, &sv, &xs)).collect();
+        p.norte = prog.iter().map(|&s| crate::geo::interp(s, &sv, &ys)).collect();
+        return Ok((p, idx.iter().map(|&i| xy[i].unwrap()).collect()));
+    }
+    Ok((p, eje))
 }

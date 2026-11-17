@@ -115,6 +115,7 @@ fn exportar_topo(app: &mut App) {
 }
 
 pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
+    elegir_ruta_perfil(app, &ui.ctx().clone());
     egui::Panel::left("topo_datos").resizable(true).default_size(300.0).show(ui, |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
             ui.heading("Datos");
@@ -124,6 +125,12 @@ pub fn panel_topo(app: &mut App, ui: &mut egui::Ui) {
                 }
                 if ui.button("Importar eje…").clicked() {
                     importar_eje(app);
+                }
+                if ui.button("Importar perfil (RLT/TPG)…")
+                    .on_hover_text("Perfil longitudinal de REDLIN/TOPOMAGIC: Excel RLT ACUMULADA/ANGULO (elige la ruta) o .tpg. Reemplaza puntos y eje.")
+                    .clicked()
+                {
+                    importar_perfil(app, ui.ctx());
                 }
                 if ui.add_enabled(app.doc.eje.is_some(), egui::Button::new("Invertir eje"))
                     .on_hover_text("El fin pasa a ser el inicio; las progresivas de estructuras y cruces se convierten (L − s)")
@@ -991,4 +998,51 @@ fn rutas_y_viviendas(app: &mut App, ui: &mut egui::Ui) {
             });
         });
     ui.data_mut(|d| d.insert_temp(id, (s, prefijo, solo_vacios)));
+}
+
+/// Ruta elegida de un perfil RLT con varias rutas: (archivo, nombres).
+type PerfilPendiente = (std::path::PathBuf, Vec<String>);
+
+fn importar_perfil(app: &mut App, ctx: &egui::Context) {
+    let Some(r) = rfd::FileDialog::new().add_filter("Perfil (RLT ACUMULADA, TPG)", &["xls", "xlsx", "tpg"]).pick_file() else { return };
+    match suite_motor::entrada::rutas_perfil_tabular(&r) {
+        Ok(n) if n.len() > 1 => { ctx.data_mut(|d| d.insert_temp(egui::Id::unique("perfil_pendiente"), Some((r, n) as PerfilPendiente))); }
+        Ok(n) => {
+            let nombre = n.first().filter(|x| !x.is_empty()).cloned();
+            cargar_perfil(app, &r, nombre.as_deref());
+        }
+        Err(e) => app.error = Some(e),
+    }
+}
+
+fn cargar_perfil(app: &mut App, r: &Path, nombre: Option<&str>) {
+    let res = app.doc.importar_perfil(r, nombre);
+    if let Some(n) = app.intentar(res) {
+        app.calculo = None;
+        let l = app.doc.eje.as_deref().map(|e| *suite_motor::geo::progresivas_eje(e).last().unwrap_or(&0.0)).unwrap_or(0.0);
+        app.estado = format!("Perfil de {l:.2} m con {n} estaciones{} — pulse Procesar / Calcular", nombre.map(|x| format!(" ({x})")).unwrap_or_default());
+    }
+}
+
+fn elegir_ruta_perfil(app: &mut App, ctx: &egui::Context) {
+    let id = egui::Id::unique("perfil_pendiente");
+    let Some((r, nombres)) = ctx.data(|d| d.get_temp::<Option<PerfilPendiente>>(id)).flatten() else { return };
+    let mut abierto = true;
+    let mut elegido: Option<String> = None;
+    egui::Window::new("Elegir ruta del perfil").open(&mut abierto).show(ctx, |ui| {
+        ui.label(format!("{} trae {} rutas:", r.file_name().map(|x| x.to_string_lossy()).unwrap_or_default(), nombres.len()));
+        egui::ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
+            for (i, n) in nombres.iter().enumerate() {
+                if ui.button(format!("{:02}  {n}", i + 1)).clicked() {
+                    elegido = Some(n.clone());
+                }
+            }
+        });
+    });
+    if let Some(n) = elegido {
+        ctx.data_mut(|d| d.remove::<Option<PerfilPendiente>>(id));
+        cargar_perfil(app, &r, Some(&n));
+    } else if !abierto {
+        ctx.data_mut(|d| d.remove::<Option<PerfilPendiente>>(id));
+    }
 }

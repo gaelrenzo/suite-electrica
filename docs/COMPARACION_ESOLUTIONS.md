@@ -134,3 +134,36 @@ ahorra en un proyecto como el LP Capachica–Llachón; al final la comodidad.
 - Autodiseño de conductores y caída de tensión en MT: REDCAD no los tiene; la suite los valida
   con cálculo a mano y con la fórmula de la DGE/MEM-DEP 501.
 - Robot supervisor: cubierto por la revisión automática del diseño.
+
+## Comparación en pantalla REDLIN 2023 ↔ LineCraft (18/11)
+
+Ruta 10 «Minas de Hualapampa 2» del ejemplo `SER-ejemplo.len` (2 791,53 m, 9 estructuras, AAAC 50,
+monofásico), cargada en ambos programas manejando sus interfaces. De REDLIN se exportaron la topografía
+(RLT ACUMULADA/ANGULO), la configuración, los suministros y la planilla de estructuras.
+
+| Qué | Resultado |
+|---|---|
+| Perfil importado | igual: 2 791,53 m y las mismas cotas de terreno en las 9 estructuras |
+| Tiro en máximo esfuerzo, estado inicial (vano 446,89 m) | 480,57 vs 479,16 kgf (+0,3 %) |
+| Parámetro en máximo esfuerzo, final con creep, vano largo (446,89 m) | 1 773 vs 1 762 m (+0,6 %) |
+| Ídem, vanos cortos (140-240 m) | +3 % a +7 % (la suite más tensa) |
+| Comparador sobre los 256 vanos del ejemplo | mediana 0,58 % (vanos solos), p90 8,4 %: diferencia abierta en vanos cortos |
+
+Corregido a partir de esta prueba:
+- **Importar perfil (RLT/TPG)** en TopoCraft: el perfil de REDLIN/TOPOMAGIC (RLT ACUMULADA/ANGULO con
+  selector de ruta, o `.tpg`) ya no exige nube de puntos; usa las coordenadas reales de los vértices
+  si el RLT las trae. Antes «Importar puntos» con ese RLT daba un error de programador.
+- **Estructuras en progresivas…** (pegar `progresiva;tipo;armado`) y progresiva editable en la planilla:
+  antes solo se podían mover arrastrando.
+- **Curvas σ(ε) inicial y de creep** del conductor en la interfaz, y aviso si la condición final es
+  «creep» sin curva: antes el creep no se aplicaba en silencio (flechas finales ~6 % menores en el
+  ejemplo, despejes optimistas).
+
+Diferencias de función que siguen:
+- **EDS por vano**: REDLIN deja fijar el templado de cada vano (en el ejemplo, 14 % en los vanos de
+  864,5 y 715,11 m); la suite usa un EDS para todo el proyecto. Cambia flechas y vano peso (E-07 sale
+  con arrancamiento en la suite y no en REDLIN).
+- **Vano flojo** en la salida de una derivación (REDLIN no tensa el primer vano de 10,61 m).
+- Estado final con creep en vanos cortos: +3 a +8 % de tensión frente a REDLIN (causa no aislada).
+- Al abrir la app sin plantilla, el proyecto vacío trae tiro máximo 40 % y zona 19S (la plantilla
+  dice 60 %); hay que partir de «Nuevo proyecto».

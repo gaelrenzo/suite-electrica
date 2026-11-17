@@ -86,6 +86,8 @@ fn flujo_completo_como_la_app() {
     let c = doc.asignar_catalogos(true).unwrap();
     l.extend(volcar(&doc, &c, "asignado"));
 
+    // aviso agregado solo en Rust (creep sin curva del conductor): no existe en la referencia Python
+    l.retain(|x| !x.contains("sin curva de creep"));
     let esperado: Vec<&str> = include_str!("documento.txt").lines().filter(|x| !x.is_empty()).collect();
     for (k, (a, b)) in l.iter().zip(&esperado).enumerate() {
         assert!(iguales(a, b), "línea {}:\n  rust   {a}\n  python {b}", k + 1);

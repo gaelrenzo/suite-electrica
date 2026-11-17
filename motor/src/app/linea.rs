@@ -294,6 +294,35 @@ fn datos(app: &mut App, ui: &mut egui::Ui) {
             ui.label("Fuente");
             ch |= ui.text_edit_singleline(&mut c.fuente).changed();
             ui.end_row();
+            for (t, curva, ayuda) in [
+                ("Curva inicial σ(ε)", &mut c.curva_inicial, "Coeficientes a0;a1;a2;a3;a4 del polinomio σ = a0 + a1·ε + … (σ en kg/mm², ε en %), del fabricante. Vacío = elástica."),
+                ("Curva creep σ(ε)", &mut c.curva_creep, "Coeficientes a0;a1;a2;a3;a4 de la curva después de fluencia lenta (10 años), del fabricante. Vacío = sin creep."),
+            ] {
+                ui.label(t);
+                let id = egui::Id::unique(("curva", t));
+                let actual = curva.iter().map(|x| x.to_string()).collect::<Vec<_>>().join(";");
+                let mut txt = ui.data(|d| d.get_temp::<String>(id)).unwrap_or_else(|| actual.clone());
+                let r = ui.add(egui::TextEdit::singleline(&mut txt).hint_text("a0;a1;a2;a3;a4").desired_width(200.0)).on_hover_text(ayuda);
+                if r.changed() {
+                    ui.data_mut(|d| d.insert_temp(id, txt.clone()));
+                }
+                if r.lost_focus() {
+                    ui.data_mut(|d| d.remove::<String>(id));
+                    let nuevo: Option<Vec<f64>> = txt
+                        .split(';')
+                        .map(str::trim)
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.replace(',', ".").parse::<f64>().ok())
+                        .collect();
+                    if let Some(v) = nuevo.filter(|v| v.is_empty() || v.len() >= 2) {
+                        if *curva != v {
+                            *curva = v;
+                            ch = true;
+                        }
+                    }
+                }
+                ui.end_row();
+            }
         });
         if ch {
             c.seccion = v[0] * 1e-6;
@@ -523,7 +552,22 @@ fn planilla(app: &mut App, ui: &mut egui::Ui) {
                 if ui.selectable_label(seleccion == Some(i), rr.map(|x| x.codigo()).unwrap_or_else(|| format!("E-{:02}", i + 1))).clicked() {
                     seleccion = Some(i);
                 }
-                ui.label(formato_progresiva(e.progresiva_m, 2)).on_hover_text(if bloq { "Inicio, fin o vértice: fija" } else { "Arrastre en el perfil para mover" });
+                if bloq {
+                    ui.label(formato_progresiva(e.progresiva_m, 2)).on_hover_text("Inicio, fin o vértice: fija");
+                } else {
+                    let id = egui::Id::unique(("prog", i));
+                    let mut t = ui.data(|d| d.get_temp::<String>(id)).unwrap_or_else(|| formato_progresiva(e.progresiva_m, 2));
+                    let r = ui.add(egui::TextEdit::singleline(&mut t).desired_width(80.0)).on_hover_text("Escriba la progresiva (m o 1+322.00) o arrastre en el perfil");
+                    if r.changed() {
+                        ui.data_mut(|d| d.insert_temp(id, t.clone()));
+                    }
+                    if r.lost_focus() {
+                        ui.data_mut(|d| d.remove::<String>(id));
+                        if let Some(s) = suite_motor::documento::leer_progresiva(&t).filter(|s| (s - e.progresiva_m).abs() > 1e-6) {
+                            cambio = Some((i, "progresiva", s.to_string()));
+                        }
+                    }
+                }
                 for (campo, valor, opciones) in [("tipo", &e.tipo, TIPOS.iter().map(|s| s.to_string()).collect::<Vec<_>>()), ("armado", &e.armado, armados.clone()), ("poste", &e.poste, postes.clone())] {
                     if campo == "armado" {
                         ui.label(rr.map(|x| x.tipo.como_str()).unwrap_or(""));
@@ -551,12 +595,17 @@ fn planilla(app: &mut App, ui: &mut egui::Ui) {
     });
     app.linea.seleccion = seleccion;
     if let Some((i, campo, v)) = cambio {
-        let r = app.doc.cambiar_estructura(i, campo, &v);
+        let r = if campo == "progresiva" {
+            app.doc.mover_estructura(i, v.parse().unwrap_or(0.0)).map(|_| ())
+        } else {
+            app.doc.cambiar_estructura(i, campo, &v)
+        };
         editar(app, r);
     }
 }
 
 pub fn panel(app: &mut App, ui: &mut egui::Ui) {
+    ventana_lista_estructuras(app, &ui.ctx().clone());
     egui::Panel::left("linea_datos").resizable(true).default_size(360.0).show(ui, |ui| {
         egui::ScrollArea::vertical().show(ui, |ui| {
             ui.horizontal_wrapped(|ui| {
@@ -566,6 +615,10 @@ pub fn panel(app: &mut App, ui: &mut egui::Ui) {
                 if ui.button("Ubicar automático").on_hover_text("Reubica todas las estructuras y asigna catálogos").clicked() {
                     let r = app.doc.ubicar_automatico();
                     poner(app, r, "Ubicación automática");
+                }
+                if ui.button("Estructuras en progresivas…").on_hover_text("Pegar una lista progresiva[;tipo[;armado]] (p. ej. desde la planilla de REDLIN)").clicked() {
+                    let t: String = app.doc.estructuras.iter().map(|e| format!("{:.2};{};{}\n", e.progresiva_m, e.tipo, e.armado)).collect();
+                    ui.ctx().data_mut(|d| d.insert_temp(egui::Id::unique("lista_estructuras"), Some(t)));
                 }
                 if ui.button("Estructuras mínimas").on_hover_text("Solo inicio, fin y vértices del eje").clicked() {
                     let r = app.doc.estructuras_minimas();
@@ -788,4 +841,28 @@ fn ventana_amortiguadores(app: &mut App, ctx: &egui::Context) -> bool {
     });
     st.amort_abierto = abierto;
     cambio
+}
+
+/// Ventana «Estructuras en progresivas»: lista editable que reemplaza las estructuras.
+fn ventana_lista_estructuras(app: &mut App, ctx: &egui::Context) {
+    let id = egui::Id::unique("lista_estructuras");
+    let Some(mut t) = ctx.data(|d| d.get_temp::<Option<String>>(id)).flatten() else { return };
+    let mut abierto = true;
+    let mut aplicar = false;
+    egui::Window::new("Estructuras en progresivas").open(&mut abierto).default_width(420.0).show(ctx, |ui| {
+        ui.label(egui::RichText::new("Una estructura por línea: progresiva[;tipo[;armado]] (m o 1+322.00; tipo FIN, ANCLAJE, ANGULO o SUSPENSION; vacío = automático). Inicio, fin y vértices se agregan si faltan. Ctrl+Z deshace.").small());
+        egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
+            ui.add(egui::TextEdit::multiline(&mut t).desired_rows(14).code_editor().desired_width(f32::INFINITY));
+        });
+        aplicar = ui.button("Aplicar").clicked();
+    });
+    if aplicar {
+        let r = app.doc.fijar_estructuras(&t);
+        if let Some(n) = app.intentar(r) {
+            app.estado = format!("{n} estructuras ubicadas — pulse Calcular (F6)");
+            app.calculo = None;
+            abierto = false;
+        }
+    }
+    ctx.data_mut(|d| d.insert_temp(id, if abierto { Some(t) } else { None }));
 }
