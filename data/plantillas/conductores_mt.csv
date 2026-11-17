@@ -1,8 +1,10 @@
-# Conductores de la red primaria (MT). Mismo formato que conductores_bt.csv: K vacío -> K = r cos φ + x sen φ.
-# EJEMPLO: r de la aleación 6201 a 20 °C (ρ = 0,0328 Ω·mm²/m), x por fórmula con DMG = 1,20 m y RMG = 0,726·radio
-# (7 hilos); diámetros aproximados. Reemplazar por la ficha del fabricante y la DMG real del armado.
+# Conductores de la red primaria (MT). K vacío -> K = r cos φ + x sen φ.
+# r: resistencia a 40 °C y x: reactancia X1 (sistema trifásico, DMG = 1,20 m) del Cuadro N° 6.1 de la
+# DGE/MEM-DEP 501; la norma usa la resistencia a la temperatura de operación (§6.2.1). Para otra DMG o
+# sistemas monofásicos use X2/X3 del Cuadro N° 6.2.
 formacion,k_ohm_km,r_ohm_km,x_ohm_km,k_ap_ohm_km,r_ap_ohm_km,corriente_max_A,fases,fuente
-AAAC 25,,1.3120,0.4722,,,,3,EJEMPLO: r = ρ/S, x = 2π·60·2e-7·ln(DMG/RMG) con DMG 1.2 m y d 6.3 mm
-AAAC 35,,0.9371,0.4591,,,,3,EJEMPLO: r = ρ/S, x = 2π·60·2e-7·ln(DMG/RMG) con DMG 1.2 m y d 7.5 mm
-AAAC 50,,0.6560,0.4453,,,,3,EJEMPLO: r = ρ/S, x = 2π·60·2e-7·ln(DMG/RMG) con DMG 1.2 m y d 9.0 mm
-AAAC 70,,0.4686,0.4337,,,,3,EJEMPLO: r = ρ/S, x = 2π·60·2e-7·ln(DMG/RMG) con DMG 1.2 m y d 10.5 mm
+AAAC 25,,1.469,0.47,,,,3,"DGE/MEM-DEP 501 Cuadro N° 6.1 (R a 40 °C; X1 trifásico con DMG 1,20 m)"
+AAAC 35,,1.036,0.45,,,,3,"DGE/MEM-DEP 501 Cuadro N° 6.1 (R a 40 °C; X1 trifásico con DMG 1,20 m)"
+AAAC 50,,0.719,0.44,,,,3,"DGE/MEM-DEP 501 Cuadro N° 6.1 (R a 40 °C; X1 trifásico con DMG 1,20 m)"
+AAAC 70,,0.544,0.43,,,,3,"DGE/MEM-DEP 501 Cuadro N° 6.1 (R a 40 °C; X1 trifásico con DMG 1,20 m)"
+AAAC 95,,0.384,0.41,,,,3,"DGE/MEM-DEP 501 Cuadro N° 6.1 (R a 40 °C; X1 trifásico con DMG 1,20 m)"

@@ -475,7 +475,7 @@ impl Documento {
     pub fn importar_catastro(&mut self, ruta: &Path) -> Result<usize, String> {
         self.catastro = entrada::predios_dxf(ruta)?;
         if !self.fuentes.iter().any(|(k, _)| k == "ancho_servidumbre_m") {
-            self.fuentes.push(("ancho_servidumbre_m".into(), "EJEMPLO: citar el ancho de la faja de servidumbre del CNE Suministro para la tensión de la línea".into()));
+            self.fuentes.push(("ancho_servidumbre_m".into(), "CNE Suministro 2011, Regla 219.B.2 y Tabla 219: 11 m para 20–36 kV (22,9 kV); para otra tensión use su fila, y si el desplazamiento por viento da más, el mayor (219.B.4)".into()));
         }
         self.modificado = true;
         Ok(self.catastro.len())
@@ -1368,7 +1368,7 @@ pub fn tabla_cruces(c: &[FilaCruce]) -> crate::salidas::Tabla {
     }
 }
 
-/// Ancho de faja de servidumbre por defecto (m): valor de EJEMPLO, el usuario cita el del CNE.
+/// Ancho de faja de servidumbre por defecto (m): CNE Suministro 2011, Tabla 219, 20–36 kV (22,9 kV).
 pub const ANCHO_SERVIDUMBRE_EJEMPLO: f64 = 11.0;
 
 // ------------------------------------------------------------------ amortiguadores

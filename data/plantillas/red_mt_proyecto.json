@@ -19,7 +19,7 @@
   "factor_sobrecarga": 1.0,
   "fuentes": {
     "caida_max_pct": "EJEMPLO: citar la caída máxima admisible en MT (NTCSE / Código Nacional de Electricidad)",
-    "fp_sp": "EJEMPLO: factor de potencia de las cargas",
-    "conductores": "EJEMPLO: ver conductores_mt.csv"
+    "fp_sp": "DGE/MEM-DEP 501 §6.1: factor de potencia 0,90 (atraso)",
+    "conductores": "DGE/MEM-DEP 501 Cuadro N° 6.1 (ver conductores_mt.csv)"
   }
 }

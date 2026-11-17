@@ -444,7 +444,7 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      y CIM-ELI (m³) al rubro RS o LP; sus precios van en `montaje.csv` (si faltan, PresuCraft
      avisa «costo 0»).
    - LineCraft: hoja «Cimentaciones» en la planilla.
-4. **Release:** ✅ `v0.2.3` (17/11/2026: cuelgue con nubes grandes y franja SRTM, editor de puntos, invertir eje, amortiguadores, revisión del diseño, rehacer, varias redes). Antes `v0.2.2` (17/11/2026: retenidas de biposte y transporte por origen como REDLIN y PRESIO, alerta H/w). Antes `v0.2.1` y `v0.2.0`. `v0.1.0-rust` se volvió a subir
+4. **Release:** ✅ `v0.2.4` (17/11/2026: valores normativos citados de la DGE/MEM-DEP 501 y el CNE 2011). Antes `v0.2.3` (17/11/2026: cuelgue con nubes grandes y franja SRTM, editor de puntos, invertir eje, amortiguadores, revisión del diseño, rehacer, varias redes). Antes `v0.2.2` (17/11/2026: retenidas de biposte y transporte por origen como REDLIN y PRESIO, alerta H/w). Antes `v0.2.1` y `v0.2.0`. `v0.1.0-rust` se volvió a subir
    varias veces con el mismo nombre (último build: `4f13cf6`); desde ahora cada build publicado
    lleva un número de versión nuevo y el README enlaza a `releases/latest`.
 5. **Brechas con ESOLUTIONS de la primera lista:** ✅ todas tienen una primera versión.
@@ -566,9 +566,26 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      distribuye estructuras y suministros desde los lotes, manual cap. 6.1) y su reporte de caída de
      tensión es solo de baja tensión, así que la red primaria y el autodiseño de la suite quedan
      validados solo con sus pruebas (cálculo a mano en `tests/red_primaria.rs`).
-4. **Valores de EJEMPLO** que hay que reemplazar por los de una fuente citada (norma DGE, CNE o
-   fabricante): faja de servidumbre de 11 m; conductores AAAC de MT (r, x y DMG de 1,20 m); tabla
-   de cimentaciones; hipótesis I-V, EDS de 18 % y tiro máximo de 40 %.
+4. **Valores normativos** (17/11, verificados en los PDF que entregó el autor):
+   - ✅ Faja de servidumbre 11 m: CNE Suministro 2011, Regla 219.B.2 y Tabla 219 (20–36 kV), con
+     la salvedad de 219.B.4 (si el desplazamiento por viento da más, el mayor).
+   - ✅ Conductores de línea AAAC 25-95: DGE/MEM-DEP 501 §4.2.2 (n.° y Ø de alambres, Ø exterior,
+     masa, E final 60 760 N/mm², rotura 295,8 N/mm² × sección). La ficha Nexans de 34,4 mm² que se
+     entregó es AS 1531 (Nueva Zelanda, otra aleación, 8,18 kN ≈ 238 N/mm²) y **no** se usó: la DGE
+     §4.2.1 exige ASTM B398/B399 o IEC 1089 (la ficha Nexans de 39,25 mm², ASTM B399, da 317 N/mm²,
+     coherente). El AAAC 35 de la plantilla pasó de E 58 860 a 60 760 N/mm² y de 10,199 a 10,164 kN.
+   - ✅ Conductores de red primaria: DGE/MEM-DEP 501 Cuadro N° 6.1, R a 40 °C (la norma usa la
+     resistencia a la temperatura de operación, §6.2.1) y X1 con DMG 1,20 m. `tests/red_primaria.rs`
+     comprueba que el %ΔV de la suite es el de la fórmula de la norma (§6.2.2, ΔV % = K1·P·L con
+     K1 = 2,387e-4 del Cuadro N° 6.2 para 35 mm²).
+   - ✅ EDS inicial 18 % (final 15 %, referencial sin amortiguadores): DGE §4.3.1. Tiro máximo:
+     **60 %** del de rotura para AAAC (DGE §4.3.2; antes la plantilla tenía 40 % sin fuente).
+   - Pendientes por ser del proyecto, no genéricos: temperaturas, viento y hielo de las hipótesis
+     (la DGE §4.4 fija las seis hipótesis; los valores salen de la zona del CNE), la distancia mínima
+     al terreno (CNE Regla 232, según la superficie y el tipo de cruce) y las cimentaciones (la DGE
+     pide calcularlas para el terreno y las cargas del proyecto: la tabla queda de EJEMPLO).
+   - La prueba Python `test_nuevo_proyecto_desde_plantilla` cuenta ahora los parámetros que siguen
+     PENDIENTE en la plantilla (antes suponía que lo estaban todos).
 5. **Brechas con ESOLUTIONS según sus manuales** (también en la hoja de ruta del README):
    - TopoCraft: numeración y validación de viviendas; ortofotos georreferenciadas como fondo;
      edición de rutas (proyectar, unir); códigos de campo (CTU). ✅ Invertir eje (17/11): botón

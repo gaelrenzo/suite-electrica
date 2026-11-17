@@ -3634,7 +3634,7 @@ dependencies = [
 
 [[package]]
 name = "suite_motor"
-version = "0.2.3"
+version = "0.2.4"
 dependencies = [
  "calamine",
  "csv",

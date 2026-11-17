@@ -1,4 +1,9 @@
-# Catálogo de conductores. PENDIENTE_REVISION: verificar cada fila contra la ficha técnica del fabricante.
-# AAAC 35: valores del proyecto académico Capachica (memoria_calculo_mecanico.md, sección 1), que cita NTP 370.258 / ASTM B399.
+# Catálogo de conductores de línea: AAAC (ASTM B398/B399, DGE/MEM-DEP 501 §4.2.1) con las características
+# mecánicas normalizadas de la DGE/MEM-DEP 501 §4.2.2. Verifique con la ficha del fabricante del suministro.
+# La primera fila es el conductor por defecto de los proyectos nuevos.
 nombre,seccion_mm2,diametro_mm,masa_kg_m,carga_rotura_kN,modulo_elasticidad_MPa,coef_dilatacion_1_C,fuente
-AAAC 35,34.36,7.50,0.0945,10.199,58860,23.0e-6,PENDIENTE_REVISION: proyecto Capachica (NTP 370.258 / ASTM B399)
+AAAC 35,34.36,7.5,0.094,10.164,60760,23.0e-6,"DGE/MEM-DEP 501 §4.2.2 (sección = n·π·d²/4; rotura = 295,8 N/mm² × sección; E final 60 760 N/mm²)"
+AAAC 25,24.25,6.3,0.067,7.172,60760,23.0e-6,"DGE/MEM-DEP 501 §4.2.2 (sección = n·π·d²/4; rotura = 295,8 N/mm² × sección; E final 60 760 N/mm²)"
+AAAC 50,49.48,9.0,0.135,14.636,60760,23.0e-6,"DGE/MEM-DEP 501 §4.2.2 (sección = n·π·d²/4; rotura = 295,8 N/mm² × sección; E final 60 760 N/mm²)"
+AAAC 70,65.81,10.5,0.181,19.466,60760,23.0e-6,"DGE/MEM-DEP 501 §4.2.2 (sección = n·π·d²/4; rotura = 295,8 N/mm² × sección; E final 60 760 N/mm²)"
+AAAC 95,93.27,12.5,0.25,27.588,60760,23.0e-6,"DGE/MEM-DEP 501 §4.2.2 (sección = n·π·d²/4; rotura = 295,8 N/mm² × sección; E final 60 760 N/mm²)"

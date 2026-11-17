@@ -148,7 +148,12 @@ def test_nuevo_proyecto_desde_plantilla(tmp_path):
     doc.saveas(destino / "eje.dxf")
     r = calcular(proyecto.cargar(destino / "proyecto.json"))
     assert len(r.estructuras) >= 2
-    assert sum("PENDIENTE_REVISION" in a for a in r.avisos) == len(proyecto.PARAMETROS_NORMATIVOS)
+    # un aviso por cada parámetro normativo cuya fuente sigue PENDIENTE en la plantilla (los demás
+    # ya citan la DGE/MEM-DEP 501)
+    fuentes = json.loads((destino / "proyecto.json").read_text(encoding="utf-8"))["fuentes"]
+    pendientes = [k for k in proyecto.PARAMETROS_NORMATIVOS if "PENDIENTE" in fuentes.get(k, "PENDIENTE").upper()]
+    assert 0 < len(pendientes) < len(proyecto.PARAMETROS_NORMATIVOS)
+    assert sum("PENDIENTE_REVISION" in a for a in r.avisos) == len(pendientes)
     assert main(["nuevo", str(destino)]) == 0  # no sobrescribe
 
 
