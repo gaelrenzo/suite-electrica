@@ -42,6 +42,10 @@ pub struct Armado {
     pub neutro: bool,
     /// Postes por estructura (`None` = 1; 2 = biposte en H).
     pub postes: Option<f64>,
+    /// Vano peso máximo de la estructura (m), «prestación» como en REDLIN (vacío = no se verifica).
+    pub vano_peso_max_m: Option<f64>,
+    /// Carga máxima por fase en el brazo de la cruceta (N), del fabricante (vacío = no se verifica).
+    pub carga_max_cruceta_n: Option<f64>,
 }
 
 impl Armado {
@@ -141,6 +145,8 @@ impl Catalogos {
                     fases: numero(f, "fases"),
                     neutro: numero(f, "neutro").is_some_and(|v| v != 0.0),
                     postes: numero(f, "postes"),
+                    vano_peso_max_m: numero(f, "vano_peso_max_m"),
+                    carga_max_cruceta_n: numero(f, "carga_max_cruceta_n"),
                 })
                 .collect(),
             retenidas: leer_csv(retenidas)?

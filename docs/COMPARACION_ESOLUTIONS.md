@@ -11,7 +11,7 @@ equivalente) · ◐ parcial · ✗ falta.
 
 | Programa | Cálculo | Funciones | Lo que más falta |
 |---|---|---|---|
-| REDLIN | ✅ mismas cifras (catenaria, flechado, creep, cargas, postes, biposte H, terminal a media línea) | ◐ | Alertas de arrancamiento, cruceta y vano peso; plantilla de planos con bloques; terminales de derivación (TS) |
+| REDLIN | ✅ mismas cifras (catenaria, flechado, creep, cargas, postes, biposte H, terminal a media línea) | ◐ | Plantilla de planos con bloques; esquemas de aislamiento; terminales de derivación (TS) |
 | REDCAD | ✅ caída de tensión BT, metrado, materiales | ◐ | Autodistribución BT desde lotes, capas, catastro como geodata, plantillas DXF |
 | PRESIO | ✅ APU, fórmula polinómica, transporte | ◐ | Base de precios por región y desagregado de gastos generales |
 | TOPOMAGIC | sin comparar (validado contra la versión Python) | ◐ | Numeración de viviendas, ortofotos, vías, unir/separar rutas, códigos de campo |
@@ -31,10 +31,10 @@ equivalente) · ◐ parcial · ✗ falta.
 | Alerta despeje al terreno, vista semáforo (fig. 27) | sí | ✔ | alerta DMS y colores en el perfil |
 | Alerta separación horizontal a medio vano (fig. 29) | sí | ✔ | alerta H |
 | Alerta fuerzas longitudinales (fig. 31) | sí | ✔ | FS poste (L) |
-| **Alerta fuerzas verticales positivas** (fig. 33) | sí | ✗ | arrancamiento: vano peso negativo en estructuras bajas |
+| Alerta fuerzas verticales positivas (fig. 33) | sí | ✔ | S↑ con aislador rígido o en suspensión; exceso como % del vano peso máximo del armado |
 | Alerta rotura de espiga (fig. 35) | sí | ✔ | carga máx. por espiga |
-| **Alerta rotura de cruceta** (fig. 37) | sí | ✗ | requiere la carga de rotura de cada cruceta en el catálogo |
-| **Alerta de vano peso** (fig. 39) | sí | ✗ | límite de vano peso por armado |
+| Alerta rotura de cruceta (fig. 37) | sí | ✔ | Cr: fuerza por fase contra `carga_max_cruceta_n` del armado (dato del fabricante) |
+| Alerta de vano peso (fig. 39) | sí | ✔ | P↓: contra `vano_peso_max_m` del armado |
 | Vibraciones eólicas y amortiguadores (§9.5, fig. 41) | CIGRE TB 273 | ✔ | alerta H/w y L·D/m; amortiguadores por tabla del fabricante |
 | Esquemas de aislamiento y ensambles (fig. 25) | sí | ✗ | proyección de ensambles-aislador y oscilación de cadenas |
 | Distancias de seguridad a cruces | sí | ✔ | tabla de cruces con fuente del CNE |
@@ -109,12 +109,8 @@ Criterio: primero lo que cambia resultados o la seguridad del diseño; después 
 ahorra en un proyecto como el LP Capachica–Llachón; al final la comodidad.
 
 ### Prioridad 1: verificaciones que faltan (seguridad del diseño)
-1. **Arrancamiento (fuerzas verticales positivas)**: alerta cuando el vano peso de una estructura
-   queda negativo o bajo el mínimo en alguna hipótesis (típico en hondonadas). El vano peso ya se
-   calcula; falta la alerta y el umbral con su fuente.
-2. **Rotura de cruceta**: columna de carga de rotura en el catálogo de crucetas o armados y
-   verificación de la fuerza por fase, como la de espiga.
-3. **Vano peso máximo por armado**: límite en el catálogo de armados y alerta.
+1. ✅ Arrancamiento, rotura de cruceta y vano peso máximo (18/11; prueba `tests/alertas_armado.rs`).
+   Los límites de cruceta y vano peso van en el catálogo de armados con la fuente del fabricante.
 4. **Terminales de derivación (TS)**: pedir el ángulo de la derivación y combinar las cargas
    (ya existe `derivaciones.rs`); validar con REDLIN mientras dure la demo.
 

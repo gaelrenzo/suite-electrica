@@ -596,6 +596,12 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      alrededor del centroide, opcionalmente también del eje (`Documento::transformar_puntos`,
      prueba `tests/puntos_transformar.rs`). Revisado en pantalla: 2 601 puntos girados 30° con
      el eje, perfil sin cambios.
+   - LineCraft: ✅ alertas de cruceta (Cr), vano peso máximo (P↓) y arrancamiento en suspensión (18/11):
+     columnas nuevas `vano_peso_max_m` y `carga_max_cruceta_n` en el catálogo de armados (vacías = no
+     se verifica; el dato es del fabricante). El arrancamiento (S↑) se revisa con aislador rígido o en
+     estructuras de suspensión (antes solo rígido; las cadenas de anclaje trabajan horizontales) y,
+     con vano peso máximo, su exceso es % de ese máximo como en REDLIN. Paridad con Python intacta.
+     Prueba `tests/alertas_armado.rs`.
    - LineCraft: ✅ amortiguadores por vano (17/11; tabla «Amortiguadores por vano…» en el `.sel`
      con vano_hasta_m, cantidad_por_conductor y fuente del fabricante; el vano usa la primera fila
      que lo cubre y el total entra al metrado como AMORT, también hacia PresuCraft; prueba

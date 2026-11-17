@@ -201,18 +201,36 @@ pub fn alertas(
             );
         }
         let Some(arm) = cat.and_then(|c| c.armado(&e.armado)) else { continue };
-        if !arm.aislador.eq_ignore_ascii_case("RIGIDO") {
-            continue;
-        }
-        if let Some(c) = ce.iter().copied().filter(|c| c.vano_peso < 0.0).fold(None::<&crate::linea::Cargas>, |m, c| {
+        // arrancamiento: el conductor tira hacia arriba (vano peso negativo). Con aislador rígido (se
+        // desamarra) o en suspensión (la cadena se voltea); las cadenas de anclaje trabajan
+        // horizontales. Con vano peso máximo del armado, el exceso es el vano negativo como % de ese
+        // máximo (como REDLIN), si no, sin magnitud permisible (∞)
+        let expuesto = arm.aislador.eq_ignore_ascii_case("RIGIDO") || e.tipo == crate::linea::Tipo::Suspension;
+        if let Some(c) = ce.iter().copied().filter(|c| expuesto && c.vano_peso < 0.0).fold(None::<&crate::linea::Cargas>, |m, c| {
             if m.map_or(true, |m| c.vano_peso < m.vano_peso) { Some(c) } else { m }
         }) {
-            add(
-                e.codigo(),
-                "S↑",
-                f64::INFINITY,
-                format!("vano peso {:.1} m en {} (arrancamiento)", c.vano_peso, c.hipotesis),
-            );
+            let ex = arm.vano_peso_max_m.filter(|v| *v > 0.0).map_or(f64::INFINITY, |vmax| (100.0 * -c.vano_peso / vmax).max(1e-6));
+            add(e.codigo(), "S↑", ex, format!("vano peso {:.1} m en {} (arrancamiento)", c.vano_peso, c.hipotesis));
+        }
+        // vano peso máximo del armado (prestación)
+        if let Some(vmax) = arm.vano_peso_max_m.filter(|v| *v > 0.0) {
+            if let Some(c) = ce.iter().copied().max_by(|a, b| a.vano_peso.partial_cmp(&b.vano_peso).unwrap()) {
+                add(e.codigo(), "P↓", exceso(c.vano_peso, vmax), format!("vano peso {:.1} m > {} m del armado ({})", c.vano_peso, fmt_g(vmax), c.hipotesis));
+            }
+        }
+        // cruceta: fuerza por fase (vertical y longitudinal) en el brazo contra la carga máxima
+        if let Some(lim) = arm.carga_max_cruceta_n.filter(|v| *v > 0.0) {
+            let n = p.n_conductores as f64;
+            if let Some((f, c)) = ce
+                .iter()
+                .map(|c| (c.vertical.max(0.0).hypot(c.longitudinal) / n, c))
+                .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
+            {
+                add(e.codigo(), "Cr", exceso(f, lim), format!("cruceta: {f:.0} N por fase > {lim:.0} N ({})", c.hipotesis));
+            }
+        }
+        if !arm.aislador.eq_ignore_ascii_case("RIGIDO") {
+            continue;
         }
         let n_ais = arm.aisladores_por_fase.unwrap_or(1.0);
         if cfg.tiro_max_espiga != 0.0 && !ce.is_empty() {
