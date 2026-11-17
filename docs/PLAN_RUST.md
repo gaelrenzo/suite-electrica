@@ -601,16 +601,26 @@ Comparar con los programas comerciales (reportes exportados de ellos; no se sube
      prueba `tests/puntos_transformar.rs`). Revisado en pantalla: 2 601 puntos girados 30° con
      el eje, perfil sin cambios.
    - LineCraft: ✅ alertas de cruceta (Cr), vano peso máximo (P↓) y arrancamiento en suspensión (18/11):
-     columnas nuevas `vano_peso_max_m` y `carga_max_cruceta_n` en el catálogo de armados (vacías = no
-     se verifica; el dato es del fabricante). El arrancamiento (S↑) se revisa con aislador rígido o en
+     columnas `vano_peso_max_m` y `cruceta_t_n`/`cruceta_f_n`/`cruceta_v_n` en el catálogo de armados
+     (vacías = no se verifica). Cr compara la fuerza por fase en cada dirección con su carga de trabajo,
+     como el marcado T-F-V de las crucetas de concreto (p. ej. Luz del Sur LE-9-016: Z/1,50/400 →
+     T 400, F 300, V 150; Z/2,40/600 → T 600, F 300, V 150; sin unidad en la lámina, FS ≥ 2; solo
+     referencia de esa empresa, no se carga en la plantilla). La plantilla trae V de las crucetas de
+     madera 90x115 mm calculado con DGE 018-2003 §5.3 (RC = Ma/Ws), MOR 50 MPa (DGE 026-2003 ETS-LP-04)
+     y FS 4 (DGE 018 §5.2): 2 254 N por fase (PS1), 4 509 N (PA1, doble cruceta), 4 723 N (PR3, PTH);
+     los H quedan vacíos (falta el brazo de la cruceta de 4,30 m). V no incluye el peso del aislador.
+     Fuentes en `C:\Users\renzo\investigacion_catalogo_armados_lineas` (README_investigacion.md).
+     Aisladores (DGE 026, datos de rotura, para `tiro_max_espiga` con el FS que fije el proyecto): pin
+     ANSI 56-2/56-3/56-4 13 kN a la flexión (ETS-LP-06); line post polimérico 10 kN flexión (ETS-LP-10);
+     suspensión porcelana/vidrio ANSI 52-3 67 kN electromecánica, 44 kN carga continua (ETS-LP-07/08);
+     polimérico de suspensión SML 70 kN, RTL 35 kN (ETS-LP-09); carrete ANSI 53-2 13,3 kN (ETS-LP-11). El arrancamiento (S↑) se revisa con aislador rígido o en
      estructuras de suspensión (antes solo rígido; las cadenas de anclaje trabajan horizontales) y,
      con vano peso máximo, su exceso es % de ese máximo como en REDLIN. Paridad con Python intacta.
      Prueba `tests/alertas_armado.rs`.
    - LineCraft: ✅ amortiguadores por vano (17/11; tabla «Amortiguadores por vano…» en el `.sel`
      con vano_hasta_m, cantidad_por_conductor y fuente del fabricante; el vano usa la primera fila
      que lo cubre y el total entra al metrado como AMORT, también hacia PresuCraft; prueba
-     `tests/amortiguadores.rs`); verificación de crucetas y
-     esquemas de aisladores; ◐ planos con plantilla del usuario (18/11: `plantilla_lamina.dxf` junto al
+     `tests/amortiguadores.rs`); ✅ verificación de crucetas T-F-V (18/11); esquemas de aisladores; ◐ planos con plantilla del usuario (18/11: `plantilla_lamina.dxf` junto al
       proyecto reemplaza el marco y cajetín propios en todos los planos; faltan los bloques INSERT). ✅ Vibraciones eólicas, criterio H/w
      de CIGRE TB 273 (prueba `tests/vibraciones_hw.rs`): parámetro «H/w máx.» en las alertas
      (0 = no verificar; el límite según la categoría de terreno lo pone el usuario con su fuente,

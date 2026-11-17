@@ -33,7 +33,7 @@ equivalente) · ◐ parcial · ✗ falta.
 | Alerta fuerzas longitudinales (fig. 31) | sí | ✔ | FS poste (L) |
 | Alerta fuerzas verticales positivas (fig. 33) | sí | ✔ | S↑ con aislador rígido o en suspensión; exceso como % del vano peso máximo del armado |
 | Alerta rotura de espiga (fig. 35) | sí | ✔ | carga máx. por espiga |
-| Alerta rotura de cruceta (fig. 37) | sí | ✔ | Cr: fuerza por fase contra `carga_max_cruceta_n` del armado (dato del fabricante) |
+| Alerta rotura de cruceta (fig. 37) | sí | ✔ | Cr: fuerza por fase en T, F y V contra la carga de trabajo de la cruceta; V de las crucetas de madera DGE por DGE 018 §5.3 |
 | Alerta de vano peso (fig. 39) | sí | ✔ | P↓: contra `vano_peso_max_m` del armado |
 | Vibraciones eólicas y amortiguadores (§9.5, fig. 41) | CIGRE TB 273 | ✔ | alerta H/w y L·D/m; amortiguadores por tabla del fabricante |
 | Esquemas de aislamiento y ensambles (fig. 25) | sí | ✗ | proyección de ensambles-aislador y oscilación de cadenas |
@@ -110,7 +110,7 @@ ahorra en un proyecto como el LP Capachica–Llachón; al final la comodidad.
 
 ### Prioridad 1: verificaciones que faltan (seguridad del diseño)
 1. ✅ Arrancamiento, rotura de cruceta y vano peso máximo (18/11; prueba `tests/alertas_armado.rs`).
-   Los límites de cruceta y vano peso van en el catálogo de armados con la fuente del fabricante.
+   Los límites de cruceta (T-F-V) y vano peso van en el catálogo de armados con su fuente.
 4. **Terminales de derivación (TS)**: pedir el ángulo de la derivación y combinar las cargas
    (ya existe `derivaciones.rs`); validar con REDLIN mientras dure la demo.
 

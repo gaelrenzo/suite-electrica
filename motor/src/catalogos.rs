@@ -44,8 +44,12 @@ pub struct Armado {
     pub postes: Option<f64>,
     /// Vano peso máximo de la estructura (m), «prestación» como en REDLIN (vacío = no se verifica).
     pub vano_peso_max_m: Option<f64>,
-    /// Carga máxima por fase en el brazo de la cruceta (N), del fabricante (vacío = no se verifica).
-    pub carga_max_cruceta_n: Option<f64>,
+    /// Carga de trabajo de la cruceta por fase (N) en cada dirección, como las marca el fabricante
+    /// (T-F-V): T horizontal perpendicular a la cruceta (longitudinal de la línea), F a lo largo de la
+    /// cruceta (transversal de la línea) y V vertical. Vacío = esa dirección no se verifica.
+    pub cruceta_t_n: Option<f64>,
+    pub cruceta_f_n: Option<f64>,
+    pub cruceta_v_n: Option<f64>,
 }
 
 impl Armado {
@@ -146,7 +150,9 @@ impl Catalogos {
                     neutro: numero(f, "neutro").is_some_and(|v| v != 0.0),
                     postes: numero(f, "postes"),
                     vano_peso_max_m: numero(f, "vano_peso_max_m"),
-                    carga_max_cruceta_n: numero(f, "carga_max_cruceta_n"),
+                    cruceta_t_n: numero(f, "cruceta_t_n"),
+                    cruceta_f_n: numero(f, "cruceta_f_n"),
+                    cruceta_v_n: numero(f, "cruceta_v_n"),
                 })
                 .collect(),
             retenidas: leer_csv(retenidas)?

@@ -218,16 +218,21 @@ pub fn alertas(
                 add(e.codigo(), "P↓", exceso(c.vano_peso, vmax), format!("vano peso {:.1} m > {} m del armado ({})", c.vano_peso, fmt_g(vmax), c.hipotesis));
             }
         }
-        // cruceta: fuerza por fase (vertical y longitudinal) en el brazo contra la carga máxima
-        if let Some(lim) = arm.carga_max_cruceta_n.filter(|v| *v > 0.0) {
-            let n = p.n_conductores as f64;
-            if let Some((f, c)) = ce
-                .iter()
-                .map(|c| (c.vertical.max(0.0).hypot(c.longitudinal) / n, c))
-                .max_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
-            {
-                add(e.codigo(), "Cr", exceso(f, lim), format!("cruceta: {f:.0} N por fase > {lim:.0} N ({})", c.hipotesis));
-            }
+        // cruceta: fuerza por fase en cada dirección (T longitudinal, F transversal, V vertical) contra
+        // su carga de trabajo; se informa la dirección más cargada respecto de su límite.
+        // ponytail: V es solo el peso del conductor (sin aislador ni herrajes); T y F suponen la
+        // cruceta perpendicular a la línea o en la bisectriz del ángulo
+        let n = p.n_conductores as f64;
+        let peor = ce
+            .iter()
+            .flat_map(|c| {
+                [("T", c.longitudinal, arm.cruceta_t_n), ("F", c.transversal, arm.cruceta_f_n), ("V", c.vertical.max(0.0), arm.cruceta_v_n)]
+                    .into_iter()
+                    .filter_map(move |(d, f, lim)| lim.filter(|l| *l > 0.0).map(|l| (d, f / n, l, c)))
+            })
+            .max_by(|a, b| (a.1 / a.2).partial_cmp(&(b.1 / b.2)).unwrap());
+        if let Some((d, f, lim, c)) = peor {
+            add(e.codigo(), "Cr", exceso(f, lim), format!("cruceta {d}: {f:.0} N por fase > {lim:.0} N ({})", c.hipotesis));
         }
         if !arm.aislador.eq_ignore_ascii_case("RIGIDO") {
             continue;

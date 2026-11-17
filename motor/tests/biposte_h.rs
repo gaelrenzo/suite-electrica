@@ -101,13 +101,13 @@ fn linea_con_biposte() {
 fn plantillas_con_columnas_fijas() {
     // un campo con coma sin comillas desplaza las columnas (pandas lo rechaza)
     let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("data").join("plantillas");
-    for (archivo, n) in [("materiales.csv", 5), ("armados.csv", 14)] {
+    for (archivo, n) in [("materiales.csv", 5), ("armados.csv", 17)] {
         let t = std::fs::read_to_string(base.join(archivo)).unwrap();
         let limpio = t.lines().filter(|l| !l.starts_with('#')).collect::<Vec<_>>().join("\n");
         let mut rd = csv::ReaderBuilder::new().flexible(true).from_reader(limpio.as_bytes());
         for (k, r) in rd.records().enumerate() {
             let r = r.unwrap();
-            assert!(r.len() == n || (archivo == "armados.csv" && r.len() == n - 1), "{archivo} fila {}: {} campos", k + 2, r.len());
+            assert!(r.len() == n, "{archivo} fila {}: {} campos", k + 2, r.len());
         }
     }
 }

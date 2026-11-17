@@ -9,12 +9,14 @@ fn con_limites(doc: &mut Documento, vano_peso: &str, cruceta: &str) {
     let t = doc.catalogos.get_mut("armados").unwrap();
     let (iv, ic) = (
         t.columnas.iter().position(|c| c == "vano_peso_max_m").unwrap(),
-        t.columnas.iter().position(|c| c == "carga_max_cruceta_n").unwrap(),
+        t.columnas.iter().position(|c| c == "cruceta_v_n").unwrap(),
     );
+    let it = t.columnas.iter().position(|c| c == "cruceta_t_n").unwrap();
     for f in &mut t.filas {
         f.resize(t.columnas.len(), String::new());
         f[iv] = vano_peso.into();
         f[ic] = cruceta.into();
+        f[it] = cruceta.into();
     }
 }
 
@@ -25,6 +27,8 @@ fn alertas_de_vano_peso_y_cruceta() {
     doc.calcular().unwrap();
     // catálogos de la plantilla (como «Cargar catálogos de la plantilla») y armados asignados
     doc.catalogos = Documento::nuevo().catalogos;
+    // sin límites: se borran los V de la plantilla (DGE 018 §5.3) para probar «no se verifica»
+    con_limites(&mut doc, "", "");
     let base = doc.asignar_catalogos(false).unwrap();
     let cuenta = |c: &suite_motor::documento::Calculo, k: &str| c.alertas.iter().filter(|a| a.codigo == k).count();
     assert_eq!((cuenta(&base, "P↓"), cuenta(&base, "Cr")), (0, 0), "sin límites no se verifica");

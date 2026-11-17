@@ -173,7 +173,8 @@ Lo que falta para estar a la par de la suite comercial, según sus manuales de u
 - [x] Terminal a media línea
 - [x] Vibraciones eólicas: criterio H/w (CIGRE 273)
 - [x] Amortiguadores por vano (tabla del fabricante, al metrado)
-- [ ] Verificación de crucetas y esquemas de aisladores
+- [x] Verificación de crucetas por dirección (T-F-V); V de las crucetas de madera DGE calculado (DGE 018 §5.3)
+- [ ] Esquemas de aisladores
 - [x] Planos con plantilla del usuario (`plantilla_lamina.dxf` junto al proyecto, en mm de papel; campos `{PROYECTO}`, `{PLANO}`, `{LAMINA}`, `{ESCALA}`, `{FECHA}`)
 - [ ] Bloques del usuario (INSERT) en postes y retenidas
 
